@@ -287,10 +287,10 @@ export default function App() {
     orderBtn: { border: "none", background: th.primaryBtn, color: "#fff", padding: "14px 20px", borderRadius: 16, fontSize: 14, fontWeight: 900, cursor: "pointer", minWidth: 140, boxShadow: `0 8px 20px ${th.primaryBtn}44`, fontFamily: "inherit" },
     iconBtn: { width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, background: th.iconBtnBg, fontSize: 16, color: th.iconBtnColor, border: "none", cursor: "pointer" },
     addBtn: { border: "none", background: "#111827", color: "#fff", borderRadius: 12, padding: "9px 12px", cursor: "pointer", fontWeight: 800, fontSize: 12, fontFamily: "inherit", transition: "all .15s" },
-    backBtn: { ...({}) , width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, fontSize: 18, border: "none", cursor: "pointer" },
+    backBtn: { width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, fontSize: 18, border: "none", cursor: "pointer" },
   };
 
-  const globalStyle = `@keyframes floatBike{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-50%,calc(-50% - 8px))}} @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}} @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}} *{box-sizing:border-box}`;
+  const globalStyle = `@keyframes floatBike{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-50%,calc(-50% - 8px))}} @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}} @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}} *{box-sizing:border-box} body,html{margin:0;padding:0}`;
 
   // ======= TRACKING PAGE =======
   if (page === "tracking") {
@@ -310,7 +310,6 @@ export default function App() {
           <div style={{ background: "linear-gradient(135deg,#fff7ed,#ffedd5)", border: "1px solid #fdba74", color: "#9a3412", padding: "12px 14px", borderRadius: 16, fontSize: 12, fontWeight: 800, lineHeight: 1.45 }}>
             🚧 DEMO 전용 추적 화면 · 실제 라이더와 연결되지 않습니다.
           </div>
-          {/* Map */}
           <div style={{ background: "linear-gradient(180deg,#dff7ea 0%,#ecfeff 100%)", borderRadius: 20, padding: 18, minHeight: 220, position: "relative", overflow: "hidden", border: "1px solid #d1fae5" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.45) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.45) 1px,transparent 1px)", backgroundSize: "34px 34px", opacity: .8 }} />
             {[{ w: 240, h: 14, t: 56, l: 40, rot: "8deg" }, { w: 16, h: 180, t: 24, r: 76 }, { w: 190, h: 12, b: 54, l: 56, rot: "-18deg" }].map((rd, i) => (
@@ -323,7 +322,6 @@ export default function App() {
             <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, right: 18, bottom: 82 }}>{orderInfo?.customerName || "배달 주소"} 님</div>
             <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, left: "50%", top: "68%", transform: "translateX(-50%)" }}>{td.riderLabel}</div>
           </div>
-          {/* ETA */}
           <div style={{ background: `linear-gradient(135deg,${th.heroStart},${th.heroEnd})`, color: "#fff", borderRadius: 20, padding: 18 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
               <div>
@@ -333,7 +331,6 @@ export default function App() {
               <div style={{ background: "rgba(255,255,255,0.16)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 14, padding: "10px 12px", fontSize: 12, fontWeight: 800, whiteSpace: "nowrap" }}>{td.badge}</div>
             </div>
           </div>
-          {/* Rider */}
           <div style={css.section}>
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 4 }}>라이더 정보 🏍️</div>
             <div style={{ fontSize: 12, color: th.muted, marginBottom: 12 }}>예시 정보입니다</div>
@@ -343,7 +340,6 @@ export default function App() {
               <button style={{ border: "none", borderRadius: 12, background: "#eef2ff", color: "#3730a3", padding: "10px 12px", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>📞 연락</button>
             </div>
           </div>
-          {/* Timeline */}
           <div style={css.section}>
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>진행 상태</div>
             <div style={{ display: "grid", gap: 10 }}>
@@ -399,7 +395,6 @@ export default function App() {
           </div>
         </div>
         <div style={css.content}>
-          {/* Cart Summary */}
           <div style={css.section}>
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>주문 내역 ({cartCount}개) 🛒</div>
             <div style={{ display: "grid", gap: 8 }}>
@@ -425,7 +420,6 @@ export default function App() {
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 17, fontWeight: 900, marginTop: 4, paddingTop: 8, borderTop: `1px solid ${th.line}` }}><span>총 결제예상금액</span><strong style={{ color: th.brand }}>{fmt(totals.total)}</strong></div>
             </div>
           </div>
-          {/* Delivery Info */}
           <div style={css.section}>
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>배달 정보 🏠</div>
             <div style={{ display: "grid", gap: 10 }}>
@@ -441,7 +435,6 @@ export default function App() {
               </div>
             </div>
           </div>
-          {/* Payment */}
           <div style={css.section}>
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>결제수단 💳</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
@@ -450,7 +443,6 @@ export default function App() {
               ))}
             </div>
           </div>
-          {/* Progress */}
           {steps.some(s => s > 0) && (
             <div style={css.section}>
               <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>주문 진행 중...</div>
@@ -496,18 +488,20 @@ export default function App() {
             <button onClick={() => setTheme("mint")} style={{ ...css.iconBtn, opacity: theme === "mint" ? 1 : .55, fontWeight: theme === "mint" ? 900 : 700, fontSize: 11, borderRadius: 10, padding: "0 10px", width: "auto" }}>🌿 민트</button>
             <button onClick={() => setTheme("blue")} style={{ ...css.iconBtn, opacity: theme === "blue" ? 1 : .55, fontWeight: theme === "blue" ? 900 : 700, fontSize: 11, borderRadius: 10, padding: "0 10px", width: "auto" }}>💎 블루</button>
           </div>
-          <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", textAlign: "center" }}>
-            <div style={{ fontSize: 12, color: th.headerTextAlt }}>배달 주소</div>
-            <div style={{ fontSize: 18, fontWeight: 900 }}>우리집 ▼</div>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 11, color: th.headerTextAlt }}>배달 주소</div>
+            <div style={{ fontSize: 15, fontWeight: 900 }}>우리집 ▼</div>
           </div>
-          <div style={{ position: "relative" }}>
-            <button style={css.iconBtn}>🛒</button>
-            {cartCount > 0 && <div style={{ position: "absolute", top: -4, right: -4, background: "#ef4444", color: "#fff", fontSize: 10, fontWeight: 900, borderRadius: 99, minWidth: 18, height: 18, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>{cartCount}</div>}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ position: "relative" }}>
+              <button style={{ ...css.iconBtn, width: 32, height: 32, fontSize: 14 }}>🛒</button>
+              {cartCount > 0 && <div style={{ position: "absolute", top: -4, right: -4, background: "#ef4444", color: "#fff", fontSize: 9, fontWeight: 900, borderRadius: 99, minWidth: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px" }}>{cartCount}</div>}
+            </div>
+            <button onClick={resetAll} style={{ border: "none", borderRadius: 10, background: "rgba(255,255,255,0.14)", color: th.headerColor, padding: "6px 10px", fontWeight: 800, cursor: "pointer", fontFamily: "inherit", fontSize: 11 }}>초기화</button>
           </div>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, maxWidth: 540, margin: "0 auto" }}>
+        <div style={{ maxWidth: 540, margin: "8px auto 0" }}>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 음식점이나 메뉴를 검색해보세요" style={css.input} />
-          <button onClick={resetAll} style={{ border: "none", borderRadius: 14, background: "rgba(255,255,255,0.14)", color: th.headerColor, padding: "0 14px", fontWeight: 800, cursor: "pointer", fontFamily: "inherit", fontSize: 13 }}>초기화</button>
         </div>
       </div>
 
