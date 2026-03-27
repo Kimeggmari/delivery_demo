@@ -270,6 +270,7 @@ export default function App() {
         timersRef.current.push(setTimeout(() => setTrackState(1), 2200));
         timersRef.current.push(setTimeout(() => setTrackState(2), 4300));
         timersRef.current.push(setTimeout(() => setTrackState(3), 6400));
+        timersRef.current.push(setTimeout(() => setPage("complete"), 9000));
       }, 1200));
     }, 4600));
   };
@@ -307,6 +308,22 @@ export default function App() {
   const globalStyle = `@keyframes floatBike{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-50%,calc(-50% - 8px))}} @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}} @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}} *{box-sizing:border-box} body,html{margin:0;padding:0}`;
 
   // ======= TRACKING PAGE =======
+  // ======= COMPLETE PAGE =======
+  if (page === "complete") {
+    const savedKcal = cart.reduce((s, i) => s + (menuCalories[i.menuId] || 600) * i.qty, 0);
+    return (
+      <div style={{ ...css.wrap, alignItems: "center", justifyContent: "center", textAlign: "center", padding: "40px 24px" }}>
+        <style>{globalStyle}</style>
+        <div style={{ fontSize: 72, marginBottom: 24, animation: "pop .5s ease" }}>🎉</div>
+        <h1 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 12px", color: th.text }}>축하드립니다!</h1>
+        <div style={{ fontSize: 42, fontWeight: 900, color: th.brand, marginBottom: 8 }}>{savedKcal.toLocaleString()}kcal</div>
+        <div style={{ fontSize: 20, fontWeight: 800, color: th.text, marginBottom: 32 }}>아끼셨어요!! 🥗</div>
+        <div style={{ fontSize: 13, color: th.muted, marginBottom: 40, lineHeight: 1.6 }}>오늘도 현명한 선택을 하셨네요 😄<br />데모 주문이라 실제로는 0칼로리!</div>
+        <button onClick={resetAll} style={{ ...css.orderBtn, fontSize: 16, padding: "16px 32px" }}>🏠 처음으로</button>
+      </div>
+    );
+  }
+
   if (page === "tracking") {
     return (
       <div style={css.wrap}>
@@ -598,3 +615,4 @@ export default function App() {
     </div>
   );
 }
+
