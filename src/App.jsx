@@ -98,6 +98,20 @@ const badgeColors = {
   "최저배달비": { bg: "#fef3c7", color: "#d97706", border: "#fde68a" },
 };
 
+const menuCalories = {
+  c1: 1800, c2: 1650, c3: 320,
+  r1: 750, r2: 820, r3: 480,
+  p1: 680, p2: 620, p3: 280,
+  g1: 520, g2: 430, g3: 180,
+  h1: 550, h2: 620, h3: 700,
+  cn1: 680, cn2: 1200, cn3: 720,
+  b1: 580, b2: 420, b3: 380,
+  cf1: 10, cf2: 450, cf3: 310,
+  ml1: 750, ml2: 920, ml3: 680,
+  ic1: 520, ic2: 1200, ic3: 120,
+};
+const AVG_RESTAURANT_KCAL = 900;
+
 const sampleReviews = [
   { user: "맛집탐험가", text: "완전 맛있어요! 재주문 확정 🔥", star: 5 },
   { user: "배고픈하마", text: "양도 많고 배달도 빨라요 👍", star: 5 },
@@ -463,6 +477,17 @@ export default function App() {
                 <div key={k}><strong>{k}:</strong> {v}</div>
               ))}
               <div style={{ marginTop: 10, fontWeight: 900, color: "#166534" }}>예상 결제금액: {fmt(receiptData.total)}</div>
+              {(() => {
+                const orderedKcal = cart.reduce((s, i) => s + (menuCalories[i.menuId] || 600) * i.qty, 0);
+                return (
+                  <div style={{ marginTop: 12, padding: "12px 14px", background: "#ecfdf5", borderRadius: 12, border: "1px solid #bbf7d0", textAlign: "center" }}>
+                    <div style={{ fontSize: 20 }}>🎉</div>
+                    <div style={{ fontWeight: 900, color: "#166534", fontSize: 15, marginTop: 4 }}>
+                      축하드립니다! {orderedKcal.toLocaleString()}kcal 아끼셨습니다!
+                    </div>
+                  </div>
+                );
+              })()}
               <div style={{ fontSize: 11, color: th.muted, marginTop: 8 }}>UI 시뮬레이션입니다. 실제 결제·주문·배달은 발생하지 않습니다.</div>
             </div>
           )}
@@ -546,6 +571,7 @@ export default function App() {
                         <div>
                           <div style={{ fontWeight: 800, marginBottom: 3, fontSize: 14 }}>{m.name}</div>
                           <div style={{ color: th.muted, fontSize: 12 }}>{m.desc}</div>
+                          <div style={{ color: "#10b981", fontSize: 11, fontWeight: 700, marginTop: 2 }}>🔥 {(menuCalories[m.id] || 0).toLocaleString()}kcal</div>
                         </div>
                         <div style={{ display: "grid", justifyItems: "end", gap: 6 }}>
                           <div style={{ fontWeight: 900, whiteSpace: "nowrap", fontSize: 14 }}>{fmt(m.price)}</div>
