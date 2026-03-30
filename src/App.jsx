@@ -473,9 +473,9 @@ useEffect(() => {
       timersRef.current.push(setTimeout(() => {
         setOrderInfo(info); setTrackState(0); setPage("tracking");
         Array.from({ length: 15 }, (_, i) =>
-          timersRef.current.push(setTimeout(() => setTrackState(i + 1), (i + 1) * 10000))
+          timersRef.current.push(setTimeout(() => setTrackState(i + 1), (i + 1) * 5000))
         );
-        timersRef.current.push(setTimeout(() => setPage("complete"), 15 * 10000 + 2000));
+        timersRef.current.push(setTimeout(() => setPage("complete"), 15 * 5000 + 2000));
       }, 1200));
     }, 4600));
   };
