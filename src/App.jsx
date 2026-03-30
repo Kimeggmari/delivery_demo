@@ -387,8 +387,8 @@ useEffect(() => {
         id: 976548,
         template: "carousel",
         trackingCode: "AF7204416",
-        width: "680",
-        height: "75",
+        width: "320",
+        height: "100",
         tsource: "",
       });
     }
@@ -477,7 +477,7 @@ useEffect(() => {
         Array.from({ length: 12 }, (_, i) =>
           timersRef.current.push(setTimeout(() => setTrackState(i + 1), (i + 1) * 5000))
         );
-        timersRef.current.push(setTimeout(() => setPage("complete"), 15 * 5000 + 2000));
+        timersRef.current.push(setTimeout(() => setPage("complete"), 12 * 5000 + 2000));
       }, 600));
     }, 900));
   };
@@ -541,42 +541,45 @@ useEffect(() => {
         <div
           style={{
             width: "100%",
-            maxWidth: 540,
-            marginBottom: 24,
-            padding: "4px 0 0",
+            maxWidth: 360,
+            margin: "0 auto 24px",
             opacity: 0.9,
+            textAlign: "left",
           }}
         >
           <div
             style={{
-              fontSize: 11,
-              color: th.muted,
-              marginBottom: 8,
-              paddingLeft: 4,
-              textAlign: "left",
-            }}
-          >
-            추천 상품
-          </div>
-
-          <div
-            style={{
               background: "#fff",
-              borderRadius: 16,
-              padding: "10px 8px",
+              borderRadius: 18,
+              padding: "12px",
               border: "1px solid " + th.line,
-              boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
+              boxShadow: "0 6px 18px rgba(0,0,0,0.05)",
               overflow: "hidden",
             }}
           >
             <div
+              style={{
+                fontSize: 11,
+                color: th.muted,
+                marginBottom: 10,
+                paddingLeft: 2,
+                fontWeight: 700,
+              }}
+            >
+              추천 상품
+            </div>
+
+            <div
               ref={coupangRef}
               style={{
                 width: "100%",
-                minHeight: 75,
+                minHeight: 100,
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
+                borderRadius: 12,
+                overflow: "hidden",
+                background: "#fff",
               }}
             />
           </div>
