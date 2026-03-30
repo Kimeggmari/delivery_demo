@@ -119,7 +119,7 @@ const restaurants = [
   {
     id: 13, name: "엽땡떡볶이", emoji: "🌶️", time: "15~25분", rating: 4.7, reviews: 3210, fee: 2000, category: "분식", badge: "인기",
     menus: [
-      { id: "yt1", name: "엽땡 떡볶이 (1인)", desc: "중독성 있는 매콤달콤 소스", price: 9900, options: { spicy: true, size: true, toppings: ["치즈 추가+1000원", "라면사리 추가+500원", "만두 추가+1500원"] } },
+      { id: "yt1", name: "엽기 떡볶이 (1인)", desc: "중독성 있는 매콤달콤 소스", price: 9900, options: { spicy: true, size: true, toppings: ["치즈 추가+1000원", "라면사리 추가+500원", "만두 추가+1500원"] } },
       { id: "yt2", name: "로제 떡볶이 (1인)", desc: "부드럽고 크리미한 로제", price: 9900, options: { size: true, toppings: ["치즈 추가+1000원", "라면사리 추가+500원"] } },
       { id: "yt3", name: "순대 모둠", desc: "당면순대 + 떡볶이 소스", price: 6500, options: { spicy: true } },
     ],
@@ -375,6 +375,8 @@ export default function App() {
   const coupangRef = useRef(null);
 
 useEffect(() => {
+  if (page !== "complete") return;
+
   const initCoupang = () => {
     if (!coupangRef.current) return;
 
@@ -410,7 +412,7 @@ useEffect(() => {
   script.async = true;
   script.onload = initCoupang;
   document.body.appendChild(script);
-}, []);
+}, [page]);
 
   const th = themes[theme];
   const totals = calcTotals(cart);
@@ -810,17 +812,17 @@ useEffect(() => {
         />
       )}
       <div style={css.header}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12, maxWidth: 540, margin: "0 auto" }}>
-          <div style={{ display: "flex", gap: 4 }}>
+        <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, maxWidth: 540, margin: "0 auto", minHeight: 32 }}>
+          <div style={{ display: "flex", gap: 4, zIndex: 1 }}>
             {[["purple","💜"],["mint","🩵"],["blue","💙"],["pink","🩷"]].map(([key, emoji]) => (
               <button key={key} onClick={() => setTheme(key)} style={{ ...css.iconBtn, width: 32, height: 32, fontSize: 14, opacity: theme === key ? 1 : 0.5, border: theme === key ? "2px solid rgba(255,255,255,0.8)" : "2px solid transparent" }}>{emoji}</button>
             ))}
           </div>
-          <div style={{ textAlign: "center" }}>
+          <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", textAlign: "center", pointerEvents: "none", width: "max-content" }}>
             <div style={{ fontSize: 11, color: th.headerTextAlt }}>배달 주소</div>
             <div style={{ fontSize: 15, fontWeight: 900 }}>우리집 ▼</div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, zIndex: 1 }}>
             <div style={{ position: "relative" }}>
               <button style={{ ...css.iconBtn, width: 32, height: 32, fontSize: 14 }}>🛒</button>
               {cartCount > 0 && <div style={{ position: "absolute", top: -4, right: -4, background: "#ef4444", color: "#fff", fontSize: 9, fontWeight: 900, borderRadius: 99, minWidth: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px" }}>{cartCount}</div>}
