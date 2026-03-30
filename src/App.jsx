@@ -534,7 +534,52 @@ useEffect(() => {
         <h1 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 12px", color: th.text }}>축하드립니다!</h1>
         <div style={{ fontSize: 42, fontWeight: 900, color: th.brand, marginBottom: 8 }}>{savedKcal.toLocaleString()}kcal</div>
         <div style={{ fontSize: 20, fontWeight: 800, color: th.text, marginBottom: 32 }}>아끼셨어요!! 🥗</div>
-        <div style={{ fontSize: 13, color: th.muted, marginBottom: 40, lineHeight: 1.6 }}>오늘도 현명한 선택을 하셨네요 😄<br />데모 주문이라 실제로는 0칼로리!</div>
+        <div style={{ fontSize: 13, color: th.muted, marginBottom: 28, lineHeight: 1.6 }}>오늘도 현명한 선택을 하셨네요 😄<br />데모 주문이라 실제로는 0칼로리!</div>
+
+        <div
+          style={{
+            width: "100%",
+            maxWidth: 540,
+            marginBottom: 24,
+            padding: "4px 0 0",
+            opacity: 0.9,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              color: th.muted,
+              marginBottom: 8,
+              paddingLeft: 4,
+              textAlign: "left",
+            }}
+          >
+            추천 상품
+          </div>
+
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 16,
+              padding: "10px 8px",
+              border: "1px solid " + th.line,
+              boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              ref={coupangRef}
+              style={{
+                width: "100%",
+                minHeight: 75,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            />
+          </div>
+        </div>
+
         <button onClick={resetAll} style={{ ...css.orderBtn, fontSize: 16, padding: "16px 32px" }}>🏠 처음으로</button>
       </div>
     );
@@ -614,46 +659,6 @@ useEffect(() => {
             </div>
           )}
         </div>
-              <div
-        style={{
-          marginTop: 4,
-          padding: "4px 0 0",
-          opacity: 0.9,
-        }}
-      >
-        <div
-          style={{
-            fontSize: 11,
-            color: th.muted,
-            marginBottom: 8,
-            paddingLeft: 4,
-          }}
-        >
-          추천 상품
-        </div>
-
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: 16,
-            padding: "10px 8px",
-            border: "1px solid " + th.line,
-            boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            ref={coupangRef}
-            style={{
-              width: "100%",
-              minHeight: 75,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          />
-        </div>
-      </div>
 
       <div style={css.bottomBar}>
           <div style={css.bottomInner}>
@@ -727,19 +732,6 @@ useEffect(() => {
               ))}
             </div>
           </div>
-          {steps.some(s => s > 0) && (
-            <div style={css.section}>
-              <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>주문 진행 중...</div>
-              <div style={{ display: "grid", gap: 8 }}>
-                {stepLabels.map((label, i) => (
-                  <div key={i} style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 12, alignItems: "center", padding: 12, border: "1px solid " + th.line, borderRadius: 12, background: "#fbfbfc", fontSize: 13 }}>
-                    <div style={{ width: 12, height: 12, borderRadius: "50%", background: steps[i] === 2 ? th.primaryBtn : steps[i] === 1 ? "#ff6b57" : "#d1d5db", boxShadow: steps[i] === 1 ? "0 0 0 6px rgba(255,107,87,0.15)" : "none", transition: ".3s" }} />
-                    <div>{label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
           {showReceipt && receiptData && (
             <div style={{ padding: 16, borderRadius: 16, background: "linear-gradient(180deg,#f0fdf4,#fff)", border: "1px solid #bbf7d0", fontSize: 13, lineHeight: 1.6 }}>
               <h3 style={{ margin: "0 0 10px", color: "#166534", fontSize: 15 }}>✅ 데모 주문이 접수되었습니다</h3>
