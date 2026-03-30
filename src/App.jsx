@@ -380,6 +380,18 @@ export default function App() {
   const clearTimers = useCallback(() => { timersRef.current.forEach(clearTimeout); timersRef.current = []; }, []);
   useEffect(() => () => clearTimers(), [clearTimers]);
 
+  useEffect(() => {
+    const existing = document.querySelector('script[data-adsense-client="ca-pub-6184083010691370"]');
+    if (existing) return;
+
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6184083010691370";
+    script.crossOrigin = "anonymous";
+    script.setAttribute("data-adsense-client", "ca-pub-6184083010691370");
+    document.head.appendChild(script);
+  }, []);
+
   const openOption = (rid, mid) => {
     const r = restaurants.find(x => x.id === rid);
     const m = r.menus.find(x => x.id === mid);
