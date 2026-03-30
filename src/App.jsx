@@ -354,59 +354,15 @@ function OptionSheet({ menu, onClose, onConfirm, brand }) {
 }
 
 function CoupangAdCard({ th }) {
-  const adRef = useRef(null);
-  const mountedRef = useRef(false);
-  const timeoutRef = useRef(null);
-  const [adStatus, setAdStatus] = useState("loading"); // loading | ready | fail
+  const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    mountedRef.current = true;
+    const timer = setTimeout(() => {
+      setFailed(true);
+    }, 2500);
 
-    const renderAd = () => {
-      if (!adRef.current || !window.PartnersCoupang || mountedRef.current === false) return;
-
-      adRef.current.innerHTML = "";
-
-      try {
-        new window.PartnersCoupang.G({
-          id: 976548,
-          template: "carousel",
-          trackingCode: "AF7204416",
-          width: "300",
-          height: "94",
-          tsource: "",
-        });
-
-        timeoutRef.current = window.setTimeout(() => {
-          if (!mountedRef.current || !adRef.current) return;
-          const hasIframe = adRef.current.querySelector("iframe");
-          const hasContent = adRef.current.childElementCount > 0;
-          setAdStatus(hasIframe || hasContent ? "ready" : "fail");
-        }, 1800);
-      } catch (e) {
-        setAdStatus("fail");
-      }
-    };
-
-    const existingScript = document.querySelector('script[data-coupang-partners="true"]');
-
-    if (existingScript) {
-      renderAd();
-    } else {
-      const script = document.createElement("script");
-      script.src = "https://ads-partners.coupang.com/g.js";
-      script.async = true;
-      script.setAttribute("data-coupang-partners", "true");
-      script.onload = renderAd;
-      script.onerror = () => setAdStatus("fail");
-      document.body.appendChild(script);
-    }
-
-    return () => {
-      mountedRef.current = false;
-      if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
-      if (adRef.current) adRef.current.innerHTML = "";
-    };
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -416,7 +372,6 @@ function CoupangAdCard({ th }) {
         maxWidth: 340,
         margin: "0 auto 24px",
         boxSizing: "border-box",
-        opacity: 0.96,
         textAlign: "left",
       }}
     >
@@ -443,7 +398,7 @@ function CoupangAdCard({ th }) {
           추천 상품
         </div>
 
-        {adStatus === "loading" && (
+        {!loaded && !failed && (
           <div
             style={{
               height: 94,
@@ -455,15 +410,13 @@ function CoupangAdCard({ th }) {
               justifyContent: "center",
               fontSize: 12,
               color: th.muted,
-              textAlign: "center",
-              padding: "0 12px",
             }}
           >
             추천 상품 불러오는 중...
           </div>
         )}
 
-        {adStatus === "fail" && (
+        {failed && !loaded && (
           <div
             style={{
               height: 94,
@@ -473,11 +426,11 @@ function CoupangAdCard({ th }) {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              textAlign: "center",
               fontSize: 12,
               color: th.muted,
-              textAlign: "center",
-              padding: "0 12px",
               lineHeight: 1.45,
+              padding: "0 12px",
             }}
           >
             광고 차단 또는 브라우저 설정 때문에
@@ -486,14 +439,28 @@ function CoupangAdCard({ th }) {
           </div>
         )}
 
-        <div
-          ref={adRef}
-          id="coupang-ad-container"
+        <iframe
+          title="추천 상품"
+          src="https://ads-partners.coupang.com/widgets.html?id=976548&template=carousel&trackingCode=AF7204416&width=300&height=94&tsource="
+          width="300"
+          height="94"
+          frameBorder="0"
+          scrolling="no"
+          referrerPolicy="unsafe-url"
+          onLoad={() => {
+            setLoaded(true);
+            setFailed(false);
+          }}
           style={{
-            display: adStatus === "fail" ? "none" : "block",
+            display: loaded ? "block" : "none",
             width: "100%",
-            minHeight: adStatus === "ready" ? "94px" : 0,
-            textAlign: "center",
+            maxWidth: 300,
+            height: 94,
+            margin: "0 auto",
+            border: "none",
+            borderRadius: 12,
+            overflow: "hidden",
+            background: "transparent",
           }}
         />
       </div>
@@ -527,17 +494,6 @@ export default function App() {
 
   const clearTimers = useCallback(() => { timersRef.current.forEach(clearTimeout); timersRef.current = []; }, []);
   useEffect(() => () => clearTimers(), [clearTimers]);
-
-  useEffect(() => {
-    const existing = document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6184083010691370"]');
-    if (existing) return;
-
-    const script = document.createElement("script");
-    script.async = true;
-    script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6184083010691370";
-    script.crossOrigin = "anonymous";
-    document.head.appendChild(script);
-  }, []);
 
   const openOption = (rid, mid) => {
     const r = restaurants.find(x => x.id === rid);
@@ -626,7 +582,7 @@ export default function App() {
 
   const css = {
     wrap: { minHeight: "100vh", background: th.phone, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif', color: th.text, display: "flex", flexDirection: "column" },
-    header: { position: "sticky", top: 0, zIndex: 10, background: "linear-gradient(180deg," + th.headerStart + "," + th.headerEnd + ")", color: th.headerColor, padding: "14px 20px", borderBottom: "none", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" },
+    header: { position: "sticky", top: 0, zIndex: 10, background: "linear-gradient(180deg," + th.headerStart + "," + th.headerEnd + ")", color: th.headerColor, padding: "14px 20px", borderBottom: th.headerBorderBottom, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" },
     content: { flex: 1, padding: "16px 16px 100px", display: "grid", gap: 16, alignContent: "start", maxWidth: 540, width: "100%", margin: "0 auto", boxSizing: "border-box" },
     section: { background: "#fff", borderRadius: 20, padding: 16, boxShadow: th.sectionShadow },
     input: { width: "100%", padding: "14px 16px", border: "none", outline: "none", borderRadius: 14, background: "#fff", color: th.text, boxShadow: th.inputShadow, fontFamily: "inherit", fontSize: 14, boxSizing: "border-box" },
@@ -785,6 +741,7 @@ export default function App() {
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 17, fontWeight: 900, marginTop: 4, paddingTop: 8, borderTop: "1px solid " + th.line }}><span>총 결제예상금액</span><strong style={{ color: th.brand }}>{fmt(totals.total)}</strong></div>
             </div>
           </div>
+
           <div style={css.section}>
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>배달 정보 🏠</div>
             <div style={{ display: "grid", gap: 10 }}>
@@ -800,6 +757,7 @@ export default function App() {
               </div>
             </div>
           </div>
+
           <div style={css.section}>
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>결제수단 💳</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
@@ -809,6 +767,7 @@ export default function App() {
             </div>
           </div>
         </div>
+
         {showReceipt && receiptData && (
           <div
             style={{
@@ -842,6 +801,7 @@ export default function App() {
             </div>
           </div>
         )}
+
         <div style={css.bottomBar}>
           <div style={css.bottomInner}>
             <div><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>총 결제예상금액</span><br /><strong style={{ fontSize: 18, fontWeight: 900, color: th.brand }}>{fmt(totals.total)}</strong></div>
