@@ -119,7 +119,7 @@ const restaurants = [
   {
     id: 13, name: "엽땡떡볶이", emoji: "🌶️", time: "15~25분", rating: 4.7, reviews: 3210, fee: 2000, category: "분식", badge: "인기",
     menus: [
-      { id: "yt1", name: "엽기 떡볶이 (1인)", desc: "중독성 있는 매콤달콤 소스", price: 9900, options: { spicy: true, size: true, toppings: ["치즈 추가+1000원", "라면사리 추가+500원", "만두 추가+1500원"] } },
+      { id: "yt1", name: "엽땡 떡볶이 (1인)", desc: "중독성 있는 매콤달콤 소스", price: 9900, options: { spicy: true, size: true, toppings: ["치즈 추가+1000원", "라면사리 추가+500원", "만두 추가+1500원"] } },
       { id: "yt2", name: "로제 떡볶이 (1인)", desc: "부드럽고 크리미한 로제", price: 9900, options: { size: true, toppings: ["치즈 추가+1000원", "라면사리 추가+500원"] } },
       { id: "yt3", name: "순대 모둠", desc: "당면순대 + 떡볶이 소스", price: 6500, options: { spicy: true } },
     ],
