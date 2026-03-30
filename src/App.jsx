@@ -372,47 +372,6 @@ export default function App() {
   const [optionTarget, setOptionTarget] = useState(null);
   const [addedAnim, setAddedAnim] = useState(null);
   const timersRef = useRef([]);
-  const coupangRef = useRef(null);
-
-useEffect(() => {
-  if (page !== "complete") return;
-
-  const initCoupang = () => {
-    if (!coupangRef.current) return;
-
-    coupangRef.current.innerHTML = "";
-
-    if (window.PartnersCoupang?.G) {
-      new window.PartnersCoupang.G({
-        id: 976548,
-        template: "carousel",
-        trackingCode: "AF7204416",
-        width: "300",
-        height: "94",
-        tsource: "",
-      });
-    }
-  };
-
-  const existingScript = document.querySelector(
-    'script[src="https://ads-partners.coupang.com/g.js"]'
-  );
-
-  if (existingScript) {
-    if (window.PartnersCoupang?.G) {
-      initCoupang();
-    } else {
-      existingScript.addEventListener("load", initCoupang, { once: true });
-    }
-    return;
-  }
-
-  const script = document.createElement("script");
-  script.src = "https://ads-partners.coupang.com/g.js";
-  script.async = true;
-  script.onload = initCoupang;
-  document.body.appendChild(script);
-}, [page]);
 
   const th = themes[theme];
   const totals = calcTotals(cart);
@@ -570,19 +529,24 @@ useEffect(() => {
               추천 상품
             </div>
 
-            <div
-              ref={coupangRef}
+            <iframe
+              title="추천 상품"
+              src="https://ads-partners.coupang.com/widgets.html?id=976548&template=carousel&trackingCode=AF7204416&width=300&height=94&tsource="
+              width="300"
+              height="94"
+              frameBorder="0"
+              scrolling="no"
+              referrerPolicy="unsafe-url"
               style={{
+                display: "block",
                 width: "100%",
                 maxWidth: 300,
-                minHeight: 94,
+                height: 94,
                 margin: "0 auto",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
+                border: "none",
                 borderRadius: 12,
                 overflow: "hidden",
-                background: "#fff",
+                background: "transparent",
               }}
             />
           </div>
