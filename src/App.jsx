@@ -372,7 +372,7 @@ export default function App() {
   const [optionTarget, setOptionTarget] = useState(null);
   const [addedAnim, setAddedAnim] = useState(null);
   const timersRef = useRef([]);
-  const coupangRef = useRef<HTMLDivElement | null>(null);
+  const coupangRef = useRef(null);
 
 useEffect(() => {
   const initCoupang = () => {
@@ -380,8 +380,8 @@ useEffect(() => {
 
     coupangRef.current.innerHTML = "";
 
-    if ((window as any).PartnersCoupang?.G) {
-      new (window as any).PartnersCoupang.G({
+    if (window.PartnersCoupang?.G) {
+      new window.PartnersCoupang.G({
         id: 976548,
         template: "carousel",
         trackingCode: "AF7204416",
@@ -394,10 +394,10 @@ useEffect(() => {
 
   const existingScript = document.querySelector(
     'script[src="https://ads-partners.coupang.com/g.js"]'
-  ) as HTMLScriptElement | null;
+  );
 
   if (existingScript) {
-    if ((window as any).PartnersCoupang?.G) {
+    if (window.PartnersCoupang?.G) {
       initCoupang();
     } else {
       existingScript.addEventListener("load", initCoupang, { once: true });
@@ -655,8 +655,7 @@ useEffect(() => {
         </div>
       </div>
 
-      <div style={css.bottomBar}></div>
-        <div style={css.bottomBar}>
+      <div style={css.bottomBar}>
           <div style={css.bottomInner}>
             <div><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>현재 상태</span><br /><strong style={{ fontSize: 18, fontWeight: 900 }}>{td.bottom}</strong></div>
             <button onClick={resetAll} style={{ ...css.orderBtn, minWidth: "auto", padding: "12px 18px", boxShadow: "none" }}>🏠 처음으로</button>
