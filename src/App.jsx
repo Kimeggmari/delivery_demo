@@ -463,7 +463,7 @@ useEffect(() => {
   const simulateOrder = () => {
     clearTimers(); setSteps([0, 0, 0, 0]); setShowReceipt(false);
     const info = { customerName: nm || "주문자", address: ad || "입력된 주소 없음", phone: ph || "연락처 없음", request: rq || "없음", payment, total: totals.total };
-    [200, 1200, 2300, 3400].forEach((d, i) => {
+    [100, 300, 500, 700].forEach((d, i) => {
       timersRef.current.push(setTimeout(() => {
         setSteps(prev => { const n = [...prev]; if (i > 0) n[i - 1] = 2; n[i] = 1; return n; });
       }, d));
@@ -476,8 +476,8 @@ useEffect(() => {
           timersRef.current.push(setTimeout(() => setTrackState(i + 1), (i + 1) * 5000))
         );
         timersRef.current.push(setTimeout(() => setPage("complete"), 15 * 5000 + 2000));
-      }, 1200));
-    }, 4600));
+      }, 600));
+    }, 900));
   };
 
   const trackData = Array.from({ length: 15 }, (_, i) => {
