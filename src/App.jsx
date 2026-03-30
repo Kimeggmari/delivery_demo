@@ -387,8 +387,8 @@ useEffect(() => {
         id: 976548,
         template: "carousel",
         trackingCode: "AF7204416",
-        width: "320",
-        height: "100",
+        width: "300",
+        height: "94",
         tsource: "",
       });
     }
@@ -541,8 +541,9 @@ useEffect(() => {
         <div
           style={{
             width: "100%",
-            maxWidth: 360,
+            maxWidth: 340,
             margin: "0 auto 24px",
+            boxSizing: "border-box",
             opacity: 0.9,
             textAlign: "left",
           }}
@@ -551,7 +552,7 @@ useEffect(() => {
             style={{
               background: "#fff",
               borderRadius: 18,
-              padding: "12px",
+              padding: "10px",
               border: "1px solid " + th.line,
               boxShadow: "0 6px 18px rgba(0,0,0,0.05)",
               overflow: "hidden",
@@ -561,7 +562,7 @@ useEffect(() => {
               style={{
                 fontSize: 11,
                 color: th.muted,
-                marginBottom: 10,
+                marginBottom: 8,
                 paddingLeft: 2,
                 fontWeight: 700,
               }}
@@ -573,7 +574,9 @@ useEffect(() => {
               ref={coupangRef}
               style={{
                 width: "100%",
-                minHeight: 100,
+                maxWidth: 300,
+                minHeight: 94,
+                margin: "0 auto",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
