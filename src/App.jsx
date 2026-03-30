@@ -372,6 +372,47 @@ export default function App() {
   const [optionTarget, setOptionTarget] = useState(null);
   const [addedAnim, setAddedAnim] = useState(null);
   const timersRef = useRef([]);
+  const coupangRef = useRef(null);
+
+useEffect(() => {
+  if (page !== "complete") return;
+
+  const initCoupang = () => {
+    if (!coupangRef.current) return;
+
+    coupangRef.current.innerHTML = "";
+
+    if (window.PartnersCoupang?.G) {
+      new window.PartnersCoupang.G({
+        id: 976548,
+        template: "carousel",
+        trackingCode: "AF7204416",
+        width: "680",
+        height: "75",
+        tsource: "",
+      });
+    }
+  };
+
+  const existingScript = document.querySelector(
+    'script[src="https://ads-partners.coupang.com/g.js"]'
+  );
+
+  if (existingScript) {
+    if (window.PartnersCoupang?.G) {
+      initCoupang();
+    } else {
+      existingScript.addEventListener("load", initCoupang, { once: true });
+    }
+    return;
+  }
+
+  const script = document.createElement("script");
+  script.src = "https://ads-partners.coupang.com/g.js";
+  script.async = true;
+  script.onload = initCoupang;
+  document.body.appendChild(script);
+}, [page]);
 
   const th = themes[theme];
   const totals = calcTotals(cart);
@@ -433,7 +474,7 @@ export default function App() {
       setSteps([2, 2, 2, 2]); setReceiptData(info); setShowReceipt(true);
       timersRef.current.push(setTimeout(() => {
         setOrderInfo(info); setTrackState(0); setPage("tracking");
-        Array.from({ length: 15 }, (_, i) =>
+        Array.from({ length: 12 }, (_, i) =>
           timersRef.current.push(setTimeout(() => setTrackState(i + 1), (i + 1) * 5000))
         );
         timersRef.current.push(setTimeout(() => setPage("complete"), 15 * 5000 + 2000));
@@ -441,8 +482,8 @@ export default function App() {
     }, 900));
   };
 
-  const trackData = Array.from({ length: 15 }, (_, i) => {
-    const min = 15 - i;
+  const trackData = Array.from({ length: 12 }, (_, i) => {
+    const min = 12 - i;
     const pct = 48 + i * 2.5;
     return {
       eta: min + "분",
@@ -528,19 +569,14 @@ export default function App() {
               overflow: "hidden",
             }}
           >
-            <iframe
-              title="추천 상품"
-              src="https://ads-partners.coupang.com/widgets.html?id=976548&template=carousel&trackingCode=AF7204416&subId=&width=350&height=140&tsource="
-              width="100%"
-              height="140"
-              frameBorder="0"
-              scrolling="no"
-              referrerPolicy="no-referrer-when-downgrade"
+            <div
+              ref={coupangRef}
               style={{
-                display: "block",
                 width: "100%",
-                minHeight: 140,
-                border: "none",
+                minHeight: 75,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
               }}
             />
           </div>
@@ -779,7 +815,7 @@ export default function App() {
         <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, maxWidth: 540, margin: "0 auto", minHeight: 32 }}>
           <div style={{ display: "flex", gap: 4, zIndex: 1 }}>
             {[["purple","💜"],["mint","🩵"],["blue","💙"],["pink","🩷"]].map(([key, emoji]) => (
-              <button key={key} onClick={() => setTheme(key)} style={{ ...css.iconBtn, width: 32, height: 32, fontSize: 14, opacity: theme === key ? 1 : 0.5, border: theme === key ? "2px solid rgba(255,255,255,0.8)" : "2px solid transparent" }}>{emoji}</button>
+              <button key={key} onClick={() => setTheme(key)} style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 11, opacity: theme === key ? 1 : 0.5, border: theme === key ? "2px solid rgba(255,255,255,0.8)" : "2px solid transparent" }}>{emoji}</button>
             ))}
           </div>
           <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", textAlign: "center", pointerEvents: "none", width: "max-content" }}>
