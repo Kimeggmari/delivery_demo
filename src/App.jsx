@@ -353,6 +353,154 @@ function OptionSheet({ menu, onClose, onConfirm, brand }) {
   );
 }
 
+function CoupangAdCard({ th }) {
+  const adRef = useRef(null);
+  const mountedRef = useRef(false);
+  const timeoutRef = useRef(null);
+  const [adStatus, setAdStatus] = useState("loading"); // loading | ready | fail
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    const renderAd = () => {
+      if (!adRef.current || !window.PartnersCoupang || mountedRef.current === false) return;
+
+      adRef.current.innerHTML = "";
+
+      try {
+        new window.PartnersCoupang.G({
+          id: 976548,
+          template: "carousel",
+          trackingCode: "AF7204416",
+          width: "300",
+          height: "94",
+          tsource: "",
+        });
+
+        timeoutRef.current = window.setTimeout(() => {
+          if (!mountedRef.current || !adRef.current) return;
+          const hasIframe = adRef.current.querySelector("iframe");
+          const hasContent = adRef.current.childElementCount > 0;
+          setAdStatus(hasIframe || hasContent ? "ready" : "fail");
+        }, 1800);
+      } catch (e) {
+        setAdStatus("fail");
+      }
+    };
+
+    const existingScript = document.querySelector('script[data-coupang-partners="true"]');
+
+    if (existingScript) {
+      renderAd();
+    } else {
+      const script = document.createElement("script");
+      script.src = "https://ads-partners.coupang.com/g.js";
+      script.async = true;
+      script.setAttribute("data-coupang-partners", "true");
+      script.onload = renderAd;
+      script.onerror = () => setAdStatus("fail");
+      document.body.appendChild(script);
+    }
+
+    return () => {
+      mountedRef.current = false;
+      if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+      if (adRef.current) adRef.current.innerHTML = "";
+    };
+  }, []);
+
+  return (
+    <div
+      style={{
+        width: "100%",
+        maxWidth: 340,
+        margin: "0 auto 24px",
+        boxSizing: "border-box",
+        opacity: 0.96,
+        textAlign: "left",
+      }}
+    >
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 18,
+          padding: "10px",
+          border: "1px solid " + th.line,
+          boxShadow: "0 6px 18px rgba(0,0,0,0.05)",
+          overflow: "hidden",
+          minHeight: 132,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 11,
+            color: th.muted,
+            marginBottom: 8,
+            paddingLeft: 2,
+            fontWeight: 700,
+          }}
+        >
+          추천 상품
+        </div>
+
+        {adStatus === "loading" && (
+          <div
+            style={{
+              height: 94,
+              borderRadius: 12,
+              background: "#f8fafc",
+              border: "1px dashed " + th.line,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 12,
+              color: th.muted,
+              textAlign: "center",
+              padding: "0 12px",
+            }}
+          >
+            추천 상품 불러오는 중...
+          </div>
+        )}
+
+        {adStatus === "fail" && (
+          <div
+            style={{
+              height: 94,
+              borderRadius: 12,
+              background: "#f8fafc",
+              border: "1px dashed " + th.line,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 12,
+              color: th.muted,
+              textAlign: "center",
+              padding: "0 12px",
+              lineHeight: 1.45,
+            }}
+          >
+            광고 차단 또는 브라우저 설정 때문에
+            <br />
+            추천 상품이 표시되지 않을 수 있어요.
+          </div>
+        )}
+
+        <div
+          ref={adRef}
+          id="coupang-ad-container"
+          style={{
+            display: adStatus === "fail" ? "none" : "block",
+            width: "100%",
+            minHeight: adStatus === "ready" ? "94px" : 0,
+            textAlign: "center",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [theme, setTheme] = useState("mint");
   const [page, setPage] = useState("order");
@@ -379,6 +527,7 @@ export default function App() {
 
   const clearTimers = useCallback(() => { timersRef.current.forEach(clearTimeout); timersRef.current = []; }, []);
   useEffect(() => () => clearTimers(), [clearTimers]);
+
   useEffect(() => {
     const existing = document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6184083010691370"]');
     if (existing) return;
@@ -475,11 +624,9 @@ export default function App() {
     return [r.name, r.category, ...r.menus.map(m => m.name + " " + m.desc)].join(" ").toLowerCase().includes(q);
   });
 
-  const stepLabels = ["주문 요청 확인", "매장 접수 대기", "배달 준비 중", "도착 예정 안내"];
-
   const css = {
     wrap: { minHeight: "100vh", background: th.phone, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif', color: th.text, display: "flex", flexDirection: "column" },
-    header: { position: "sticky", top: 0, zIndex: 10, background: "linear-gradient(180deg," + th.headerStart + "," + th.headerEnd + ")", color: th.headerColor, padding: "14px 20px", borderBottom: th.headerBorderBottom, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" },
+    header: { position: "sticky", top: 0, zIndex: 10, background: "linear-gradient(180deg," + th.headerStart + "," + th.headerEnd + ")", color: th.headerColor, padding: "14px 20px", borderBottom: "none", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" },
     content: { flex: 1, padding: "16px 16px 100px", display: "grid", gap: 16, alignContent: "start", maxWidth: 540, width: "100%", margin: "0 auto", boxSizing: "border-box" },
     section: { background: "#fff", borderRadius: 20, padding: 16, boxShadow: th.sectionShadow },
     input: { width: "100%", padding: "14px 16px", border: "none", outline: "none", borderRadius: 14, background: "#fff", color: th.text, boxShadow: th.inputShadow, fontFamily: "inherit", fontSize: 14, boxSizing: "border-box" },
@@ -507,60 +654,7 @@ export default function App() {
         <div style={{ fontSize: 20, fontWeight: 800, color: th.text, marginBottom: 32 }}>아끼셨어요!! 🥗</div>
         <div style={{ fontSize: 13, color: th.muted, marginBottom: 28, lineHeight: 1.6 }}>오늘도 현명한 선택을 하셨네요 😄<br />데모 주문이라 실제로는 0칼로리!</div>
 
-        <div
-          style={{
-            width: "100%",
-            maxWidth: 340,
-            margin: "0 auto 24px",
-            boxSizing: "border-box",
-            opacity: 0.9,
-            textAlign: "left",
-          }}
-        >
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 18,
-              padding: "10px",
-              border: "1px solid " + th.line,
-              boxShadow: "0 6px 18px rgba(0,0,0,0.05)",
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                fontSize: 11,
-                color: th.muted,
-                marginBottom: 8,
-                paddingLeft: 2,
-                fontWeight: 700,
-              }}
-            >
-              추천 상품
-            </div>
-
-            <iframe
-              title="추천 상품"
-              src="https://ads-partners.coupang.com/widgets.html?id=976548&template=carousel&trackingCode=AF7204416&width=300&height=94&tsource="
-              width="300"
-              height="94"
-              frameBorder="0"
-              scrolling="no"
-              referrerPolicy="unsafe-url"
-              style={{
-                display: "block",
-                width: "100%",
-                maxWidth: 300,
-                height: 94,
-                margin: "0 auto",
-                border: "none",
-                borderRadius: 12,
-                overflow: "hidden",
-                background: "transparent",
-              }}
-            />
-          </div>
-        </div>
+        <CoupangAdCard th={th} />
 
         <button onClick={resetAll} style={{ ...css.orderBtn, fontSize: 16, padding: "16px 32px" }}>🏠 처음으로</button>
       </div>
@@ -642,7 +736,7 @@ export default function App() {
           )}
         </div>
 
-      <div style={css.bottomBar}>
+        <div style={css.bottomBar}>
           <div style={css.bottomInner}>
             <div><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>현재 상태</span><br /><strong style={{ fontSize: 18, fontWeight: 900 }}>{td.bottom}</strong></div>
             <button onClick={resetAll} style={{ ...css.orderBtn, minWidth: "auto", padding: "12px 18px", boxShadow: "none" }}>🏠 처음으로</button>
@@ -714,25 +808,6 @@ export default function App() {
               ))}
             </div>
           </div>
-          {showReceipt && receiptData && (
-            <div style={{ padding: 16, borderRadius: 16, background: "linear-gradient(180deg,#f0fdf4,#fff)", border: "1px solid #bbf7d0", fontSize: 13, lineHeight: 1.6 }}>
-              <h3 style={{ margin: "0 0 10px", color: "#166534", fontSize: 15 }}>✅ 데모 주문이 접수되었습니다</h3>
-              {[["주문자", receiptData.customerName], ["연락처", receiptData.phone], ["주소", receiptData.address], ["결제수단", receiptData.payment], ["요청사항", receiptData.request]].map(([k, v]) => (
-                <div key={k}><strong>{k}:</strong> {v}</div>
-              ))}
-              <div style={{ marginTop: 10, fontWeight: 900, color: "#166534" }}>예상 결제금액: {fmt(receiptData.total)}</div>
-              {(() => {
-                const savedKcal = cart.reduce((s, i) => s + (menuCalories[i.menuId] || 600) * i.qty, 0);
-                return (
-                  <div style={{ marginTop: 12, padding: "12px 14px", background: "#ecfdf5", borderRadius: 12, border: "1px solid #bbf7d0", textAlign: "center" }}>
-                    <div style={{ fontSize: 20 }}>🎉</div>
-                    <div style={{ fontWeight: 900, color: "#166534", fontSize: 15, marginTop: 4 }}>축하드립니다! {savedKcal.toLocaleString()}kcal 아끼셨습니다!</div>
-                  </div>
-                );
-              })()}
-              <div style={{ fontSize: 11, color: th.muted, marginTop: 8 }}>UI 시뮬레이션입니다. 실제 결제·주문·배달은 발생하지 않습니다.</div>
-            </div>
-          )}
         </div>
         {showReceipt && receiptData && (
           <div
