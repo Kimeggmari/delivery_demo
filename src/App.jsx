@@ -372,47 +372,6 @@ export default function App() {
   const [optionTarget, setOptionTarget] = useState(null);
   const [addedAnim, setAddedAnim] = useState(null);
   const timersRef = useRef([]);
-  const coupangRef = useRef(null);
-
-useEffect(() => {
-  if (page !== "complete") return;
-
-  const initCoupang = () => {
-    if (!coupangRef.current) return;
-
-    coupangRef.current.innerHTML = "";
-
-    if (window.PartnersCoupang?.G) {
-      new window.PartnersCoupang.G({
-        id: 976548,
-        template: "carousel",
-        trackingCode: "AF7204416",
-        width: "680",
-        height: "75",
-        tsource: "",
-      });
-    }
-  };
-
-  const existingScript = document.querySelector(
-    'script[src="https://ads-partners.coupang.com/g.js"]'
-  );
-
-  if (existingScript) {
-    if (window.PartnersCoupang?.G) {
-      initCoupang();
-    } else {
-      existingScript.addEventListener("load", initCoupang, { once: true });
-    }
-    return;
-  }
-
-  const script = document.createElement("script");
-  script.src = "https://ads-partners.coupang.com/g.js";
-  script.async = true;
-  script.onload = initCoupang;
-  document.body.appendChild(script);
-}, [page]);
 
   const th = themes[theme];
   const totals = calcTotals(cart);
@@ -569,14 +528,19 @@ useEffect(() => {
               overflow: "hidden",
             }}
           >
-            <div
-              ref={coupangRef}
+            <iframe
+              title="추천 상품"
+              src="https://ads-partners.coupang.com/widgets.html?id=976548&template=carousel&trackingCode=AF7204416&subId=&width=350&height=140&tsource="
+              width="100%"
+              height="140"
+              frameBorder="0"
+              scrolling="no"
+              referrerPolicy="no-referrer-when-downgrade"
               style={{
+                display: "block",
                 width: "100%",
-                minHeight: 75,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
+                minHeight: 140,
+                border: "none",
               }}
             />
           </div>
