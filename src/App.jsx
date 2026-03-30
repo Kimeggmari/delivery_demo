@@ -752,6 +752,39 @@ useEffect(() => {
             </div>
           )}
         </div>
+        {showReceipt && receiptData && (
+          <div
+            style={{
+              position: "fixed",
+              left: "50%",
+              bottom: 86,
+              transform: "translateX(-50%)",
+              width: "calc(100% - 32px)",
+              maxWidth: 508,
+              zIndex: 21,
+            }}
+          >
+            <div
+              style={{
+                background: "linear-gradient(180deg,#f0fdf4,#ffffff)",
+                border: "1px solid #bbf7d0",
+                boxShadow: "0 10px 30px rgba(22,101,52,0.10)",
+                borderRadius: 18,
+                padding: "14px 16px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ fontSize: 22 }}>✅</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 14, fontWeight: 900, color: "#166534" }}>주문이 접수되었습니다!</div>
+                  <div style={{ fontSize: 12, color: "#166534", marginTop: 2 }}>
+                    잠시 후 배달 추적 페이지로 이동합니다.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         <div style={css.bottomBar}>
           <div style={css.bottomInner}>
             <div><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>총 결제예상금액</span><br /><strong style={{ fontSize: 18, fontWeight: 900, color: th.brand }}>{fmt(totals.total)}</strong></div>
