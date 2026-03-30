@@ -1,103 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
-const restaurants = [
-  {
-    id: 1, name: "한입치킨 강남점", emoji: "🍗", time: "25~35분", rating: 4.9, reviews: 2847, fee: 2500, category: "치킨", badge: "인기",
-    menus: [
-      { id: "c1", name: "크리스피 반반치킨", desc: "후라이드 + 양념 반반", price: 21900 },
-      { id: "c2", name: "순살 간장치킨", desc: "달콤짭짤 시그니처", price: 19900 },
-      { id: "c3", name: "치즈볼 5개", desc: "바삭 쫄깃 사이드", price: 4500 },
-    ],
-  },
-  {
-    id: 2, name: "도쿄라멘 스테이션", emoji: "🍜", time: "18~28분", rating: 4.8, reviews: 1523, fee: 3200, category: "일식", badge: "추천",
-    menus: [
-      { id: "r1", name: "돈코츠 라멘", desc: "진한 사골 육수 12시간", price: 11000 },
-      { id: "r2", name: "매운 미소 라멘", desc: "얼큰한 된장 베이스", price: 12000 },
-      { id: "r3", name: "카라아게", desc: "바삭한 닭튀김 6조각", price: 6500 },
-    ],
-  },
-  {
-    id: 3, name: "파스타랩 성수키친", emoji: "🍝", time: "30~40분", rating: 4.7, reviews: 983, fee: 2800, category: "양식", badge: "",
-    menus: [
-      { id: "p1", name: "새우 로제 파스타", desc: "부드러운 로제소스", price: 14900 },
-      { id: "p2", name: "봉골레 오일 파스타", desc: "깔끔한 바지락 감칠맛", price: 13900 },
-      { id: "p3", name: "갈릭 브레드", desc: "버터 갈릭 토스트", price: 3900 },
-    ],
-  },
-  {
-    id: 4, name: "그린포케 하우스", emoji: "🥗", time: "15~25분", rating: 4.9, reviews: 1205, fee: 1800, category: "샐러드", badge: "신규",
-    menus: [
-      { id: "g1", name: "연어 포케볼", desc: "신선한 연어와 아보카도", price: 13500 },
-      { id: "g2", name: "닭가슴살 포케볼", desc: "단백질 든든 한끼", price: 11900 },
-      { id: "g3", name: "망고 요거트", desc: "상큼한 디저트", price: 4900 },
-    ],
-  },
-  {
-    id: 5, name: "엄마손 한식당", emoji: "🍚", time: "20~30분", rating: 4.8, reviews: 3102, fee: 2000, category: "한식", badge: "인기",
-    menus: [
-      { id: "h1", name: "김치찌개", desc: "묵은지로 끓인 깊은 맛", price: 9500 },
-      { id: "h2", name: "돌솥비빔밥", desc: "누룽지까지 바삭하게", price: 11000 },
-      { id: "h3", name: "제육볶음 정식", desc: "매콤달콤 밥도둑", price: 12000 },
-    ],
-  },
-  {
-    id: 6, name: "용용차이나", emoji: "🥡", time: "22~32분", rating: 4.6, reviews: 1876, fee: 3000, category: "중식", badge: "",
-    menus: [
-      { id: "cn1", name: "짜장면", desc: "춘장 볶은 정통 짜장", price: 7500 },
-      { id: "cn2", name: "탕수육 (대)", desc: "바삭한 찹쌀 탕수육", price: 19000 },
-      { id: "cn3", name: "짬뽕", desc: "얼큰 해물 짬뽕", price: 8500 },
-    ],
-  },
-  {
-    id: 7, name: "신전떡볶이 앤 분식", emoji: "🧡", time: "12~20분", rating: 4.5, reviews: 4521, fee: 1500, category: "분식", badge: "최저배달비",
-    menus: [
-      { id: "b1", name: "로제 떡볶이", desc: "크리미한 로제소스", price: 7900 },
-      { id: "b2", name: "참치김밥 2줄", desc: "고소한 참치마요", price: 5500 },
-      { id: "b3", name: "모둠튀김", desc: "김말이+고추+새우", price: 4500 },
-    ],
-  },
-  {
-    id: 8, name: "카페 달콤 로스터리", emoji: "☕", time: "10~18분", rating: 4.7, reviews: 2234, fee: 2500, category: "카페", badge: "추천",
-    menus: [
-      { id: "cf1", name: "아이스 아메리카노", desc: "산미 적은 블렌드", price: 4500 },
-      { id: "cf2", name: "딸기 생크림 케이크", desc: "부드러운 시트 2단", price: 7800 },
-      { id: "cf3", name: "소금빵 2개", desc: "겉바속촉 버터풍미", price: 5200 },
-    ],
-  },
-  {
-    id: 9, name: "마라홍 마라탕", emoji: "🌶️", time: "20~30분", rating: 4.6, reviews: 1654, fee: 2800, category: "마라탕", badge: "인기",
-    menus: [
-      { id: "ml1", name: "마라탕 (1인)", desc: "직접 고른 재료 조합", price: 12900 },
-      { id: "ml2", name: "마라샹궈", desc: "볶아서 더 진한 매운맛", price: 15900 },
-      { id: "ml3", name: "꿔바로우", desc: "달콤바삭 중화 탕수육", price: 13500 },
-    ],
-  },
-  {
-    id: 10, name: "배스킨 아이스파크", emoji: "🍦", time: "8~15분", rating: 4.8, reviews: 987, fee: 2000, category: "아이스크림", badge: "신규",
-    menus: [
-      { id: "ic1", name: "파인트 아이스크림", desc: "맛 2가지 선택 가능", price: 8900 },
-      { id: "ic2", name: "아이스크림 케이크", desc: "초코+바닐라 레이어", price: 25900 },
-      { id: "ic3", name: "쿨 아이스티", desc: "복숭아 아이스티", price: 3500 },
-    ],
-  },
-];
-
-const thumbGradients = [
-  "linear-gradient(135deg,#fef3c7,#fed7aa)", "linear-gradient(135deg,#dbeafe,#bfdbfe)",
-  "linear-gradient(135deg,#ede9fe,#ddd6fe)", "linear-gradient(135deg,#dcfce7,#bbf7d0)",
-  "linear-gradient(135deg,#fce7f3,#fbcfe8)", "linear-gradient(135deg,#fee2e2,#fecaca)",
-  "linear-gradient(135deg,#ffedd5,#fed7aa)", "linear-gradient(135deg,#e0e7ff,#c7d2fe)",
-  "linear-gradient(135deg,#fef9c3,#fde68a)", "linear-gradient(135deg,#cffafe,#a5f3fc)",
-];
-
-const badgeColors = {
-  "인기": { bg: "#fee2e2", color: "#dc2626", border: "#fecaca" },
-  "추천": { bg: "#dbeafe", color: "#2563eb", border: "#bfdbfe" },
-  "신규": { bg: "#dcfce7", color: "#16a34a", border: "#bbf7d0" },
-  "최저배달비": { bg: "#fef3c7", color: "#d97706", border: "#fde68a" },
-};
-
 const menuCalories = {
   c1: 1800, c2: 1650, c3: 320,
   r1: 750, r2: 820, r3: 480,
@@ -106,11 +8,145 @@ const menuCalories = {
   h1: 550, h2: 620, h3: 700,
   cn1: 680, cn2: 1200, cn3: 720,
   b1: 580, b2: 420, b3: 380,
-  cf1: 10, cf2: 450, cf3: 310,
+  cf1: 10, cf2: 450, cf3: 310, cf4: 280,
   ml1: 750, ml2: 920, ml3: 680,
-  ic1: 520, ic2: 1200, ic3: 120,
+  ic1: 520, ic2: 1200, ic3: 120, ic4: 380,
+  gp1: 420, gp2: 480, gp3: 510,
+  yt1: 620, yt2: 580, yt3: 450,
+  su1: 650, su2: 380, su3: 310, su4: 650,
 };
-const AVG_RESTAURANT_KCAL = 900;
+
+const restaurants = [
+  {
+    id: 1, name: "한입치킨 강남점", emoji: "🍗", time: "25~35분", rating: 4.9, reviews: 2847, fee: 2500, category: "치킨", badge: "인기",
+    menus: [
+      { id: "c1", name: "크리스피 반반치킨", desc: "후라이드 + 양념 반반", price: 21900, options: { spicy: true, size: true, toppings: ["치즈소스 추가+1000원", "콜라 추가+1500원"] } },
+      { id: "c2", name: "순살 간장치킨", desc: "달콤짭짤 시그니처", price: 19900, options: { spicy: true, toppings: ["치즈소스 추가+1000원", "콜라 추가+1500원"] } },
+      { id: "c3", name: "치즈볼 5개", desc: "바삭 쫄깃 사이드", price: 4500, options: {} },
+    ],
+  },
+  {
+    id: 2, name: "도쿄라멘 스테이션", emoji: "🍜", time: "18~28분", rating: 4.8, reviews: 1523, fee: 3200, category: "일식", badge: "추천",
+    menus: [
+      { id: "r1", name: "돈코츠 라멘", desc: "진한 사골 육수 12시간", price: 11000, options: { spicy: true, toppings: ["차슈 추가+2000원", "반숙달걀 추가+1000원", "대파 추가+500원"] } },
+      { id: "r2", name: "매운 미소 라멘", desc: "얼큰한 된장 베이스", price: 12000, options: { spicy: true, toppings: ["차슈 추가+2000원", "반숙달걀 추가+1000원"] } },
+      { id: "r3", name: "카라아게", desc: "바삭한 닭튀김 6조각", price: 6500, options: { spicy: true } },
+    ],
+  },
+  {
+    id: 3, name: "파스타랩 성수키친", emoji: "🍝", time: "30~40분", rating: 4.7, reviews: 983, fee: 2800, category: "양식", badge: "",
+    menus: [
+      { id: "p1", name: "새우 로제 파스타", desc: "부드러운 로제소스", price: 14900, options: { spicy: true, size: true, toppings: ["새우 추가+2500원", "치즈 추가+1000원"] } },
+      { id: "p2", name: "봉골레 오일 파스타", desc: "깔끔한 바지락 감칠맛", price: 13900, options: { size: true, toppings: ["바지락 추가+2000원", "치즈 추가+1000원"] } },
+      { id: "p3", name: "갈릭 브레드", desc: "버터 갈릭 토스트", price: 3900, options: {} },
+    ],
+  },
+  {
+    id: 4, name: "그린포케 하우스", emoji: "🥗", time: "15~25분", rating: 4.9, reviews: 1205, fee: 1800, category: "샐러드", badge: "신규",
+    menus: [
+      { id: "g1", name: "연어 포케볼", desc: "신선한 연어와 아보카도", price: 13500, options: { size: true, toppings: ["연어 추가+3000원", "아보카도 추가+1500원", "드레싱 추가+500원"] } },
+      { id: "g2", name: "닭가슴살 포케볼", desc: "단백질 든든 한끼", price: 11900, options: { size: true, toppings: ["닭가슴살 추가+2000원", "드레싱 추가+500원"] } },
+      { id: "g3", name: "망고 요거트", desc: "상큼한 디저트", price: 4900, options: {} },
+    ],
+  },
+  {
+    id: 5, name: "엄마손 한식당", emoji: "🍚", time: "20~30분", rating: 4.8, reviews: 3102, fee: 2000, category: "한식", badge: "인기",
+    menus: [
+      { id: "h1", name: "김치찌개", desc: "묵은지로 끓인 깊은 맛", price: 9500, options: { spicy: true, toppings: ["공기밥 추가+1000원", "두부 추가+500원"] } },
+      { id: "h2", name: "돌솥비빔밥", desc: "누룽지까지 바삭하게", price: 11000, options: { spicy: true, toppings: ["달걀 추가+500원", "공기밥 추가+1000원"] } },
+      { id: "h3", name: "제육볶음 정식", desc: "매콤달콤 밥도둑", price: 12000, options: { spicy: true, toppings: ["공기밥 추가+1000원"] } },
+    ],
+  },
+  {
+    id: 6, name: "용용차이나", emoji: "🥡", time: "22~32분", rating: 4.6, reviews: 1876, fee: 3000, category: "중식", badge: "",
+    menus: [
+      { id: "cn1", name: "짜장면", desc: "춘장 볶은 정통 짜장", price: 7500, options: { toppings: ["계란 추가+500원", "공기밥 추가+1000원"] } },
+      { id: "cn2", name: "탕수육 (대)", desc: "바삭한 찹쌀 탕수육", price: 19000, options: { toppings: ["소스 곁들임+500원"] } },
+      { id: "cn3", name: "짬뽕", desc: "얼큰 해물 짬뽕", price: 8500, options: { spicy: true, toppings: ["해물 추가+2000원"] } },
+    ],
+  },
+  {
+    id: 7, name: "맵다매워 떡볶이", emoji: "🧡", time: "12~20분", rating: 4.5, reviews: 4521, fee: 1500, category: "분식", badge: "최저배달비",
+    menus: [
+      { id: "b1", name: "로제 떡볶이", desc: "크리미한 로제소스", price: 7900, options: { spicy: true, size: true, toppings: ["치즈 추가+1000원", "라면사리 추가+500원", "만두 추가+1500원"] } },
+      { id: "b2", name: "참치김밥 2줄", desc: "고소한 참치마요", price: 5500, options: {} },
+      { id: "b3", name: "모둠튀김", desc: "김말이+고추+새우", price: 4500, options: { toppings: ["새우튀김 추가+1000원"] } },
+    ],
+  },
+  {
+    id: 8, name: "카페 달콤 로스터리", emoji: "☕", time: "10~18분", rating: 4.7, reviews: 2234, fee: 2500, category: "카페", badge: "추천",
+    menus: [
+      { id: "cf1", name: "아이스 아메리카노", desc: "산미 적은 블렌드", price: 4500, options: { size: true, toppings: ["샷 추가+500원", "시럽 추가+300원"] } },
+      { id: "cf2", name: "딸기 생크림 케이크", desc: "부드러운 시트 2단", price: 7800, options: { toppings: ["생크림 추가+500원"] } },
+      { id: "cf3", name: "소금빵 2개", desc: "겉바속촉 버터풍미", price: 5200, options: {} },
+      { id: "cf4", name: "버터떡", desc: "고소한 버터가 듬뿍 찰떡", price: 1300, options: {} },
+    ],
+  },
+  {
+    id: 9, name: "마라홍 마라탕", emoji: "🌶️", time: "20~30분", rating: 4.6, reviews: 1654, fee: 2800, category: "마라탕", badge: "인기",
+    menus: [
+      { id: "ml1", name: "마라탕 (1인)", desc: "직접 고른 재료 조합", price: 12900, options: { spicy: true, toppings: ["당면 추가+500원", "두부 추가+500원", "새우 추가+2000원"] } },
+      { id: "ml2", name: "마라샹궈", desc: "볶아서 더 진한 매운맛", price: 15900, options: { spicy: true, toppings: ["당면 추가+500원", "새우 추가+2000원"] } },
+      { id: "ml3", name: "꿔바로우", desc: "달콤바삭 중화 탕수육", price: 13500, options: {} },
+    ],
+  },
+  {
+    id: 10, name: "딜리셔스 디저트", emoji: "🍦", time: "8~15분", rating: 4.8, reviews: 987, fee: 2000, category: "아이스크림", badge: "신규",
+    menus: [
+      { id: "ic1", name: "파인트 아이스크림", desc: "맛 2가지 선택 가능", price: 8900, options: { toppings: ["초코칩 추가+500원", "스프링클 추가+300원"] } },
+      { id: "ic2", name: "아이스크림 케이크", desc: "초코+바닐라 레이어", price: 25900, options: { toppings: ["문구 작성+1000원"] } },
+      { id: "ic3", name: "쿨 아이스티", desc: "복숭아 아이스티", price: 3500, options: { size: true } },
+      { id: "ic4", name: "두바이 쫀득 쿠키", desc: "피스타치오 필링 쫀득 쿠키", price: 5900, options: {} },
+    ],
+  },
+  {
+    id: 11, name: "멋진 막창 예쁜 곱창", emoji: "🫀", time: "25~35분", rating: 4.8, reviews: 1342, fee: 2000, category: "곱창", badge: "인기",
+    menus: [
+      { id: "gp1", name: "야채곱창", desc: "신선한 야채와 곱창 볶음", price: 13900, options: { spicy: true, toppings: ["공기밥 추가+1000원", "치즈 추가+1000원"] } },
+      { id: "gp2", name: "알곱창", desc: "탱글탱글 알이 가득한 곱창", price: 15900, options: { spicy: true, toppings: ["공기밥 추가+1000원"] } },
+      { id: "gp3", name: "대구막창", desc: "대구식 매콤달콤 막창구이", price: 14900, options: { spicy: true, toppings: ["공기밥 추가+1000원", "된장찌개 추가+2000원"] } },
+    ],
+  },
+  {
+    id: 12, name: "스시히로 초밥집", emoji: "🍣", time: "20~30분", rating: 4.9, reviews: 2105, fee: 3000, category: "초밥", badge: "추천",
+    menus: [
+      { id: "su1", name: "모듬 초밥 10피스", desc: "연어·참치·광어 등 신선한 구성", price: 18900, options: { toppings: ["와사비 추가+200원", "간장 추가+200원"] } },
+      { id: "su2", name: "연어 초밥 6피스", desc: "두툼한 생연어 듬뿍", price: 12900, options: { toppings: ["와사비 추가+200원"] } },
+      { id: "su3", name: "참치 뱃살 초밥 4피스", desc: "부드럽고 고소한 오토로", price: 14900, options: {} },
+      { id: "su4", name: "우동 세트", desc: "따뜻한 가케우동 + 초밥 3피스", price: 13500, options: { spicy: true } },
+    ],
+  },
+  {
+    id: 13, name: "엽땡떡볶이", emoji: "🌶️", time: "15~25분", rating: 4.7, reviews: 3210, fee: 2000, category: "분식", badge: "인기",
+    menus: [
+      { id: "yt1", name: "엽기 떡볶이 (1인)", desc: "중독성 있는 매콤달콤 소스", price: 9900, options: { spicy: true, size: true, toppings: ["치즈 추가+1000원", "라면사리 추가+500원", "만두 추가+1500원"] } },
+      { id: "yt2", name: "로제 떡볶이 (1인)", desc: "부드럽고 크리미한 로제", price: 9900, options: { size: true, toppings: ["치즈 추가+1000원", "라면사리 추가+500원"] } },
+      { id: "yt3", name: "순대 모둠", desc: "당면순대 + 떡볶이 소스", price: 6500, options: { spicy: true } },
+    ],
+  },
+];
+
+const thumbGradients = [
+  "linear-gradient(135deg,#fef3c7,#fed7aa)",
+  "linear-gradient(135deg,#dbeafe,#bfdbfe)",
+  "linear-gradient(135deg,#ede9fe,#ddd6fe)",
+  "linear-gradient(135deg,#dcfce7,#bbf7d0)",
+  "linear-gradient(135deg,#fce7f3,#fbcfe8)",
+  "linear-gradient(135deg,#fee2e2,#fecaca)",
+  "linear-gradient(135deg,#ffedd5,#fed7aa)",
+  "linear-gradient(135deg,#e0e7ff,#c7d2fe)",
+  "linear-gradient(135deg,#fef9c3,#fde68a)",
+  "linear-gradient(135deg,#cffafe,#a5f3fc)",
+  "linear-gradient(135deg,#ffe4e6,#fda4af)",
+  "linear-gradient(135deg,#f0fdf4,#bbf7d0)",
+];
+
+const badgeColors = {
+  "인기": { bg: "#fee2e2", color: "#dc2626", border: "#fecaca" },
+  "추천": { bg: "#dbeafe", color: "#2563eb", border: "#bfdbfe" },
+  "신규": { bg: "#dcfce7", color: "#16a34a", border: "#bbf7d0" },
+  "최저배달비": { bg: "#fef3c7", color: "#d97706", border: "#fde68a" },
+};
 
 const sampleReviews = [
   { user: "맛집탐험가", text: "완전 맛있어요! 재주문 확정 🔥", star: 5 },
@@ -121,32 +157,65 @@ const sampleReviews = [
   { user: "배달매니아", text: "포장도 깔끔하고 맛도 좋아요", star: 5 },
 ];
 
+const SPICY_OPTIONS = ["순한맛", "보통", "매운맛"];
+const SIZE_OPTIONS = [
+  { label: "Small", price: -1000 },
+  { label: "Regular", price: 0 },
+  { label: "Large", price: 1500 },
+];
+
 const themes = {
+  purple: {
+    phone: "#faf8ff", text: "#1e1040", muted: "#7c6fa0", line: "#ede8f8",
+    brand: "#7c3aed", brandDark: "#6d28d9",
+    headerStart: "#7c3aed", headerEnd: "#6d28d9",
+    heroStart: "#7c3aed", heroEnd: "#a855f7",
+    primaryBtn: "#7c3aed",
+    sectionShadow: "0 4px 20px rgba(124,58,237,0.08)",
+    inputShadow: "0 2px 12px rgba(124,58,237,0.08)",
+    bottomBarBg: "rgba(255,255,255,0.97)", bottomBarBorder: "rgba(237,232,248,1)",
+    headerColor: "#fff", headerTextAlt: "rgba(255,255,255,0.75)",
+    iconBtnBg: "rgba(255,255,255,0.18)", iconBtnColor: "#fff",
+    headerBorderBottom: "none", activeBg: "#f3eeff",
+  },
   mint: {
-    phone: "#f7f8fb", text: "#111827", muted: "#6b7280", line: "#e5e7eb",
-    brand: "#19c37d", brandDark: "#0ea768",
-    headerStart: "#15d3b4", headerEnd: "#11bfa3",
-    heroStart: "#22d3b6", heroEnd: "#0fbf9f",
-    primaryBtn: "#1ac685", primaryBtnDark: "#0ea768",
-    sectionShadow: "0 10px 24px rgba(17,24,39,0.06)",
-    inputShadow: "0 8px 18px rgba(0,0,0,0.08)",
-    bottomBarBg: "rgba(255,255,255,0.96)", bottomBarBorder: "rgba(229,231,235,0.95)",
-    headerColor: "#fff", headerTextAlt: "rgba(255,255,255,0.78)",
-    iconBtnBg: "rgba(255,255,255,0.16)", iconBtnColor: "#fff",
+    phone: "#f7fbfa", text: "#0d2320", muted: "#5a8a80", line: "#d4f0ea",
+    brand: "#0ea768", brandDark: "#0d9460",
+    headerStart: "#15d3b4", headerEnd: "#0ea768",
+    heroStart: "#15d3b4", heroEnd: "#0ea768",
+    primaryBtn: "#0ea768",
+    sectionShadow: "0 4px 20px rgba(14,167,104,0.08)",
+    inputShadow: "0 2px 12px rgba(14,167,104,0.07)",
+    bottomBarBg: "rgba(255,255,255,0.97)", bottomBarBorder: "rgba(212,240,234,1)",
+    headerColor: "#fff", headerTextAlt: "rgba(255,255,255,0.75)",
+    iconBtnBg: "rgba(255,255,255,0.18)", iconBtnColor: "#fff",
     headerBorderBottom: "none", activeBg: "#ecfdf5",
   },
   blue: {
-    phone: "#f3f4f6", text: "#0f172a", muted: "#64748b", line: "#e2e8f0",
+    phone: "#f5f8ff", text: "#0f1e40", muted: "#5a7aa0", line: "#dbeafe",
     brand: "#2563eb", brandDark: "#1d4ed8",
-    headerStart: "#ffffff", headerEnd: "#ffffff",
+    headerStart: "#2563eb", headerEnd: "#1d4ed8",
     heroStart: "#2563eb", heroEnd: "#1d4ed8",
-    primaryBtn: "#2563eb", primaryBtnDark: "#1d4ed8",
-    sectionShadow: "0 6px 18px rgba(15,23,42,0.06)",
-    inputShadow: "none",
-    bottomBarBg: "rgba(255,255,255,0.98)", bottomBarBorder: "rgba(226,232,240,1)",
-    headerColor: "#111827", headerTextAlt: "#64748b",
-    iconBtnBg: "#f1f5f9", iconBtnColor: "#111827",
-    headerBorderBottom: "1px solid #e5e7eb", activeBg: "#eff6ff",
+    primaryBtn: "#2563eb",
+    sectionShadow: "0 4px 20px rgba(37,99,235,0.08)",
+    inputShadow: "0 2px 12px rgba(37,99,235,0.07)",
+    bottomBarBg: "rgba(255,255,255,0.97)", bottomBarBorder: "rgba(219,234,254,1)",
+    headerColor: "#fff", headerTextAlt: "rgba(255,255,255,0.75)",
+    iconBtnBg: "rgba(255,255,255,0.18)", iconBtnColor: "#fff",
+    headerBorderBottom: "none", activeBg: "#eff6ff",
+  },
+  pink: {
+    phone: "#fff8fb", text: "#3d0a1e", muted: "#a0547a", line: "#fce7f3",
+    brand: "#db2777", brandDark: "#be185d",
+    headerStart: "#f472b6", headerEnd: "#db2777",
+    heroStart: "#f472b6", heroEnd: "#db2777",
+    primaryBtn: "#db2777",
+    sectionShadow: "0 4px 20px rgba(219,39,119,0.08)",
+    inputShadow: "0 2px 12px rgba(219,39,119,0.07)",
+    bottomBarBg: "rgba(255,255,255,0.97)", bottomBarBorder: "rgba(252,231,243,1)",
+    headerColor: "#fff", headerTextAlt: "rgba(255,255,255,0.75)",
+    iconBtnBg: "rgba(255,255,255,0.18)", iconBtnColor: "#fff",
+    headerBorderBottom: "none", activeBg: "#fdf2f8",
   },
 };
 
@@ -198,7 +267,88 @@ function ReviewModal({ restaurant, onClose }) {
         </div>
         <div style={{ textAlign: "center", marginTop: 14, fontSize: 12, color: "#9ca3af" }}>데모용 샘플 리뷰입니다</div>
       </div>
-      <style>{`@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}`}</style>
+    </div>
+  );
+}
+
+function OptionSheet({ menu, onClose, onConfirm, brand }) {
+  const opts = menu.options || {};
+  const [spicy, setSpicy] = useState("보통");
+  const [size, setSize] = useState("Regular");
+  const [toppings, setToppings] = useState([]);
+  const [qty, setQty] = useState(1);
+
+  const toggleTopping = (t) => setToppings(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
+  const sizeExtra = SIZE_OPTIONS.find(s => s.label === size)?.price || 0;
+  const toppingExtra = toppings.reduce((s, t) => { const m = t.match(/\+(\d+)원/); return s + (m ? parseInt(m[1]) : 0); }, 0);
+  const totalPrice = (menu.price + (opts.size ? sizeExtra : 0) + toppingExtra) * qty;
+
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "20px 20px 32px", width: "100%", maxWidth: 540, maxHeight: "80vh", overflowY: "auto", animation: "slideUp .25s ease" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+          <div>
+            <div style={{ fontWeight: 900, fontSize: 18 }}>{menu.name}</div>
+            <div style={{ color: "#6b7280", fontSize: 13, marginTop: 4 }}>{menu.desc}</div>
+            <div style={{ color: "#10b981", fontSize: 12, fontWeight: 700, marginTop: 4 }}>🔥 {(menuCalories[menu.id] || 0).toLocaleString()}kcal</div>
+          </div>
+          <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: 12, border: "none", background: "#f3f4f6", fontSize: 18, cursor: "pointer", flexShrink: 0 }}>✕</button>
+        </div>
+        {opts.spicy && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 10 }}>🌶️ 맛 선택 <span style={{ color: "#ef4444", fontSize: 12 }}>필수</span></div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
+              {SPICY_OPTIONS.map(s => (
+                <div key={s} onClick={() => setSpicy(s)} style={{ padding: "12px 8px", borderRadius: 14, border: "2px solid " + (spicy === s ? brand : "#e5e7eb"), background: spicy === s ? brand + "18" : "#fff", textAlign: "center", cursor: "pointer", fontWeight: 800, fontSize: 13, color: spicy === s ? brand : "#374151", transition: ".15s" }}>{s}</div>
+              ))}
+            </div>
+          </div>
+        )}
+        {opts.size && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 10 }}>📏 사이즈 선택</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
+              {SIZE_OPTIONS.map(s => (
+                <div key={s.label} onClick={() => setSize(s.label)} style={{ padding: "12px 8px", borderRadius: 14, border: "2px solid " + (size === s.label ? brand : "#e5e7eb"), background: size === s.label ? brand + "18" : "#fff", textAlign: "center", cursor: "pointer", transition: ".15s" }}>
+                  <div style={{ fontWeight: 800, fontSize: 13, color: size === s.label ? brand : "#374151" }}>{s.label}</div>
+                  <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>{s.price === 0 ? "기본" : s.price > 0 ? "+" + s.price.toLocaleString() + "원" : s.price.toLocaleString() + "원"}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {opts.toppings && opts.toppings.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 10 }}>➕ 추가 토핑 <span style={{ color: "#9ca3af", fontSize: 12, fontWeight: 500 }}>중복 선택 가능</span></div>
+            <div style={{ display: "grid", gap: 8 }}>
+              {opts.toppings.map(t => {
+                const sel = toppings.includes(t);
+                return (
+                  <div key={t} onClick={() => toggleTopping(t)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderRadius: 14, border: "2px solid " + (sel ? brand : "#e5e7eb"), background: sel ? brand + "18" : "#fff", cursor: "pointer", transition: ".15s" }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: sel ? brand : "#374151" }}>{t.replace(/\+\d+원$/, "").trim()}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 12, color: "#10b981", fontWeight: 700 }}>{t.match(/\+\d+원/) ? t.match(/\+\d+원/)[0] : ""}</span>
+                      <div style={{ width: 22, height: 22, borderRadius: 8, background: sel ? brand : "#e5e7eb", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: sel ? "#fff" : "#9ca3af", transition: ".15s" }}>✓</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, padding: "14px 16px", background: "#f9fafb", borderRadius: 16 }}>
+          <span style={{ fontWeight: 800, fontSize: 14 }}>수량</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{ width: 34, height: 34, borderRadius: 10, border: "none", background: "#e5e7eb", fontWeight: 900, fontSize: 18, cursor: "pointer" }}>−</button>
+            <span style={{ fontWeight: 900, fontSize: 16, minWidth: 24, textAlign: "center" }}>{qty}</span>
+            <button onClick={() => setQty(q => q + 1)} style={{ width: 34, height: 34, borderRadius: 10, border: "none", background: "#e5e7eb", fontWeight: 900, fontSize: 18, cursor: "pointer" }}>＋</button>
+          </div>
+        </div>
+        <button onClick={() => onConfirm({ spicy: opts.spicy ? spicy : null, size: opts.size ? size : null, toppings, qty, extraPrice: (opts.size ? sizeExtra : 0) + toppingExtra })}
+          style={{ width: "100%", padding: "16px", background: brand, color: "#fff", border: "none", borderRadius: 16, fontWeight: 900, fontSize: 16, cursor: "pointer", fontFamily: "inherit" }}>
+          담기 · {fmt(totalPrice)}
+        </button>
+      </div>
     </div>
   );
 }
@@ -219,6 +369,7 @@ export default function App() {
   const [trackState, setTrackState] = useState(0);
   const [orderInfo, setOrderInfo] = useState(null);
   const [reviewTarget, setReviewTarget] = useState(null);
+  const [optionTarget, setOptionTarget] = useState(null);
   const [addedAnim, setAddedAnim] = useState(null);
   const timersRef = useRef([]);
 
@@ -229,19 +380,34 @@ export default function App() {
   const clearTimers = useCallback(() => { timersRef.current.forEach(clearTimeout); timersRef.current = []; }, []);
   useEffect(() => () => clearTimers(), [clearTimers]);
 
-  const addToCart = (rid, mid) => {
+  const openOption = (rid, mid) => {
     const r = restaurants.find(x => x.id === rid);
     const m = r.menus.find(x => x.id === mid);
+    const opts = m.options || {};
+    if (!opts.spicy && !opts.size && (!opts.toppings || opts.toppings.length === 0)) {
+      addToCartDirect(rid, mid, 1, 0, null, null, []);
+    } else {
+      setOptionTarget({ rid, mid });
+    }
+  };
+
+  const addToCartDirect = (rid, mid, qty, extraPrice, spicy, size, toppings) => {
+    const r = restaurants.find(x => x.id === rid);
+    const m = r.menus.find(x => x.id === mid);
+    const unitPrice = m.price + extraPrice;
+    const optLabel = [spicy, size, ...toppings.map(t => t.replace(/\+\d+원$/, "").trim())].filter(Boolean).join(", ");
     setCart(prev => {
-      const ex = prev.find(x => x.menuId === mid);
-      if (ex) return prev.map(x => x.menuId === mid ? { ...x, qty: x.qty + 1 } : x);
-      return [...prev, { restaurantId: rid, menuId: mid, restaurantName: r.name, name: m.name, price: m.price, fee: r.fee, qty: 1 }];
+      const key = mid + JSON.stringify({ spicy, size, toppings });
+      const ex = prev.find(x => x.cartKey === key);
+      if (ex) return prev.map(x => x.cartKey === key ? { ...x, qty: x.qty + qty } : x);
+      return [...prev, { cartKey: key, restaurantId: rid, menuId: mid, restaurantName: r.name, name: m.name, price: unitPrice, fee: r.fee, qty, optLabel }];
     });
     setAddedAnim(mid);
     setTimeout(() => setAddedAnim(null), 600);
+    setOptionTarget(null);
   };
 
-  const changeQty = (mid, d) => setCart(prev => prev.map(x => x.menuId === mid ? { ...x, qty: x.qty + d } : x).filter(x => x.qty > 0));
+  const changeQty = (key, d) => setCart(prev => prev.map(x => x.cartKey === key ? { ...x, qty: x.qty + d } : x).filter(x => x.qty > 0));
 
   const resetAll = () => {
     clearTimers(); setCart([]); setPayment("카드"); setSearch("");
@@ -267,20 +433,30 @@ export default function App() {
       setSteps([2, 2, 2, 2]); setReceiptData(info); setShowReceipt(true);
       timersRef.current.push(setTimeout(() => {
         setOrderInfo(info); setTrackState(0); setPage("tracking");
-        timersRef.current.push(setTimeout(() => setTrackState(1), 2200));
-        timersRef.current.push(setTimeout(() => setTrackState(2), 4300));
-        timersRef.current.push(setTimeout(() => setTrackState(3), 6400));
-        timersRef.current.push(setTimeout(() => setPage("complete"), 9000));
+        Array.from({ length: 15 }, (_, i) =>
+          timersRef.current.push(setTimeout(() => setTrackState(i + 1), (i + 1) * 10000))
+        );
+        timersRef.current.push(setTimeout(() => setPage("complete"), 15 * 10000 + 2000));
       }, 1200));
     }, 4600));
   };
 
-  const trackData = [
-    { eta: "12분", text: "곧 출발해 고객님께 향하고 있어요!", badge: "이동 중", bottom: "라이더 이동 중 🛵", riderLabel: "라이더 이동 중", activeText: "현재 고객님 위치로 이동하고 있어요.", bp: ["48%", "44%"], finalDone: false },
-    { eta: "7분", text: "라이더가 고객님 쪽으로 가까워지고 있어요!", badge: "근처 이동", bottom: "곧 도착 예정 🏃", riderLabel: "근처 도착", activeText: "고객님 위치 근처까지 도착했어요.", bp: ["66%", "58%"], finalDone: false },
-    { eta: "2분", text: "라이더가 거의 도착했습니다! 잠시만요~", badge: "도착 임박", bottom: "2분 내 도착 ⏰", riderLabel: "도착 임박", activeText: "건물 앞에 거의 도착했어요.", bp: ["78%", "72%"], finalDone: false },
-    { eta: "도착!", text: "배달이 도착한 것처럼 표시되는 데모입니다 🎉", badge: "전달 완료", bottom: "전달 완료 ✅", riderLabel: "전달 완료", activeText: "라이더가 도착했습니다!", bp: ["84%", "76%"], finalDone: true },
-  ];
+  const trackData = Array.from({ length: 15 }, (_, i) => {
+    const min = 15 - i;
+    const pct = 48 + i * 2.5;
+    return {
+      eta: min + "분",
+      text: min > 5 ? "곧 출발해 고객님께 향하고 있어요!" : min > 2 ? "라이더가 고객님 쪽으로 가까워지고 있어요!" : "라이더가 거의 도착했습니다! 잠시만요~",
+      badge: min > 5 ? "이동 중" : min > 2 ? "근처 이동" : "도착 임박",
+      bottom: min + "분 내 도착 ⏰", riderLabel: min + "분 남음",
+      activeText: min > 5 ? "현재 고객님 위치로 이동하고 있어요." : min > 2 ? "고객님 위치 근처까지 도착했어요." : "건물 앞에 거의 도착했어요.",
+      bp: [pct + "%", (44 + i * 2) + "%"], finalDone: false,
+    };
+  }).concat([{
+    eta: "도착!", text: "배달이 도착한 것처럼 표시되는 데모입니다 🎉", badge: "전달 완료",
+    bottom: "전달 완료 ✅", riderLabel: "전달 완료", activeText: "라이더가 도착했습니다!",
+    bp: ["84%", "76%"], finalDone: true,
+  }]);
   const td = trackData[trackState] || trackData[0];
 
   const filtered = restaurants.filter(r => {
@@ -293,22 +469,23 @@ export default function App() {
 
   const css = {
     wrap: { minHeight: "100vh", background: th.phone, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif', color: th.text, display: "flex", flexDirection: "column" },
-    header: { position: "sticky", top: 0, zIndex: 10, background: `linear-gradient(180deg,${th.headerStart},${th.headerEnd})`, color: th.headerColor, padding: "14px 20px 14px", borderBottom: th.headerBorderBottom, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" },
+    header: { position: "sticky", top: 0, zIndex: 10, background: "linear-gradient(180deg," + th.headerStart + "," + th.headerEnd + ")", color: th.headerColor, padding: "14px 20px", borderBottom: th.headerBorderBottom, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" },
     content: { flex: 1, padding: "16px 16px 100px", display: "grid", gap: 16, alignContent: "start", maxWidth: 540, width: "100%", margin: "0 auto", boxSizing: "border-box" },
     section: { background: "#fff", borderRadius: 20, padding: 16, boxShadow: th.sectionShadow },
     input: { width: "100%", padding: "14px 16px", border: "none", outline: "none", borderRadius: 14, background: "#fff", color: th.text, boxShadow: th.inputShadow, fontFamily: "inherit", fontSize: 14, boxSizing: "border-box" },
-    bottomBar: { position: "fixed", left: 0, right: 0, bottom: 0, background: th.bottomBarBg, borderTop: `1px solid ${th.bottomBarBorder}`, backdropFilter: "blur(14px)", boxShadow: "0 -4px 20px rgba(17,24,39,0.06)", padding: "12px 20px", display: "flex", justifyContent: "center", zIndex: 20 },
+    bottomBar: { position: "fixed", left: 0, right: 0, bottom: 0, background: th.bottomBarBg, borderTop: "1px solid " + th.bottomBarBorder, backdropFilter: "blur(14px)", boxShadow: "0 -4px 20px rgba(17,24,39,0.06)", padding: "12px 20px", display: "flex", justifyContent: "center", zIndex: 20 },
     bottomInner: { display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", maxWidth: 540, width: "100%" },
-    orderBtn: { border: "none", background: th.primaryBtn, color: "#fff", padding: "14px 20px", borderRadius: 16, fontSize: 14, fontWeight: 900, cursor: "pointer", minWidth: 140, boxShadow: `0 8px 20px ${th.primaryBtn}44`, fontFamily: "inherit" },
+    orderBtn: { border: "none", background: th.primaryBtn, color: "#fff", padding: "14px 20px", borderRadius: 16, fontSize: 14, fontWeight: 900, cursor: "pointer", minWidth: 140, boxShadow: "0 8px 20px " + th.primaryBtn + "44", fontFamily: "inherit" },
     iconBtn: { width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, background: th.iconBtnBg, fontSize: 16, color: th.iconBtnColor, border: "none", cursor: "pointer" },
-    addBtn: { border: "none", background: "#111827", color: "#fff", borderRadius: 12, padding: "9px 12px", cursor: "pointer", fontWeight: 800, fontSize: 12, fontFamily: "inherit", transition: "all .15s" },
+    addBtn: { border: "none", background: th.brand, color: "#fff", borderRadius: 12, padding: "9px 12px", cursor: "pointer", fontWeight: 800, fontSize: 12, fontFamily: "inherit", transition: "all .15s" },
     backBtn: { width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, fontSize: 18, border: "none", cursor: "pointer" },
   };
 
-  const globalStyle = `@keyframes floatBike{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-50%,calc(-50% - 8px))}} @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}} @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}} *{box-sizing:border-box} body,html{margin:0;padding:0}`;
+  const globalStyle = "@keyframes floatBike{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-50%,calc(-50% - 8px))}} @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}} @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}} *{box-sizing:border-box} body,html{margin:0;padding:0}";
 
-  // ======= TRACKING PAGE =======
-  // ======= COMPLETE PAGE =======
+  const optRestaurant = optionTarget ? restaurants.find(x => x.id === optionTarget.rid) : null;
+  const optMenu = optRestaurant ? optRestaurant.menus.find(x => x.id === optionTarget.mid) : null;
+
   if (page === "complete") {
     const savedKcal = cart.reduce((s, i) => s + (menuCalories[i.menuId] || 600) * i.qty, 0);
     return (
@@ -331,9 +508,7 @@ export default function App() {
         <div style={css.header}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, maxWidth: 540, margin: "0 auto" }}>
             <button onClick={() => { clearTimers(); setPage("order"); }} style={{ ...css.backBtn, background: th.iconBtnBg, color: th.iconBtnColor }}>←</button>
-            <div style={{ flex: 1, textAlign: "center" }}>
-              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>배달 추적 🛵</h2>
-            </div>
+            <div style={{ flex: 1, textAlign: "center" }}><h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>배달 추적 🛵</h2></div>
             <div style={{ width: 38 }} />
           </div>
         </div>
@@ -344,7 +519,7 @@ export default function App() {
           <div style={{ background: "linear-gradient(180deg,#dff7ea 0%,#ecfeff 100%)", borderRadius: 20, padding: 18, minHeight: 220, position: "relative", overflow: "hidden", border: "1px solid #d1fae5" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.45) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.45) 1px,transparent 1px)", backgroundSize: "34px 34px", opacity: .8 }} />
             {[{ w: 240, h: 14, t: 56, l: 40, rot: "8deg" }, { w: 16, h: 180, t: 24, r: 76 }, { w: 190, h: 12, b: 54, l: 56, rot: "-18deg" }].map((rd, i) => (
-              <div key={i} style={{ position: "absolute", background: "rgba(148,163,184,0.35)", borderRadius: 999, width: rd.w, height: rd.h, top: rd.t, left: rd.l, right: rd.r, bottom: rd.b, transform: rd.rot ? `rotate(${rd.rot})` : undefined }} />
+              <div key={i} style={{ position: "absolute", background: "rgba(148,163,184,0.35)", borderRadius: 999, width: rd.w, height: rd.h, top: rd.t, left: rd.l, right: rd.r, bottom: rd.b, transform: rd.rot ? "rotate(" + rd.rot + ")" : undefined }} />
             ))}
             <div style={{ position: "absolute", zIndex: 2, width: 46, height: 46, borderRadius: "50%", background: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", top: 24, left: 34 }}>🏪</div>
             <div style={{ position: "absolute", zIndex: 2, width: 46, height: 46, borderRadius: "50%", background: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", right: 30, bottom: 30 }}>🏠</div>
@@ -353,7 +528,7 @@ export default function App() {
             <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, right: 18, bottom: 82 }}>{orderInfo?.customerName || "배달 주소"} 님</div>
             <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, left: "50%", top: "68%", transform: "translateX(-50%)" }}>{td.riderLabel}</div>
           </div>
-          <div style={{ background: `linear-gradient(135deg,${th.heroStart},${th.heroEnd})`, color: "#fff", borderRadius: 20, padding: 18 }}>
+          <div style={{ background: "linear-gradient(135deg," + th.heroStart + "," + th.heroEnd + ")", color: "#fff", borderRadius: 20, padding: 18 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
               <div>
                 <div style={{ fontSize: 30, fontWeight: 900, lineHeight: 1 }}>{td.eta}</div>
@@ -379,7 +554,7 @@ export default function App() {
                 const active = (!td.finalDone && i === 2) || (td.finalDone && i === 3);
                 return (
                   <div key={i} style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 12, alignItems: "start" }}>
-                    <div style={{ width: 16, height: 16, borderRadius: "50%", marginTop: 2, background: done || active ? th.primaryBtn : "#d1d5db", boxShadow: active ? `0 0 0 6px ${th.primaryBtn}28` : "none", transition: ".3s" }} />
+                    <div style={{ width: 16, height: 16, borderRadius: "50%", marginTop: 2, background: done || active ? th.primaryBtn : "#d1d5db", boxShadow: active ? "0 0 0 6px " + th.primaryBtn + "28" : "none", transition: ".3s" }} />
                     <div>
                       <strong style={{ display: "block", fontSize: 14, marginBottom: 4 }}>{label}</strong>
                       <span style={{ color: th.muted, fontSize: 12 }}>
@@ -410,7 +585,6 @@ export default function App() {
     );
   }
 
-  // ======= CHECKOUT PAGE =======
   if (page === "checkout") {
     return (
       <div style={css.wrap}>
@@ -419,9 +593,7 @@ export default function App() {
         <div style={css.header}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, maxWidth: 540, margin: "0 auto" }}>
             <button onClick={() => setPage("order")} style={{ ...css.backBtn, background: th.iconBtnBg, color: th.iconBtnColor }}>←</button>
-            <div style={{ flex: 1, textAlign: "center" }}>
-              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>주문서 작성 📝</h2>
-            </div>
+            <div style={{ flex: 1, textAlign: "center" }}><h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>주문서 작성 📝</h2></div>
             <div style={{ width: 38 }} />
           </div>
         </div>
@@ -430,25 +602,26 @@ export default function App() {
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>주문 내역 ({cartCount}개) 🛒</div>
             <div style={{ display: "grid", gap: 8 }}>
               {cart.map(item => (
-                <div key={item.menuId} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "center", padding: 13, background: "#f9fafb", border: "1px solid #edf0f3", borderRadius: 16 }}>
+                <div key={item.cartKey} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "center", padding: 13, background: "#f9fafb", border: "1px solid #edf0f3", borderRadius: 16 }}>
                   <div>
-                    <h4 style={{ margin: "0 0 4px", fontWeight: 900, fontSize: 14 }}>{item.name}</h4>
+                    <h4 style={{ margin: "0 0 2px", fontWeight: 900, fontSize: 14 }}>{item.name}</h4>
+                    {item.optLabel && <div style={{ fontSize: 11, color: th.brand, fontWeight: 700, marginBottom: 2 }}>{item.optLabel}</div>}
                     <div style={{ color: th.muted, fontSize: 12 }}>{item.restaurantName}</div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-                      <button onClick={() => changeQty(item.menuId, -1)} style={{ width: 30, height: 30, borderRadius: 10, border: "none", background: "#e5e7eb", cursor: "pointer", fontWeight: 900, fontFamily: "inherit", fontSize: 15 }}>−</button>
+                      <button onClick={() => changeQty(item.cartKey, -1)} style={{ width: 30, height: 30, borderRadius: 10, border: "none", background: "#e5e7eb", cursor: "pointer", fontWeight: 900, fontFamily: "inherit", fontSize: 15 }}>−</button>
                       <strong style={{ fontSize: 14, minWidth: 20, textAlign: "center" }}>{item.qty}</strong>
-                      <button onClick={() => changeQty(item.menuId, 1)} style={{ width: 30, height: 30, borderRadius: 10, border: "none", background: "#e5e7eb", cursor: "pointer", fontWeight: 900, fontFamily: "inherit", fontSize: 15 }}>＋</button>
+                      <button onClick={() => changeQty(item.cartKey, 1)} style={{ width: 30, height: 30, borderRadius: 10, border: "none", background: "#e5e7eb", cursor: "pointer", fontWeight: 900, fontFamily: "inherit", fontSize: 15 }}>＋</button>
                     </div>
                   </div>
                   <div style={{ fontWeight: 900, whiteSpace: "nowrap", fontSize: 15, color: th.text }}>{fmt(item.price * item.qty)}</div>
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${th.line}`, display: "grid", gap: 5 }}>
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid " + th.line, display: "grid", gap: 5 }}>
               {[["상품 금액", fmt(totals.sub)], ["배달비", fmt(totals.del)], ["서비스 수수료", fmt(totals.svc)]].map(([k, v]) => (
                 <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: th.muted }}><span>{k}</span><strong style={{ color: th.text }}>{v}</strong></div>
               ))}
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 17, fontWeight: 900, marginTop: 4, paddingTop: 8, borderTop: `1px solid ${th.line}` }}><span>총 결제예상금액</span><strong style={{ color: th.brand }}>{fmt(totals.total)}</strong></div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 17, fontWeight: 900, marginTop: 4, paddingTop: 8, borderTop: "1px solid " + th.line }}><span>총 결제예상금액</span><strong style={{ color: th.brand }}>{fmt(totals.total)}</strong></div>
             </div>
           </div>
           <div style={css.section}>
@@ -462,7 +635,7 @@ export default function App() {
               ))}
               <div style={{ display: "grid", gap: 8 }}>
                 <label style={{ fontSize: 13, fontWeight: 800, color: "#374151" }}>요청사항</label>
-                <textarea value={rq} onChange={e => setRq(e.target.value)} placeholder="예: 문 앞에 놔주세요" style={{ width: "100%", border: `1px solid ${th.line}`, borderRadius: 14, padding: "14px 16px", resize: "vertical", minHeight: 80, outline: "none", background: "#fff", fontFamily: "inherit", fontSize: 14, boxSizing: "border-box" }} />
+                <textarea value={rq} onChange={e => setRq(e.target.value)} placeholder="예: 문 앞에 놔주세요" style={{ width: "100%", border: "1px solid " + th.line, borderRadius: 14, padding: "14px 16px", resize: "vertical", minHeight: 80, outline: "none", background: "#fff", fontFamily: "inherit", fontSize: 14, boxSizing: "border-box" }} />
               </div>
             </div>
           </div>
@@ -470,7 +643,7 @@ export default function App() {
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>결제수단 💳</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
               {[["💳 카드", "카드"], ["📱 간편결제", "간편결제"], ["💵 현장결제", "현장결제"]].map(([label, val]) => (
-                <div key={val} onClick={() => setPayment(val)} style={{ border: `1.5px solid ${payment === val ? th.brand : th.line}`, borderRadius: 14, padding: "14px 8px", textAlign: "center", cursor: "pointer", fontWeight: 800, background: payment === val ? th.activeBg : "#fff", color: payment === val ? th.brandDark : th.text, fontSize: 12, transition: ".2s" }}>{label}</div>
+                <div key={val} onClick={() => setPayment(val)} style={{ border: "1.5px solid " + (payment === val ? th.brand : th.line), borderRadius: 14, padding: "14px 8px", textAlign: "center", cursor: "pointer", fontWeight: 800, background: payment === val ? th.activeBg : "#fff", color: payment === val ? th.brandDark : th.text, fontSize: 12, transition: ".2s" }}>{label}</div>
               ))}
             </div>
           </div>
@@ -479,7 +652,7 @@ export default function App() {
               <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>주문 진행 중...</div>
               <div style={{ display: "grid", gap: 8 }}>
                 {stepLabels.map((label, i) => (
-                  <div key={i} style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 12, alignItems: "center", padding: 12, border: `1px solid ${th.line}`, borderRadius: 12, background: "#fbfbfc", fontSize: 13 }}>
+                  <div key={i} style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 12, alignItems: "center", padding: 12, border: "1px solid " + th.line, borderRadius: 12, background: "#fbfbfc", fontSize: 13 }}>
                     <div style={{ width: 12, height: 12, borderRadius: "50%", background: steps[i] === 2 ? th.primaryBtn : steps[i] === 1 ? "#ff6b57" : "#d1d5db", boxShadow: steps[i] === 1 ? "0 0 0 6px rgba(255,107,87,0.15)" : "none", transition: ".3s" }} />
                     <div>{label}</div>
                   </div>
@@ -495,13 +668,11 @@ export default function App() {
               ))}
               <div style={{ marginTop: 10, fontWeight: 900, color: "#166534" }}>예상 결제금액: {fmt(receiptData.total)}</div>
               {(() => {
-                const orderedKcal = cart.reduce((s, i) => s + (menuCalories[i.menuId] || 600) * i.qty, 0);
+                const savedKcal = cart.reduce((s, i) => s + (menuCalories[i.menuId] || 600) * i.qty, 0);
                 return (
                   <div style={{ marginTop: 12, padding: "12px 14px", background: "#ecfdf5", borderRadius: 12, border: "1px solid #bbf7d0", textAlign: "center" }}>
                     <div style={{ fontSize: 20 }}>🎉</div>
-                    <div style={{ fontWeight: 900, color: "#166534", fontSize: 15, marginTop: 4 }}>
-                      축하드립니다! {orderedKcal.toLocaleString()}kcal 아끼셨습니다!
-                    </div>
+                    <div style={{ fontWeight: 900, color: "#166534", fontSize: 15, marginTop: 4 }}>축하드립니다! {savedKcal.toLocaleString()}kcal 아끼셨습니다!</div>
                   </div>
                 );
               })()}
@@ -519,16 +690,26 @@ export default function App() {
     );
   }
 
-  // ======= ORDER PAGE =======
   return (
     <div style={css.wrap}>
       <style>{globalStyle}</style>
       {reviewTarget && <ReviewModal restaurant={reviewTarget} onClose={() => setReviewTarget(null)} />}
+      {optionTarget && optMenu && (
+        <OptionSheet
+          menu={optMenu}
+          brand={th.primaryBtn}
+          onClose={() => setOptionTarget(null)}
+          onConfirm={({ spicy, size, toppings, qty, extraPrice }) =>
+            addToCartDirect(optionTarget.rid, optionTarget.mid, qty, extraPrice, spicy, size, toppings)
+          }
+        />
+      )}
       <div style={css.header}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12, maxWidth: 540, margin: "0 auto" }}>
-          <div style={{ display: "flex", gap: 6 }}>
-            <button onClick={() => setTheme("mint")} style={{ ...css.iconBtn, opacity: theme === "mint" ? 1 : .55, fontWeight: theme === "mint" ? 900 : 700, fontSize: 11, borderRadius: 10, padding: "0 10px", width: "auto" }}>🌿 민트</button>
-            <button onClick={() => setTheme("blue")} style={{ ...css.iconBtn, opacity: theme === "blue" ? 1 : .55, fontWeight: theme === "blue" ? 900 : 700, fontSize: 11, borderRadius: 10, padding: "0 10px", width: "auto" }}>💎 블루</button>
+          <div style={{ display: "flex", gap: 4 }}>
+            {[["purple","💜"],["mint","🩵"],["blue","💙"],["pink","🩷"]].map(([key, emoji]) => (
+              <button key={key} onClick={() => setTheme(key)} style={{ ...css.iconBtn, width: 32, height: 32, fontSize: 14, opacity: theme === key ? 1 : 0.5, border: theme === key ? "2px solid rgba(255,255,255,0.8)" : "2px solid transparent" }}>{emoji}</button>
+            ))}
           </div>
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: 11, color: th.headerTextAlt }}>배달 주소</div>
@@ -551,7 +732,6 @@ export default function App() {
         <div style={{ background: "linear-gradient(135deg,#fff7ed,#ffedd5)", border: "1px solid #fdba74", color: "#9a3412", padding: "12px 14px", borderRadius: 16, fontSize: 12, fontWeight: 800, lineHeight: 1.45 }}>
           🚧 DEMO / MOCKUP 전용 · 실제 주문·결제·배달은 발생하지 않습니다.
         </div>
-
         <div style={css.section}>
           <div style={{ marginBottom: 14 }}>
             <h2 style={{ margin: 0, fontSize: 18 }}>맛집 {filtered.length}곳 🍴</h2>
@@ -561,11 +741,11 @@ export default function App() {
             {filtered.length === 0 ? (
               <div style={{ padding: 24, border: "1px dashed #d1d5db", borderRadius: 16, textAlign: "center", color: th.muted, background: "#fafafa", fontSize: 13, lineHeight: 1.6 }}>검색 결과가 없어요 😅<br />다른 키워드로 찾아보세요!</div>
             ) : filtered.map((r, ri) => (
-              <div key={r.id} style={{ border: `1px solid ${th.line}`, borderRadius: 20, overflow: "hidden", background: "#fff" }}>
+              <div key={r.id} style={{ border: "1px solid " + th.line, borderRadius: 20, overflow: "hidden", background: "#fff" }}>
                 <div style={{ height: 120, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, background: thumbGradients[ri % thumbGradients.length], position: "relative" }}>
                   {r.emoji}
                   {r.badge && badgeColors[r.badge] && (
-                    <div style={{ position: "absolute", top: 10, left: 10, fontSize: 11, padding: "5px 10px", borderRadius: 999, background: badgeColors[r.badge].bg, color: badgeColors[r.badge].color, border: `1px solid ${badgeColors[r.badge].border}`, fontWeight: 800 }}>{r.badge}</div>
+                    <div style={{ position: "absolute", top: 10, left: 10, fontSize: 11, padding: "5px 10px", borderRadius: 999, background: badgeColors[r.badge].bg, color: badgeColors[r.badge].color, border: "1px solid " + badgeColors[r.badge].border, fontWeight: 800 }}>{r.badge}</div>
                   )}
                 </div>
                 <div style={{ padding: 14 }}>
@@ -583,21 +763,25 @@ export default function App() {
                     <span>⏱ {r.time}</span><span>🚚 {fmt(r.fee)}</span>
                   </div>
                   <div style={{ display: "grid", gap: 8 }}>
-                    {r.menus.map(m => (
-                      <div key={m.id} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "center", padding: 12, border: `1px solid ${th.line}`, borderRadius: 14, background: "#fcfcfd" }}>
-                        <div>
-                          <div style={{ fontWeight: 800, marginBottom: 3, fontSize: 14 }}>{m.name}</div>
-                          <div style={{ color: th.muted, fontSize: 12 }}>{m.desc}</div>
-                          <div style={{ color: "#10b981", fontSize: 11, fontWeight: 700, marginTop: 2 }}>🔥 {(menuCalories[m.id] || 0).toLocaleString()}kcal</div>
+                    {r.menus.map(m => {
+                      const hasOpts = m.options && (m.options.spicy || m.options.size || (m.options.toppings && m.options.toppings.length > 0));
+                      return (
+                        <div key={m.id} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "center", padding: 12, border: "1px solid " + th.line, borderRadius: 14, background: "#fcfcfd" }}>
+                          <div>
+                            <div style={{ fontWeight: 800, marginBottom: 3, fontSize: 14 }}>{m.name}</div>
+                            <div style={{ color: th.muted, fontSize: 12 }}>{m.desc}</div>
+                            <div style={{ color: "#10b981", fontSize: 11, fontWeight: 700, marginTop: 2 }}>🔥 {(menuCalories[m.id] || 0).toLocaleString()}kcal</div>
+                            {hasOpts && <div style={{ fontSize: 10, color: th.brand, fontWeight: 700, marginTop: 3 }}>옵션 선택 가능 ›</div>}
+                          </div>
+                          <div style={{ display: "grid", justifyItems: "end", gap: 6 }}>
+                            <div style={{ fontWeight: 900, whiteSpace: "nowrap", fontSize: 14 }}>{fmt(m.price)}</div>
+                            <button onClick={() => openOption(r.id, m.id)} style={{ ...css.addBtn, animation: addedAnim === m.id ? "pop .3s ease" : "none" }}>
+                              {addedAnim === m.id ? "✓ 담김" : "담기"}
+                            </button>
+                          </div>
                         </div>
-                        <div style={{ display: "grid", justifyItems: "end", gap: 6 }}>
-                          <div style={{ fontWeight: 900, whiteSpace: "nowrap", fontSize: 14 }}>{fmt(m.price)}</div>
-                          <button onClick={() => addToCart(r.id, m.id)} style={{ ...css.addBtn, animation: addedAnim === m.id ? "pop .3s ease" : "none" }}>
-                            {addedAnim === m.id ? "✓ 담김" : "담기"}
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -609,10 +793,9 @@ export default function App() {
       <div style={css.bottomBar}>
         <div style={css.bottomInner}>
           <div><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>총 결제예상금액</span><br /><strong style={{ fontSize: 18, fontWeight: 900, color: cart.length ? th.brand : th.text }}>{fmt(totals.total)}</strong></div>
-          <button onClick={goToCheckout} style={{ ...css.orderBtn, opacity: cart.length ? 1 : .5 }}>📋 주문하기 {cartCount > 0 ? `(${cartCount})` : ""}</button>
+          <button onClick={goToCheckout} style={{ ...css.orderBtn, opacity: cart.length ? 1 : .5 }}>📋 주문하기 {cartCount > 0 ? "(" + cartCount + ")" : ""}</button>
         </div>
       </div>
     </div>
   );
 }
-
