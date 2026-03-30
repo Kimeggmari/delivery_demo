@@ -372,6 +372,45 @@ export default function App() {
   const [optionTarget, setOptionTarget] = useState(null);
   const [addedAnim, setAddedAnim] = useState(null);
   const timersRef = useRef([]);
+  const coupangRef = useRef<HTMLDivElement | null>(null);
+
+useEffect(() => {
+  const initCoupang = () => {
+    if (!coupangRef.current) return;
+
+    coupangRef.current.innerHTML = "";
+
+    if ((window as any).PartnersCoupang?.G) {
+      new (window as any).PartnersCoupang.G({
+        id: 976548,
+        template: "carousel",
+        trackingCode: "AF7204416",
+        width: "680",
+        height: "75",
+        tsource: "",
+      });
+    }
+  };
+
+  const existingScript = document.querySelector(
+    'script[src="https://ads-partners.coupang.com/g.js"]'
+  ) as HTMLScriptElement | null;
+
+  if (existingScript) {
+    if ((window as any).PartnersCoupang?.G) {
+      initCoupang();
+    } else {
+      existingScript.addEventListener("load", initCoupang, { once: true });
+    }
+    return;
+  }
+
+  const script = document.createElement("script");
+  script.src = "https://ads-partners.coupang.com/g.js";
+  script.async = true;
+  script.onload = initCoupang;
+  document.body.appendChild(script);
+}, []);
 
   const th = themes[theme];
   const totals = calcTotals(cart);
@@ -575,6 +614,48 @@ export default function App() {
             </div>
           )}
         </div>
+              <div
+        style={{
+          marginTop: 4,
+          padding: "4px 0 0",
+          opacity: 0.9,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 11,
+            color: th.muted,
+            marginBottom: 8,
+            paddingLeft: 4,
+          }}
+        >
+          추천 상품
+        </div>
+
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: 16,
+            padding: "10px 8px",
+            border: "1px solid " + th.line,
+            boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            ref={coupangRef}
+            style={{
+              width: "100%",
+              minHeight: 75,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          />
+        </div>
+      </div>
+
+      <div style={css.bottomBar}></div>
         <div style={css.bottomBar}>
           <div style={css.bottomInner}>
             <div><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>현재 상태</span><br /><strong style={{ fontSize: 18, fontWeight: 900 }}>{td.bottom}</strong></div>
