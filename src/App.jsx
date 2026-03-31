@@ -358,110 +358,30 @@ function CoupangAdCard({ th }) {
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setFailed(true);
-    }, 2500);
-
+    const timer = setTimeout(() => { setFailed(true); }, 2500);
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div
-      style={{
-        width: "100%",
-        maxWidth: 340,
-        margin: "0 auto 24px",
-        boxSizing: "border-box",
-        textAlign: "left",
-      }}
-    >
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 18,
-          padding: "10px",
-          border: "1px solid " + th.line,
-          boxShadow: "0 6px 18px rgba(0,0,0,0.05)",
-          overflow: "hidden",
-          minHeight: 132,
-        }}
-      >
-        <div
-          style={{
-            fontSize: 11,
-            color: th.muted,
-            marginBottom: 8,
-            paddingLeft: 2,
-            fontWeight: 700,
-          }}
-        >
-          추천 상품
-        </div>
-
+    <div style={{ width: "100%", maxWidth: 340, margin: "0 auto 24px", boxSizing: "border-box", textAlign: "left" }}>
+      <div style={{ background: "#fff", borderRadius: 18, padding: "10px", border: "1px solid " + th.line, boxShadow: "0 6px 18px rgba(0,0,0,0.05)", overflow: "hidden", minHeight: 132 }}>
+        <div style={{ fontSize: 11, color: th.muted, marginBottom: 8, paddingLeft: 2, fontWeight: 700 }}>추천 상품</div>
         {!loaded && !failed && (
-          <div
-            style={{
-              height: 94,
-              borderRadius: 12,
-              background: "#f8fafc",
-              border: "1px dashed " + th.line,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 12,
-              color: th.muted,
-            }}
-          >
+          <div style={{ height: 94, borderRadius: 12, background: "#f8fafc", border: "1px dashed " + th.line, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: th.muted }}>
             추천 상품 불러오는 중...
           </div>
         )}
-
         {failed && !loaded && (
-          <div
-            style={{
-              height: 94,
-              borderRadius: 12,
-              background: "#f8fafc",
-              border: "1px dashed " + th.line,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              textAlign: "center",
-              fontSize: 12,
-              color: th.muted,
-              lineHeight: 1.45,
-              padding: "0 12px",
-            }}
-          >
-            광고 차단 또는 브라우저 설정 때문에
-            <br />
-            추천 상품이 표시되지 않을 수 있어요.
+          <div style={{ height: 94, borderRadius: 12, background: "#f8fafc", border: "1px dashed " + th.line, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", fontSize: 12, color: th.muted, lineHeight: 1.45, padding: "0 12px" }}>
+            광고 차단 또는 브라우저 설정 때문에<br />추천 상품이 표시되지 않을 수 있어요.
           </div>
         )}
-
         <iframe
           title="추천 상품"
           src="https://ads-partners.coupang.com/widgets.html?id=976548&template=carousel&trackingCode=AF7204416&width=300&height=94&tsource="
-          width="300"
-          height="94"
-          frameBorder="0"
-          scrolling="no"
-          referrerPolicy="unsafe-url"
-          onLoad={() => {
-            setLoaded(true);
-            setFailed(false);
-          }}
-          style={{
-            display: loaded ? "block" : "none",
-            width: "100%",
-            maxWidth: 300,
-            height: 94,
-            margin: "0 auto",
-            border: "none",
-            borderRadius: 12,
-            overflow: "hidden",
-            background: "transparent",
-          }}
+          width="300" height="94" frameBorder="0" scrolling="no" referrerPolicy="unsafe-url"
+          onLoad={() => { setLoaded(true); setFailed(false); }}
+          style={{ display: loaded ? "block" : "none", width: "100%", maxWidth: 300, height: 94, margin: "0 auto", border: "none", borderRadius: 12, overflow: "hidden", background: "transparent" }}
         />
       </div>
     </div>
@@ -487,6 +407,34 @@ export default function App() {
   const [optionTarget, setOptionTarget] = useState(null);
   const [addedAnim, setAddedAnim] = useState(null);
   const timersRef = useRef([]);
+
+  // ── PWA 홈화면 추가 ──────────────────────────────────
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [installable, setInstallable] = useState(false);
+  const [installed, setInstalled] = useState(false);
+
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setInstallable(true);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    window.addEventListener("appinstalled", () => setInstalled(true));
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+    };
+  }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") setInstalled(true);
+    setDeferredPrompt(null);
+    setInstallable(false);
+  };
+  // ────────────────────────────────────────────────────
 
   const th = themes[theme];
   const totals = calcTotals(cart);
@@ -599,6 +547,7 @@ export default function App() {
   const optRestaurant = optionTarget ? restaurants.find(x => x.id === optionTarget.rid) : null;
   const optMenu = optRestaurant ? optRestaurant.menus.find(x => x.id === optionTarget.mid) : null;
 
+  // ── COMPLETE PAGE ────────────────────────────────────
   if (page === "complete") {
     const savedKcal = cart.reduce((s, i) => s + (menuCalories[i.menuId] || 600) * i.qty, 0);
     return (
@@ -608,14 +557,65 @@ export default function App() {
         <h1 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 12px", color: th.text }}>축하드립니다!</h1>
         <div style={{ fontSize: 42, fontWeight: 900, color: th.brand, marginBottom: 8 }}>{savedKcal.toLocaleString()}kcal</div>
         <div style={{ fontSize: 20, fontWeight: 800, color: th.text, marginBottom: 32 }}>아끼셨어요!! 🥗</div>
-        <div style={{ fontSize: 13, color: th.muted, marginBottom: 28, lineHeight: 1.6 }}>오늘도 현명한 선택을 하셨네요 😄<br />데모 주문이라 실제로는 0칼로리!</div>
+        <div style={{ fontSize: 13, color: th.muted, marginBottom: 28, lineHeight: 1.6 }}>
+          오늘도 현명한 선택을 하셨네요 😄<br />데모 주문이라 실제로는 0칼로리!
+        </div>
 
         <CoupangAdCard th={th} />
 
-        <button onClick={resetAll} style={{ ...css.orderBtn, fontSize: 16, padding: "16px 32px" }}>🏠 처음으로</button>
+        {/* ── 홈화면 추가 버튼 영역 ── */}
+        {installed ? (
+          // 설치 완료 상태
+          <div style={{
+            width: "100%", maxWidth: 340, marginBottom: 12,
+            padding: "14px 20px", borderRadius: 16,
+            background: "#dcfce7", border: "1px solid #bbf7d0",
+            color: "#166534", fontWeight: 800, fontSize: 14,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+          }}>
+            ✅ 홈화면에 추가되었어요!
+          </div>
+        ) : installable ? (
+          // Android/Chrome: 자동 프롬프트 버튼
+          <button
+            onClick={handleInstall}
+            style={{
+              width: "100%", maxWidth: 340, marginBottom: 12,
+              padding: "16px 20px", border: "none", borderRadius: 16,
+              background: "linear-gradient(135deg," + th.heroStart + "," + th.heroEnd + ")",
+              color: "#fff", fontWeight: 900, fontSize: 15,
+              cursor: "pointer", fontFamily: "inherit",
+              boxShadow: "0 8px 20px " + th.brand + "44",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+            }}
+          >
+            📲 홈화면에 앱 추가하기
+          </button>
+        ) : (
+          // iOS Safari 등 beforeinstallprompt 미지원 환경: 수동 안내
+          <div style={{
+            width: "100%", maxWidth: 340, marginBottom: 16,
+            padding: "14px 16px", borderRadius: 16,
+            background: "#f0f9ff", border: "1px solid #bae6fd",
+            color: "#0369a1", fontSize: 12, fontWeight: 700,
+            lineHeight: 1.7, textAlign: "left",
+          }}>
+            📱 <strong>홈화면에 추가하는 방법</strong><br />
+            <span style={{ fontWeight: 500 }}>
+              iOS Safari: 하단 공유버튼(□↑) → <em>"홈 화면에 추가"</em><br />
+              Android Chrome: 주소창 옆 설치 아이콘 탭
+            </span>
+          </div>
+        )}
+        {/* ─────────────────────────── */}
+
+        <button onClick={resetAll} style={{ ...css.orderBtn, fontSize: 16, padding: "16px 32px", marginTop: 4 }}>
+          🏠 처음으로
+        </button>
       </div>
     );
   }
+  // ────────────────────────────────────────────────────
 
   if (page === "tracking") {
     return (
@@ -691,7 +691,6 @@ export default function App() {
             </div>
           )}
         </div>
-
         <div style={css.bottomBar}>
           <div style={css.bottomInner}>
             <div><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>현재 상태</span><br /><strong style={{ fontSize: 18, fontWeight: 900 }}>{td.bottom}</strong></div>
@@ -741,7 +740,6 @@ export default function App() {
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 17, fontWeight: 900, marginTop: 4, paddingTop: 8, borderTop: "1px solid " + th.line }}><span>총 결제예상금액</span><strong style={{ color: th.brand }}>{fmt(totals.total)}</strong></div>
             </div>
           </div>
-
           <div style={css.section}>
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>배달 정보 🏠</div>
             <div style={{ display: "grid", gap: 10 }}>
@@ -757,7 +755,6 @@ export default function App() {
               </div>
             </div>
           </div>
-
           <div style={css.section}>
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>결제수단 💳</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
@@ -767,41 +764,19 @@ export default function App() {
             </div>
           </div>
         </div>
-
         {showReceipt && receiptData && (
-          <div
-            style={{
-              position: "fixed",
-              left: "50%",
-              bottom: 86,
-              transform: "translateX(-50%)",
-              width: "calc(100% - 32px)",
-              maxWidth: 508,
-              zIndex: 21,
-            }}
-          >
-            <div
-              style={{
-                background: "linear-gradient(180deg,#f0fdf4,#ffffff)",
-                border: "1px solid #bbf7d0",
-                boxShadow: "0 10px 30px rgba(22,101,52,0.10)",
-                borderRadius: 18,
-                padding: "14px 16px",
-              }}
-            >
+          <div style={{ position: "fixed", left: "50%", bottom: 86, transform: "translateX(-50%)", width: "calc(100% - 32px)", maxWidth: 508, zIndex: 21 }}>
+            <div style={{ background: "linear-gradient(180deg,#f0fdf4,#ffffff)", border: "1px solid #bbf7d0", boxShadow: "0 10px 30px rgba(22,101,52,0.10)", borderRadius: 18, padding: "14px 16px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ fontSize: 22 }}>✅</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 14, fontWeight: 900, color: "#166534" }}>주문이 접수되었습니다!</div>
-                  <div style={{ fontSize: 12, color: "#166534", marginTop: 2 }}>
-                    잠시 후 배달 추적 페이지로 이동합니다.
-                  </div>
+                  <div style={{ fontSize: 12, color: "#166534", marginTop: 2 }}>잠시 후 배달 추적 페이지로 이동합니다.</div>
                 </div>
               </div>
             </div>
           </div>
         )}
-
         <div style={css.bottomBar}>
           <div style={css.bottomInner}>
             <div><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>총 결제예상금액</span><br /><strong style={{ fontSize: 18, fontWeight: 900, color: th.brand }}>{fmt(totals.total)}</strong></div>
