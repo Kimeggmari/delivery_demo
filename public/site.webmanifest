@@ -3,6 +3,7 @@
   "short_name": "음식만안와요",
   "description": "칼로리를 아끼는 스마트 배달 데모 앱",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "theme_color": "#0ea768",

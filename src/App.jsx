@@ -384,7 +384,6 @@ function CoupangAdCard({ th }) {
           style={{ display: loaded ? "block" : "none", width: "100%", maxWidth: 300, height: 94, margin: "0 auto", border: "none", borderRadius: 12, overflow: "hidden", background: "transparent" }}
         />
       </div>
-      {/* 쿠팡파트너스 고지 문구 */}
       <div style={{ fontSize: 9, color: th.muted, opacity: 0.6, marginTop: 6, paddingLeft: 2, lineHeight: 1.4 }}>
         이 링크는 쿠팡파트너스 활동의 일환으로, 일정액의 수수료를 제공받을 수 있습니다
       </div>
@@ -411,32 +410,40 @@ export default function App() {
   const [optionTarget, setOptionTarget] = useState(null);
   const [addedAnim, setAddedAnim] = useState(null);
   const timersRef = useRef([]);
-
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [installable, setInstallable] = useState(false);
+  const [canInstall, setCanInstall] = useState(false);
   const [installed, setInstalled] = useState(false);
 
+  const isIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+  const isInStandalone =
+    window.matchMedia?.("(display-mode: standalone)")?.matches ||
+    window.navigator.standalone === true;
+
   useEffect(() => {
-    const handler = (e) => {
+    const onBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setInstallable(true);
+      setCanInstall(true);
     };
-    window.addEventListener("beforeinstallprompt", handler);
-    window.addEventListener("appinstalled", () => setInstalled(true));
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handler);
-    };
-  }, []);
 
-  const handleInstall = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === "accepted") setInstalled(true);
-    setDeferredPrompt(null);
-    setInstallable(false);
-  };
+    const onAppInstalled = () => {
+      setInstalled(true);
+      setCanInstall(false);
+      setDeferredPrompt(null);
+    };
+
+    window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
+    window.addEventListener("appinstalled", onAppInstalled);
+
+    if (isInStandalone) {
+      setInstalled(true);
+    }
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", onAppInstalled);
+    };
+  }, [isInStandalone]);
 
   const th = themes[theme];
   const totals = calcTotals(cart);
@@ -444,6 +451,19 @@ export default function App() {
 
   const clearTimers = useCallback(() => { timersRef.current.forEach(clearTimeout); timersRef.current = []; }, []);
   useEffect(() => () => clearTimers(), [clearTimers]);
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+
+    await deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+
+    if (choice?.outcome === "accepted") {
+      setInstalled(true);
+    }
+
+    setDeferredPrompt(null);
+    setCanInstall(false);
+  };
 
   const openOption = (rid, mid) => {
     const r = restaurants.find(x => x.id === rid);
@@ -549,46 +569,85 @@ export default function App() {
   const optRestaurant = optionTarget ? restaurants.find(x => x.id === optionTarget.rid) : null;
   const optMenu = optRestaurant ? optRestaurant.menus.find(x => x.id === optionTarget.mid) : null;
 
-  // ── COMPLETE PAGE ────────────────────────────────────
   if (page === "complete") {
-    const savedKcal = cart.reduce((s, i) => s + (menuCalories[i.menuId] || 600) * i.qty, 0);
-    return (
-      <div style={{ ...css.wrap, alignItems: "center", justifyContent: "center", textAlign: "center", padding: "40px 24px" }}>
-        <style>{globalStyle}</style>
-        <div style={{ fontSize: 72, marginBottom: 24, animation: "pop .5s ease" }}>🎉</div>
-        <h1 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 12px", color: th.text }}>축하드립니다!</h1>
-        <div style={{ fontSize: 42, fontWeight: 900, color: th.brand, marginBottom: 8 }}>{savedKcal.toLocaleString()}kcal</div>
-        <div style={{ fontSize: 20, fontWeight: 800, color: th.text, marginBottom: 32 }}>아끼셨어요!! 🥗</div>
-        <div style={{ fontSize: 13, color: th.muted, marginBottom: 28, lineHeight: 1.6 }}>
-          오늘도 현명한 선택을 하셨네요 😄<br />데모 주문이라 실제로는 0칼로리!
-        </div>
-
-        <CoupangAdCard th={th} />
-
-        {installed ? (
-          <div style={{ width: "100%", maxWidth: 340, marginBottom: 12, padding: "14px 20px", borderRadius: 16, background: "#dcfce7", border: "1px solid #bbf7d0", color: "#166534", fontWeight: 800, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-            ✅ 홈화면에 추가되었어요!
-          </div>
-        ) : installable ? (
-          <button onClick={handleInstall} style={{ width: "100%", maxWidth: 340, marginBottom: 12, padding: "16px 20px", border: "none", borderRadius: 16, background: "linear-gradient(135deg," + th.heroStart + "," + th.heroEnd + ")", color: "#fff", fontWeight: 900, fontSize: 15, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 8px 20px " + th.brand + "44", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-            📲 홈화면에 앱 추가하기
-          </button>
-        ) : (
-          <div style={{ width: "100%", maxWidth: 340, marginBottom: 16, padding: "14px 16px", borderRadius: 16, background: "#f0f9ff", border: "1px solid #bae6fd", color: "#0369a1", fontSize: 12, fontWeight: 700, lineHeight: 1.7, textAlign: "left" }}>
-            📱 <strong>홈화면에 추가하는 방법</strong><br />
-            <span style={{ fontWeight: 500 }}>
-              iOS Safari: 하단 공유버튼(□↑) → <em>"홈 화면에 추가"</em><br />
-              Android Chrome: 주소창 옆 설치 아이콘 탭
-            </span>
-          </div>
-        )}
-
-        <button onClick={resetAll} style={{ ...css.orderBtn, fontSize: 16, padding: "16px 32px", marginTop: 4 }}>
-          🏠 처음으로
-        </button>
+  const savedKcal = cart.reduce((s, i) => s + (menuCalories[i.menuId] || 600) * i.qty, 0);
+  return (
+    <div style={{ ...css.wrap, alignItems: "center", justifyContent: "center", textAlign: "center", padding: "40px 24px" }}>
+      <style>{globalStyle}</style>
+      <div style={{ fontSize: 72, marginBottom: 24, animation: "pop .5s ease" }}>🎉</div>
+      <h1 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 12px", color: th.text }}>축하드립니다!</h1>
+      <div style={{ fontSize: 42, fontWeight: 900, color: th.brand, marginBottom: 8 }}>{savedKcal.toLocaleString()}kcal</div>
+      <div style={{ fontSize: 20, fontWeight: 800, color: th.text, marginBottom: 32 }}>아끼셨어요!! 🥗</div>
+      <div style={{ fontSize: 13, color: th.muted, marginBottom: 28, lineHeight: 1.6 }}>
+        오늘도 현명한 선택을 하셨네요 😄<br />데모 주문이라 실제로는 0칼로리!
       </div>
-    );
-  }
+
+      <CoupangAdCard th={th} />
+
+      {installed ? (
+        <div
+          style={{
+            width: "100%",
+            maxWidth: 340,
+            marginBottom: 12,
+            padding: "14px 20px",
+            borderRadius: 16,
+            background: "#dcfce7",
+            border: "1px solid #bbf7d0",
+            color: "#166534",
+            fontWeight: 800,
+            fontSize: 14
+          }}
+        >
+          ✅ 홈화면에 추가되었어요!
+        </div>
+      ) : canInstall ? (
+        <button
+          onClick={handleInstall}
+          style={{
+            width: "100%",
+            maxWidth: 340,
+            marginBottom: 12,
+            padding: "16px 20px",
+            border: "none",
+            borderRadius: 16,
+            background: "linear-gradient(135deg," + th.heroStart + "," + th.heroEnd + ")",
+            color: "#fff",
+            fontWeight: 900,
+            fontSize: 15,
+            cursor: "pointer",
+            fontFamily: "inherit"
+          }}
+        >
+          📲 홈화면에 앱 추가하기
+        </button>
+      ) : isIos && !installed ? (
+        <div
+          style={{
+            width: "100%",
+            maxWidth: 340,
+            marginBottom: 16,
+            padding: "14px 16px",
+            borderRadius: 16,
+            background: "#f0f9ff",
+            border: "1px solid #bae6fd",
+            color: "#0369a1",
+            fontSize: 12,
+            fontWeight: 700,
+            lineHeight: 1.7,
+            textAlign: "left"
+          }}
+        >
+          📱 Safari에서 공유 버튼(□↑) → <strong>홈 화면에 추가</strong>
+        </div>
+      ) : null}
+
+      <button onClick={resetAll} style={{ ...css.orderBtn, fontSize: 16, padding: "16px 32px", marginTop: 4 }}>
+        🏠 처음으로
+      </button>
+    </div>
+  );
+}
 
   if (page === "tracking") {
     return (
