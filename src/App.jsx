@@ -384,6 +384,10 @@ function CoupangAdCard({ th }) {
           style={{ display: loaded ? "block" : "none", width: "100%", maxWidth: 300, height: 94, margin: "0 auto", border: "none", borderRadius: 12, overflow: "hidden", background: "transparent" }}
         />
       </div>
+      {/* 쿠팡파트너스 고지 문구 */}
+      <div style={{ fontSize: 9, color: th.muted, opacity: 0.6, marginTop: 6, paddingLeft: 2, lineHeight: 1.4 }}>
+        이 링크는 쿠팡파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받을 수 있습니다
+      </div>
     </div>
   );
 }
@@ -408,7 +412,6 @@ export default function App() {
   const [addedAnim, setAddedAnim] = useState(null);
   const timersRef = useRef([]);
 
-  // ── PWA 홈화면 추가 ──────────────────────────────────
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [installable, setInstallable] = useState(false);
   const [installed, setInstalled] = useState(false);
@@ -434,7 +437,6 @@ export default function App() {
     setDeferredPrompt(null);
     setInstallable(false);
   };
-  // ────────────────────────────────────────────────────
 
   const th = themes[theme];
   const totals = calcTotals(cart);
@@ -563,43 +565,16 @@ export default function App() {
 
         <CoupangAdCard th={th} />
 
-        {/* ── 홈화면 추가 버튼 영역 ── */}
         {installed ? (
-          // 설치 완료 상태
-          <div style={{
-            width: "100%", maxWidth: 340, marginBottom: 12,
-            padding: "14px 20px", borderRadius: 16,
-            background: "#dcfce7", border: "1px solid #bbf7d0",
-            color: "#166534", fontWeight: 800, fontSize: 14,
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-          }}>
+          <div style={{ width: "100%", maxWidth: 340, marginBottom: 12, padding: "14px 20px", borderRadius: 16, background: "#dcfce7", border: "1px solid #bbf7d0", color: "#166534", fontWeight: 800, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
             ✅ 홈화면에 추가되었어요!
           </div>
         ) : installable ? (
-          // Android/Chrome: 자동 프롬프트 버튼
-          <button
-            onClick={handleInstall}
-            style={{
-              width: "100%", maxWidth: 340, marginBottom: 12,
-              padding: "16px 20px", border: "none", borderRadius: 16,
-              background: "linear-gradient(135deg," + th.heroStart + "," + th.heroEnd + ")",
-              color: "#fff", fontWeight: 900, fontSize: 15,
-              cursor: "pointer", fontFamily: "inherit",
-              boxShadow: "0 8px 20px " + th.brand + "44",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-            }}
-          >
+          <button onClick={handleInstall} style={{ width: "100%", maxWidth: 340, marginBottom: 12, padding: "16px 20px", border: "none", borderRadius: 16, background: "linear-gradient(135deg," + th.heroStart + "," + th.heroEnd + ")", color: "#fff", fontWeight: 900, fontSize: 15, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 8px 20px " + th.brand + "44", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
             📲 홈화면에 앱 추가하기
           </button>
         ) : (
-          // iOS Safari 등 beforeinstallprompt 미지원 환경: 수동 안내
-          <div style={{
-            width: "100%", maxWidth: 340, marginBottom: 16,
-            padding: "14px 16px", borderRadius: 16,
-            background: "#f0f9ff", border: "1px solid #bae6fd",
-            color: "#0369a1", fontSize: 12, fontWeight: 700,
-            lineHeight: 1.7, textAlign: "left",
-          }}>
+          <div style={{ width: "100%", maxWidth: 340, marginBottom: 16, padding: "14px 16px", borderRadius: 16, background: "#f0f9ff", border: "1px solid #bae6fd", color: "#0369a1", fontSize: 12, fontWeight: 700, lineHeight: 1.7, textAlign: "left" }}>
             📱 <strong>홈화면에 추가하는 방법</strong><br />
             <span style={{ fontWeight: 500 }}>
               iOS Safari: 하단 공유버튼(□↑) → <em>"홈 화면에 추가"</em><br />
@@ -607,7 +582,6 @@ export default function App() {
             </span>
           </div>
         )}
-        {/* ─────────────────────────── */}
 
         <button onClick={resetAll} style={{ ...css.orderBtn, fontSize: 16, padding: "16px 32px", marginTop: 4 }}>
           🏠 처음으로
@@ -615,7 +589,6 @@ export default function App() {
       </div>
     );
   }
-  // ────────────────────────────────────────────────────
 
   if (page === "tracking") {
     return (
