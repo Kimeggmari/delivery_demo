@@ -14,6 +14,8 @@ const menuCalories = {
   gp1: 420, gp2: 480, gp3: 510,
   yt1: 620, yt2: 580, yt3: 450,
   su1: 650, su2: 380, su3: 310, su4: 650,
+  hb1: 840, hb2: 1090, hb3: 410,
+  piz1: 980, piz2: 1120, piz3: 360,
 };
 
 const restaurants = [
@@ -122,6 +124,22 @@ const restaurants = [
       { id: "yt1", name: "엽땡 떡볶이 (1인)", desc: "중독성 있는 매콤달콤 소스", price: 9900, options: { spicy: true, size: true, toppings: ["치즈 추가+1000원", "라면사리 추가+500원", "만두 추가+1500원"] } },
       { id: "yt2", name: "로제 떡볶이 (1인)", desc: "부드럽고 크리미한 로제", price: 9900, options: { size: true, toppings: ["치즈 추가+1000원", "라면사리 추가+500원"] } },
       { id: "yt3", name: "순대 모둠", desc: "당면순대 + 떡볶이 소스", price: 6500, options: { spicy: true } },
+    ],
+  },
+  {
+    id: 14, name: "버거팩토리", emoji: "🍔", time: "20~30분", rating: 4.8, reviews: 2418, fee: 2800, category: "햄버거", badge: "추천",
+    menus: [
+      { id: "hb1", name: "시그니처 치즈버거", desc: "두툼한 패티와 체다치즈", price: 9800, options: { size: true, toppings: ["치즈 추가+1000원", "베이컨 추가+1500원", "감자튀김 추가+2500원"] } },
+      { id: "hb2", name: "더블 베이컨 버거 세트", desc: "패티 2장 + 베이컨 + 감튀", price: 14800, options: { size: true, toppings: ["치즈 추가+1000원", "콜라 추가+1500원"] } },
+      { id: "hb3", name: "크리스피 감자튀김", desc: "겉바속촉 클래식 프라이", price: 4200, options: { size: true, toppings: ["치즈시즈닝 추가+700원"] } },
+    ],
+  },
+  {
+    id: 15, name: "화덕피자랩", emoji: "🍕", time: "30~40분", rating: 4.9, reviews: 1986, fee: 3500, category: "피자", badge: "인기",
+    menus: [
+      { id: "piz1", name: "페퍼로니 피자", desc: "짭짤한 페퍼로니 듬뿍", price: 18900, options: { size: true, toppings: ["치즈 추가+2000원", "핫소스 추가+500원", "갈릭디핑소스 추가+700원"] } },
+      { id: "piz2", name: "불고기 피자", desc: "달콤짭짤 불고기 토핑", price: 20900, options: { size: true, toppings: ["치즈 추가+2000원", "콘샐러드 추가+1500원", "갈릭디핑소스 추가+700원"] } },
+      { id: "piz3", name: "치즈오븐스파게티", desc: "피자와 찰떡궁합 사이드", price: 6900, options: { toppings: ["치즈 추가+1000원"] } },
     ],
   },
 ];
