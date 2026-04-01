@@ -179,17 +179,17 @@ const themes = {
     headerBorderBottom: "none", activeBg: "#f3eeff",
   },
   mint: {
-    phone: "#f7fbfa", text: "#0d2320", muted: "#5a8a80", line: "#d4f0ea",
-    brand: "#0ea768", brandDark: "#0d9460",
-    headerStart: "#15d3b4", headerEnd: "#0ea768",
-    heroStart: "#15d3b4", heroEnd: "#0ea768",
-    primaryBtn: "#0ea768",
-    sectionShadow: "0 4px 20px rgba(14,167,104,0.08)",
-    inputShadow: "0 2px 12px rgba(14,167,104,0.07)",
-    bottomBarBg: "rgba(255,255,255,0.97)", bottomBarBorder: "rgba(212,240,234,1)",
+    phone: "#fff7ed", text: "#431407", muted: "#c2410c", line: "#fed7aa",
+    brand: "#f97316", brandDark: "#ea580c",
+    headerStart: "#fb923c", headerEnd: "#f97316",
+    heroStart: "#fb923c", heroEnd: "#f97316",
+    primaryBtn: "#f97316",
+    sectionShadow: "0 4px 20px rgba(249,115,22,0.08)",
+    inputShadow: "0 2px 12px rgba(249,115,22,0.07)",
+    bottomBarBg: "rgba(255,255,255,0.97)", bottomBarBorder: "rgba(254,215,170,1)",
     headerColor: "#fff", headerTextAlt: "rgba(255,255,255,0.75)",
     iconBtnBg: "rgba(255,255,255,0.18)", iconBtnColor: "#fff",
-    headerBorderBottom: "none", activeBg: "#ecfdf5",
+    headerBorderBottom: "none", activeBg: "#fff7ed",
   },
   blue: {
     phone: "#f5f8ff", text: "#0f1e40", muted: "#5a7aa0", line: "#dbeafe",
@@ -205,17 +205,17 @@ const themes = {
     headerBorderBottom: "none", activeBg: "#eff6ff",
   },
   pink: {
-    phone: "#fff8fb", text: "#3d0a1e", muted: "#a0547a", line: "#fce7f3",
-    brand: "#db2777", brandDark: "#be185d",
-    headerStart: "#f472b6", headerEnd: "#db2777",
-    heroStart: "#f472b6", heroEnd: "#db2777",
-    primaryBtn: "#db2777",
-    sectionShadow: "0 4px 20px rgba(219,39,119,0.08)",
-    inputShadow: "0 2px 12px rgba(219,39,119,0.07)",
-    bottomBarBg: "rgba(255,255,255,0.97)", bottomBarBorder: "rgba(252,231,243,1)",
+    phone: "#f7fbfa", text: "#0d2320", muted: "#5a8a80", line: "#d4f0ea",
+    brand: "#0ea768", brandDark: "#0d9460",
+    headerStart: "#15d3b4", headerEnd: "#0ea768",
+    heroStart: "#15d3b4", heroEnd: "#0ea768",
+    primaryBtn: "#0ea768",
+    sectionShadow: "0 4px 20px rgba(14,167,104,0.08)",
+    inputShadow: "0 2px 12px rgba(14,167,104,0.07)",
+    bottomBarBg: "rgba(255,255,255,0.97)", bottomBarBorder: "rgba(212,240,234,1)",
     headerColor: "#fff", headerTextAlt: "rgba(255,255,255,0.75)",
     iconBtnBg: "rgba(255,255,255,0.18)", iconBtnColor: "#fff",
-    headerBorderBottom: "none", activeBg: "#fdf2f8",
+    headerBorderBottom: "none", activeBg: "#ecfdf5",
   },
 };
 
@@ -836,7 +836,7 @@ export default function App() {
       <div style={css.header}>
         <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, maxWidth: 540, margin: "0 auto", minHeight: 32 }}>
           <div style={{ display: "flex", gap: 4, zIndex: 1 }}>
-            {[["purple","💜"],["mint","🩵"],["blue","💙"],["pink","🩷"]].map(([key, emoji]) => (
+            {[["purple","💜"],["mint","🧡"],["blue","💙"],["pink","🩵"]].map(([key, emoji]) => (
               <button key={key} onClick={() => setTheme(key)} style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 11, opacity: theme === key ? 1 : 0.5, border: theme === key ? "2px solid rgba(255,255,255,0.8)" : "2px solid transparent" }}>{emoji}</button>
             ))}
           </div>
