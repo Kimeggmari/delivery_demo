@@ -1189,7 +1189,7 @@ export default function App() {
 
       <div style={css.content}>
         <div style={{ background: "linear-gradient(135deg,#fff7ed,#ffedd5)", border: "1px solid #fdba74", color: "#9a3412", padding: "12px 14px", borderRadius: 16, fontSize: 12, fontWeight: 800, lineHeight: 1.45 }}>
-          🚧 DEMO / MOCKUP 전용 · 실제 주문·결제·배달은 발생하지 않습니다.
+          🚧 실제 주문·결제·배달은 발생하지 않습니다.
         </div>
 
         <div style={css.section}>
