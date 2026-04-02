@@ -237,6 +237,37 @@ const themes = {
   },
 };
 
+const deliveryModes = {
+  rabbit: {
+    key: "rabbit",
+    label: "토끼배달",
+    emoji: "🐇",
+    etaStart: 8,
+    intervalMs: 6000,
+    completeDelayMs: 1500,
+    badge: "급행",
+    heroStart: "#f97316",
+    heroEnd: "#ea580c",
+    mapIcon: "🐇",
+    completeTitle: "토끼배달 완료!",
+    completeDesc: "번개처럼 빠르게 도착한 컨셉의 데모예요 ⚡",
+  },
+  turtle: {
+    key: "turtle",
+    label: "거북이배달",
+    emoji: "🐢",
+    etaStart: 30,
+    intervalMs: 30000,
+    completeDelayMs: 2500,
+    badge: "여유",
+    heroStart: "#16a34a",
+    heroEnd: "#15803d",
+    mapIcon: "🐢",
+    completeTitle: "거북이배달 완료!",
+    completeDesc: "천천히 하지만 꾸준히 오는 컨셉의 데모예요 🌿",
+  },
+};
+
 function fmt(v) { return new Intl.NumberFormat("ko-KR").format(v) + "원"; }
 function calcTotals(cart) {
   const sub = cart.reduce((s, i) => s + i.price * i.qty, 0);
@@ -284,6 +315,139 @@ function ReviewModal({ restaurant, onClose }) {
           ))}
         </div>
         <div style={{ textAlign: "center", marginTop: 14, fontSize: 12, color: "#9ca3af" }}>데모용 샘플 리뷰입니다</div>
+      </div>
+    </div>
+  );
+}
+
+function InfoModal({ onClose, email = "eggmari5713@gmail.com" }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 120,
+        background: "rgba(0,0,0,0.45)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 20,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%",
+          maxWidth: 420,
+          background: "#fff",
+          borderRadius: 24,
+          padding: "22px 20px 20px",
+          boxShadow: "0 20px 50px rgba(0,0,0,0.18)",
+          animation: "pop .22s ease",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 12,
+            marginBottom: 16,
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 4 }}>
+              앱 안내
+            </div>
+            <div style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5 }}>
+              음식만안와요 데모 소개
+            </div>
+          </div>
+
+          <button
+            onClick={onClose}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 12,
+              border: "none",
+              background: "#f3f4f6",
+              fontSize: 18,
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+          >
+            ✕
+          </button>
+        </div>
+
+        <div
+          style={{
+            background: "#f9fafb",
+            border: "1px solid #eef2f7",
+            borderRadius: 18,
+            padding: "16px 16px",
+            fontSize: 15,
+            color: "#374151",
+            lineHeight: 1.7,
+            marginBottom: 14,
+          }}
+        >
+          <strong style={{ display: "block", fontSize: 16, marginBottom: 8, color: "#111827" }}>
+            음식만안와요는 어떤 앱인가요?
+          </strong>
+          이 앱은 배달앱처럼 주문 과정을 체험하는 재미있는 데모 앱이에요.
+          실제 주문, 결제, 배달은 이루어지지 않으며, 대신
+          <strong> “주문하지 않아서 아낀 칼로리”</strong>를 보여주는 콘셉트로 만들어졌어요.
+          <br />
+          <br />
+          배달 중독을 줄이고, 돈과 칼로리를 아껴보자는 유쾌한 아이디어를 담고 있습니다.
+        </div>
+
+        <div
+          style={{
+            background: "#fff7ed",
+            border: "1px solid #fed7aa",
+            borderRadius: 18,
+            padding: "14px 16px",
+            marginBottom: 16,
+          }}
+        >
+          <div style={{ fontSize: 12, color: "#9a3412", fontWeight: 800, marginBottom: 6 }}>
+            문의 메일
+          </div>
+          <a
+            href={`mailto:${email}`}
+            style={{
+              fontSize: 15,
+              fontWeight: 900,
+              color: "#ea580c",
+              textDecoration: "none",
+              wordBreak: "break-all",
+            }}
+          >
+            {email}
+          </a>
+        </div>
+
+        <button
+          onClick={onClose}
+          style={{
+            width: "100%",
+            border: "none",
+            borderRadius: 16,
+            padding: "14px 16px",
+            background: "#111827",
+            color: "#fff",
+            fontWeight: 900,
+            fontSize: 14,
+            cursor: "pointer",
+            fontFamily: "inherit",
+          }}
+        >
+          확인
+        </button>
       </div>
     </div>
   );
@@ -411,6 +575,7 @@ function CoupangAdCard({ th }) {
 
 export default function App() {
   const [theme, setTheme] = useState("mint");
+  const [deliveryMode, setDeliveryMode] = useState("rabbit");
   const [page, setPage] = useState("order");
   const [cart, setCart] = useState([]);
   const [payment, setPayment] = useState("카드");
@@ -427,6 +592,8 @@ export default function App() {
   const [reviewTarget, setReviewTarget] = useState(null);
   const [optionTarget, setOptionTarget] = useState(null);
   const [addedAnim, setAddedAnim] = useState(null);
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const inquiryEmail = "eggmari5713@gmail.com";
   const timersRef = useRef([]);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [canInstall, setCanInstall] = useState(false);
@@ -464,11 +631,13 @@ export default function App() {
   }, [isInStandalone]);
 
   const th = themes[theme];
+  const mode = deliveryModes[deliveryMode];
   const totals = calcTotals(cart);
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
   const clearTimers = useCallback(() => { timersRef.current.forEach(clearTimeout); timersRef.current = []; }, []);
   useEffect(() => () => clearTimers(), [clearTimers]);
+
   const handleInstall = async () => {
     if (!deferredPrompt) return;
 
@@ -513,10 +682,22 @@ export default function App() {
   const changeQty = (key, d) => setCart(prev => prev.map(x => x.cartKey === key ? { ...x, qty: x.qty + d } : x).filter(x => x.qty > 0));
 
   const resetAll = () => {
-    clearTimers(); setCart([]); setPayment("카드"); setSearch("");
-    setNm(""); setPh(""); setAd(""); setRq("");
-    setSteps([0, 0, 0, 0]); setShowReceipt(false); setReceiptData(null);
-    setTrackState(0); setOrderInfo(null); setPage("order");
+    clearTimers();
+    setCart([]);
+    setPayment("카드");
+    setSearch("");
+    setNm("");
+    setPh("");
+    setAd("");
+    setRq("");
+    setSteps([0, 0, 0, 0]);
+    setShowReceipt(false);
+    setReceiptData(null);
+    setTrackState(0);
+    setOrderInfo(null);
+    setPage("order");
+    setDeliveryMode("rabbit");
+    setShowInfoModal(false);
   };
 
   const goToCheckout = () => {
@@ -525,41 +706,127 @@ export default function App() {
   };
 
   const simulateOrder = () => {
-    clearTimers(); setSteps([0, 0, 0, 0]); setShowReceipt(false);
-    const info = { customerName: nm || "주문자", address: ad || "입력된 주소 없음", phone: ph || "연락처 없음", request: rq || "없음", payment, total: totals.total };
+    clearTimers();
+    setSteps([0, 0, 0, 0]);
+    setShowReceipt(false);
+
+    const info = {
+      customerName: nm || "주문자",
+      address: ad || "입력된 주소 없음",
+      phone: ph || "연락처 없음",
+      request: rq || "없음",
+      payment,
+      total: totals.total,
+      deliveryMode,
+    };
+
     [100, 300, 500, 700].forEach((d, i) => {
-      timersRef.current.push(setTimeout(() => {
-        setSteps(prev => { const n = [...prev]; if (i > 0) n[i - 1] = 2; n[i] = 1; return n; });
-      }, d));
+      timersRef.current.push(
+        setTimeout(() => {
+          setSteps(prev => {
+            const n = [...prev];
+            if (i > 0) n[i - 1] = 2;
+            n[i] = 1;
+            return n;
+          });
+        }, d)
+      );
     });
-    timersRef.current.push(setTimeout(() => {
-      setSteps([2, 2, 2, 2]); setReceiptData(info); setShowReceipt(true);
-      timersRef.current.push(setTimeout(() => {
-        setOrderInfo(info); setTrackState(0); setPage("tracking");
-        Array.from({ length: 12 }, (_, i) =>
-          timersRef.current.push(setTimeout(() => setTrackState(i + 1), (i + 1) * 5000))
+
+    timersRef.current.push(
+      setTimeout(() => {
+        setSteps([2, 2, 2, 2]);
+        setReceiptData(info);
+        setShowReceipt(true);
+
+        timersRef.current.push(
+          setTimeout(() => {
+            setOrderInfo(info);
+            setTrackState(0);
+            setPage("tracking");
+
+            Array.from({ length: mode.etaStart }, (_, i) =>
+              timersRef.current.push(
+                setTimeout(() => setTrackState(i + 1), (i + 1) * mode.intervalMs)
+              )
+            );
+
+            timersRef.current.push(
+              setTimeout(
+                () => setPage("complete"),
+                mode.etaStart * mode.intervalMs + mode.completeDelayMs
+              )
+            );
+          }, 600)
         );
-        timersRef.current.push(setTimeout(() => setPage("complete"), 12 * 5000 + 2000));
-      }, 600));
-    }, 900));
+      }, 900)
+    );
   };
 
-  const trackData = Array.from({ length: 12 }, (_, i) => {
-    const min = 12 - i;
-    const pct = 48 + i * 2.5;
+  const trackData = Array.from({ length: mode.etaStart }, (_, i) => {
+    const min = Math.max(1, mode.etaStart - i);
+    const startPct = deliveryMode === "rabbit" ? 42 : 24;
+    const stepPct = deliveryMode === "rabbit" ? 3.6 : 1.9;
+    const startTop = deliveryMode === "rabbit" ? 40 : 30;
+    const stepTop = deliveryMode === "rabbit" ? 2.2 : 1.25;
+    const pct = startPct + i * stepPct;
+
     return {
       eta: min + "분",
-      text: min > 5 ? "곧 출발해 고객님께 향하고 있어요!" : min > 2 ? "라이더가 고객님 쪽으로 가까워지고 있어요!" : "라이더가 거의 도착했습니다! 잠시만요~",
-      badge: min > 5 ? "이동 중" : min > 2 ? "근처 이동" : "도착 임박",
-      bottom: min + "분 내 도착 ⏰", riderLabel: min + "분 남음",
-      activeText: min > 5 ? "현재 고객님 위치로 이동하고 있어요." : min > 2 ? "고객님 위치 근처까지 도착했어요." : "건물 앞에 거의 도착했어요.",
-      bp: [pct + "%", (44 + i * 2) + "%"], finalDone: false,
+      text:
+        deliveryMode === "rabbit"
+          ? min > 4
+            ? "토끼 라이더가 엄청 빠르게 달리고 있어요!"
+            : min > 1
+            ? "거의 다 왔어요. 순식간에 도착합니다!"
+            : "토끼배달이 문 앞까지 왔어요!"
+          : min > 10
+          ? "거북이 라이더가 천천히 하지만 꾸준히 오고 있어요."
+          : min > 4
+          ? "조금 느리지만 분명 가까워지고 있어요."
+          : "드디어 거의 도착했어요. 조금만 기다려주세요!",
+      badge:
+        deliveryMode === "rabbit"
+          ? min > 2
+            ? "급행 이동"
+            : "초근접"
+          : min > 5
+          ? "천천히 이동"
+          : "거의 도착",
+      bottom:
+        deliveryMode === "rabbit"
+          ? min + "분 내 초고속 도착 ⚡"
+          : min + "분 내 느긋 도착 🌿",
+      riderLabel:
+        deliveryMode === "rabbit"
+          ? "토끼 " + min + "분 남음"
+          : "거북이 " + min + "분 남음",
+      activeText:
+        deliveryMode === "rabbit"
+          ? "토끼배달이 빠르게 고객님 위치로 이동 중이에요."
+          : "거북이배달이 안정적으로 고객님 위치로 이동 중이에요.",
+      bp: [pct + "%", (startTop + i * stepTop) + "%"],
+      finalDone: false,
     };
-  }).concat([{
-    eta: "도착!", text: "배달이 도착한 것처럼 표시되는 데모입니다 🎉", badge: "전달 완료",
-    bottom: "전달 완료 ✅", riderLabel: "전달 완료", activeText: "라이더가 도착했습니다!",
-    bp: ["84%", "76%"], finalDone: true,
-  }]);
+  }).concat([
+    {
+      eta: "도착!",
+      text:
+        deliveryMode === "rabbit"
+          ? "토끼배달이 번개처럼 도착한 데모입니다 🎉"
+          : "거북이배달이 마침내 도착한 데모입니다 🎉",
+      badge: "전달 완료",
+      bottom: "전달 완료 ✅",
+      riderLabel: "전달 완료",
+      activeText:
+        deliveryMode === "rabbit"
+          ? "토끼 라이더가 도착했습니다!"
+          : "거북이 라이더가 도착했습니다!",
+      bp: ["84%", "76%"],
+      finalDone: true,
+    },
+  ]);
+
   const td = trackData[trackState] || trackData[0];
 
   const filtered = restaurants.filter(r => {
@@ -588,84 +855,84 @@ export default function App() {
   const optMenu = optRestaurant ? optRestaurant.menus.find(x => x.id === optionTarget.mid) : null;
 
   if (page === "complete") {
-  const savedKcal = cart.reduce((s, i) => s + (menuCalories[i.menuId] || 600) * i.qty, 0);
-  return (
-    <div style={{ ...css.wrap, alignItems: "center", justifyContent: "center", textAlign: "center", padding: "40px 24px" }}>
-      <style>{globalStyle}</style>
-      <div style={{ fontSize: 72, marginBottom: 24, animation: "pop .5s ease" }}>🎉</div>
-      <h1 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 12px", color: th.text }}>축하드립니다!</h1>
-      <div style={{ fontSize: 42, fontWeight: 900, color: th.brand, marginBottom: 8 }}>{savedKcal.toLocaleString()}kcal</div>
-      <div style={{ fontSize: 20, fontWeight: 800, color: th.text, marginBottom: 32 }}>아끼셨어요!! 🥗</div>
-      <div style={{ fontSize: 13, color: th.muted, marginBottom: 28, lineHeight: 1.6 }}>
-        오늘도 현명한 선택을 하셨네요 😄<br />데모 주문이라 실제로는 0칼로리!
-      </div>
-
-      <CoupangAdCard th={th} />
-
-      {installed ? (
-        <div
-          style={{
-            width: "100%",
-            maxWidth: 340,
-            marginBottom: 12,
-            padding: "14px 20px",
-            borderRadius: 16,
-            background: "#dcfce7",
-            border: "1px solid #bbf7d0",
-            color: "#166534",
-            fontWeight: 800,
-            fontSize: 14
-          }}
-        >
-          ✅ 홈화면에 추가되었어요!
+    const savedKcal = cart.reduce((s, i) => s + (menuCalories[i.menuId] || 600) * i.qty, 0);
+    return (
+      <div style={{ ...css.wrap, alignItems: "center", justifyContent: "center", textAlign: "center", padding: "40px 24px" }}>
+        <style>{globalStyle}</style>
+        <div style={{ fontSize: 72, marginBottom: 24, animation: "pop .5s ease" }}>{mode.emoji}</div>
+        <h1 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 12px", color: th.text }}>{mode.completeTitle}</h1>
+        <div style={{ fontSize: 42, fontWeight: 900, color: th.brand, marginBottom: 8 }}>{savedKcal.toLocaleString()}kcal</div>
+        <div style={{ fontSize: 20, fontWeight: 800, color: th.text, marginBottom: 32 }}>아끼셨어요!! 🥗</div>
+        <div style={{ fontSize: 13, color: th.muted, marginBottom: 28, lineHeight: 1.6 }}>
+          {mode.completeDesc}<br />데모 주문이라 실제로는 0칼로리!
         </div>
-      ) : canInstall ? (
-        <button
-          onClick={handleInstall}
-          style={{
-            width: "100%",
-            maxWidth: 340,
-            marginBottom: 12,
-            padding: "16px 20px",
-            border: "none",
-            borderRadius: 16,
-            background: "linear-gradient(135deg," + th.heroStart + "," + th.heroEnd + ")",
-            color: "#fff",
-            fontWeight: 900,
-            fontSize: 15,
-            cursor: "pointer",
-            fontFamily: "inherit"
-          }}
-        >
-          📲 홈화면에 앱 추가하기
+
+        <CoupangAdCard th={th} />
+
+        {installed ? (
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 340,
+              marginBottom: 12,
+              padding: "14px 20px",
+              borderRadius: 16,
+              background: "#dcfce7",
+              border: "1px solid #bbf7d0",
+              color: "#166534",
+              fontWeight: 800,
+              fontSize: 14
+            }}
+          >
+            ✅ 홈화면에 추가되었어요!
+          </div>
+        ) : canInstall ? (
+          <button
+            onClick={handleInstall}
+            style={{
+              width: "100%",
+              maxWidth: 340,
+              marginBottom: 12,
+              padding: "16px 20px",
+              border: "none",
+              borderRadius: 16,
+              background: "linear-gradient(135deg," + th.heroStart + "," + th.heroEnd + ")",
+              color: "#fff",
+              fontWeight: 900,
+              fontSize: 15,
+              cursor: "pointer",
+              fontFamily: "inherit"
+            }}
+          >
+            📲 홈화면에 앱 추가하기
+          </button>
+        ) : isIos && !installed ? (
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 340,
+              marginBottom: 16,
+              padding: "14px 16px",
+              borderRadius: 16,
+              background: "#f0f9ff",
+              border: "1px solid #bae6fd",
+              color: "#0369a1",
+              fontSize: 12,
+              fontWeight: 700,
+              lineHeight: 1.7,
+              textAlign: "left"
+            }}
+          >
+            📱 Safari에서 공유 버튼(□↑) → <strong>홈 화면에 추가</strong>
+          </div>
+        ) : null}
+
+        <button onClick={resetAll} style={{ ...css.orderBtn, fontSize: 16, padding: "16px 32px", marginTop: 4 }}>
+          🏠 처음으로
         </button>
-      ) : isIos && !installed ? (
-        <div
-          style={{
-            width: "100%",
-            maxWidth: 340,
-            marginBottom: 16,
-            padding: "14px 16px",
-            borderRadius: 16,
-            background: "#f0f9ff",
-            border: "1px solid #bae6fd",
-            color: "#0369a1",
-            fontSize: 12,
-            fontWeight: 700,
-            lineHeight: 1.7,
-            textAlign: "left"
-          }}
-        >
-          📱 Safari에서 공유 버튼(□↑) → <strong>홈 화면에 추가</strong>
-        </div>
-      ) : null}
-
-      <button onClick={resetAll} style={{ ...css.orderBtn, fontSize: 16, padding: "16px 32px", marginTop: 4 }}>
-        🏠 처음으로
-      </button>
-    </div>
-  );
-}
+      </div>
+    );
+  }
 
   if (page === "tracking") {
     return (
@@ -674,7 +941,9 @@ export default function App() {
         <div style={css.header}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, maxWidth: 540, margin: "0 auto" }}>
             <button onClick={() => { clearTimers(); setPage("order"); }} style={{ ...css.backBtn, background: th.iconBtnBg, color: th.iconBtnColor }}>←</button>
-            <div style={{ flex: 1, textAlign: "center" }}><h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>배달 추적 🛵</h2></div>
+            <div style={{ flex: 1, textAlign: "center" }}>
+              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>{mode.label} 추적 {mode.emoji}</h2>
+            </div>
             <div style={{ width: 38 }} />
           </div>
         </div>
@@ -689,12 +958,12 @@ export default function App() {
             ))}
             <div style={{ position: "absolute", zIndex: 2, width: 46, height: 46, borderRadius: "50%", background: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", top: 24, left: 34 }}>🏪</div>
             <div style={{ position: "absolute", zIndex: 2, width: 46, height: 46, borderRadius: "50%", background: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", right: 30, bottom: 30 }}>🏠</div>
-            <div style={{ position: "absolute", zIndex: 2, width: 54, height: 54, borderRadius: "50%", background: "#111827", color: "#fff", fontSize: 24, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", left: td.bp[0], top: td.bp[1], transform: "translate(-50%,-50%)", transition: "left .8s ease,top .8s ease", animation: "floatBike 2.2s ease-in-out infinite" }}>🛵</div>
+            <div style={{ position: "absolute", zIndex: 2, width: 54, height: 54, borderRadius: "50%", background: "#111827", color: "#fff", fontSize: 24, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", left: td.bp[0], top: td.bp[1], transform: "translate(-50%,-50%)", transition: "left .8s ease,top .8s ease", animation: "floatBike 2.2s ease-in-out infinite" }}>{mode.mapIcon}</div>
             <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, top: 76, left: 22 }}>매장 준비 완료</div>
             <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, right: 18, bottom: 82 }}>{orderInfo?.customerName || "배달 주소"} 님</div>
             <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, left: "50%", top: "68%", transform: "translateX(-50%)" }}>{td.riderLabel}</div>
           </div>
-          <div style={{ background: "linear-gradient(135deg," + th.heroStart + "," + th.heroEnd + ")", color: "#fff", borderRadius: 20, padding: 18 }}>
+          <div style={{ background: "linear-gradient(135deg," + mode.heroStart + "," + mode.heroEnd + ")", color: "#fff", borderRadius: 20, padding: 18 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
               <div>
                 <div style={{ fontSize: 30, fontWeight: 900, lineHeight: 1 }}>{td.eta}</div>
@@ -707,8 +976,17 @@ export default function App() {
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 4 }}>라이더 정보 🏍️</div>
             <div style={{ fontSize: 12, color: th.muted, marginBottom: 12 }}>예시 정보입니다</div>
             <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 12, alignItems: "center" }}>
-              <div style={{ width: 52, height: 52, borderRadius: 16, background: "#111827", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>🧑‍🍳</div>
-              <div><div style={{ fontWeight: 900, fontSize: 15 }}>김민수 라이더</div><div style={{ color: th.muted, fontSize: 12 }}>오토바이 · ⭐ 4.9 · 안전운행 중</div></div>
+              <div style={{ width: 52, height: 52, borderRadius: 16, background: "#111827", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>
+                {deliveryMode === "rabbit" ? "🐇" : "🐢"}
+              </div>
+              <div>
+                <div style={{ fontWeight: 900, fontSize: 15 }}>
+                  {deliveryMode === "rabbit" ? "토끼 라이더" : "거북이 라이더"}
+                </div>
+                <div style={{ color: th.muted, fontSize: 12 }}>
+                  {deliveryMode === "rabbit" ? "급행 · ⭐ 4.9 · 초고속 이동 중" : "안정형 · ⭐ 4.9 · 천천히 이동 중"}
+                </div>
+              </div>
               <button style={{ border: "none", borderRadius: 12, background: "#eef2ff", color: "#3730a3", padding: "10px 12px", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>📞 연락</button>
             </div>
           </div>
@@ -735,8 +1013,17 @@ export default function App() {
           {orderInfo && (
             <div style={css.section}>
               <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>주문 요약 📋</div>
-              {[["주문자", orderInfo.customerName], ["배달 주소", orderInfo.address], ["결제수단", orderInfo.payment], ["예상 금액", fmt(orderInfo.total)]].map(([k, v]) => (
-                <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 13, marginBottom: 6 }}><span style={{ color: th.muted }}>{k}</span><strong>{v}</strong></div>
+              {[
+                ["주문자", orderInfo.customerName],
+                ["배달 주소", orderInfo.address],
+                ["배달 타입", deliveryModes[orderInfo.deliveryMode]?.label || mode.label],
+                ["결제수단", orderInfo.payment],
+                ["예상 금액", fmt(orderInfo.total)]
+              ].map(([k, v]) => (
+                <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 13, marginBottom: 6 }}>
+                  <span style={{ color: th.muted }}>{k}</span>
+                  <strong>{v}</strong>
+                </div>
               ))}
             </div>
           )}
@@ -788,6 +1075,9 @@ export default function App() {
                 <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: th.muted }}><span>{k}</span><strong style={{ color: th.text }}>{v}</strong></div>
               ))}
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 17, fontWeight: 900, marginTop: 4, paddingTop: 8, borderTop: "1px solid " + th.line }}><span>총 결제예상금액</span><strong style={{ color: th.brand }}>{fmt(totals.total)}</strong></div>
+              <div style={{ fontSize: 13, color: th.brand, fontWeight: 800, marginTop: 6 }}>
+                선택한 배달: {mode.emoji} {mode.label}
+              </div>
             </div>
           </div>
           <div style={css.section}>
@@ -821,7 +1111,9 @@ export default function App() {
                 <div style={{ fontSize: 22 }}>✅</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 14, fontWeight: 900, color: "#166534" }}>주문이 접수되었습니다!</div>
-                  <div style={{ fontSize: 12, color: "#166534", marginTop: 2 }}>잠시 후 배달 추적 페이지로 이동합니다.</div>
+                  <div style={{ fontSize: 12, color: "#166534", marginTop: 2 }}>
+                    {deliveryMode === "rabbit" ? "잠시 후 토끼배달 추적 페이지로 이동합니다." : "잠시 후 거북이배달 추적 페이지로 이동합니다."}
+                  </div>
                 </div>
               </div>
             </div>
@@ -841,6 +1133,12 @@ export default function App() {
     <div style={css.wrap}>
       <style>{globalStyle}</style>
       {reviewTarget && <ReviewModal restaurant={reviewTarget} onClose={() => setReviewTarget(null)} />}
+      {showInfoModal && (
+        <InfoModal
+          email={inquiryEmail}
+          onClose={() => setShowInfoModal(false)}
+        />
+      )}
       {optionTarget && optMenu && (
         <OptionSheet
           menu={optMenu}
@@ -865,8 +1163,22 @@ export default function App() {
           <div style={{ display: "flex", alignItems: "center", gap: 6, zIndex: 1 }}>
             <div style={{ position: "relative" }}>
               <button style={{ ...css.iconBtn, width: 32, height: 32, fontSize: 14 }}>🛒</button>
-              {cartCount > 0 && <div style={{ position: "absolute", top: -4, right: -4, background: "#ef4444", color: "#fff", fontSize: 9, fontWeight: 900, borderRadius: 99, minWidth: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px" }}>{cartCount}</div>}
+              {cartCount > 0 && (
+                <div style={{ position: "absolute", top: -4, right: -4, background: "#ef4444", color: "#fff", fontSize: 9, fontWeight: 900, borderRadius: 99, minWidth: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px" }}>
+                  {cartCount}
+                </div>
+              )}
             </div>
+
+            <button
+              onClick={() => setShowInfoModal(true)}
+              style={{ ...css.iconBtn, width: 32, height: 32, fontSize: 14, fontWeight: 900 }}
+              aria-label="앱 안내 보기"
+              title="앱 안내"
+            >
+              ?
+            </button>
+
             <button onClick={resetAll} style={{ border: "none", borderRadius: 10, background: "rgba(255,255,255,0.14)", color: th.headerColor, padding: "6px 10px", fontWeight: 800, cursor: "pointer", fontFamily: "inherit", fontSize: 11 }}>초기화</button>
           </div>
         </div>
@@ -879,6 +1191,37 @@ export default function App() {
         <div style={{ background: "linear-gradient(135deg,#fff7ed,#ffedd5)", border: "1px solid #fdba74", color: "#9a3412", padding: "12px 14px", borderRadius: 16, fontSize: 12, fontWeight: 800, lineHeight: 1.45 }}>
           🚧 DEMO / MOCKUP 전용 · 실제 주문·결제·배달은 발생하지 않습니다.
         </div>
+
+        <div style={css.section}>
+          <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>배달 타입 선택</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            {Object.values(deliveryModes).map((m) => {
+              const active = deliveryMode === m.key;
+              return (
+                <button
+                  key={m.key}
+                  onClick={() => setDeliveryMode(m.key)}
+                  style={{
+                    border: active ? "2px solid " + th.brand : "1px solid " + th.line,
+                    background: active ? th.activeBg : "#fff",
+                    borderRadius: 16,
+                    padding: "14px 12px",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  <div style={{ fontSize: 24, marginBottom: 8 }}>{m.emoji}</div>
+                  <div style={{ fontWeight: 900, fontSize: 15 }}>{m.label}</div>
+                  <div style={{ fontSize: 12, color: th.muted, marginTop: 4 }}>
+                    {m.key === "rabbit" ? "빠른 도착 연출" : "느긋한 도착 연출"}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <div style={css.section}>
           <div style={{ marginBottom: 14 }}>
             <h2 style={{ margin: 0, fontSize: 18 }}>맛집 {filtered.length}곳 🍴</h2>
