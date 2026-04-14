@@ -320,133 +320,248 @@ function ReviewModal({ restaurant, onClose }) {
   );
 }
 
-function InfoModal({ onClose, email = "eggmari5713@gmail.com" }) {
+// ──────────────────────────────────────────────
+// InfoModal — 앱 소개 (대폭 확장)
+// ──────────────────────────────────────────────
+function InfoModal({ onClose, email = "eggmari5713@gmail.com", onPrivacy }) {
   return (
     <div
       onClick={onClose}
       style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 120,
-        background: "rgba(0,0,0,0.45)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 20,
+        position: "fixed", inset: 0, zIndex: 120,
+        background: "rgba(0,0,0,0.5)",
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+        padding: "0",
       }}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
         style={{
-          width: "100%",
-          maxWidth: 420,
+          width: "100%", maxWidth: 540,
           background: "#fff",
-          borderRadius: 24,
-          padding: "22px 20px 20px",
-          boxShadow: "0 20px 50px rgba(0,0,0,0.18)",
-          animation: "pop .22s ease",
+          borderRadius: "24px 24px 0 0",
+          padding: "24px 20px 40px",
+          maxHeight: "92vh",
+          overflowY: "auto",
+          animation: "slideUp .3s ease",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: 12,
-            marginBottom: 16,
-          }}
-        >
-          <div>
-            <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 4 }}>
-              앱 안내
-            </div>
-            <div style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5 }}>
-              음식만안와요 데모 소개
-            </div>
-          </div>
+        {/* 핸들바 */}
+        <div style={{ width: 40, height: 4, borderRadius: 99, background: "#e5e7eb", margin: "0 auto 20px" }} />
 
+        {/* 헤더 */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+          <div>
+            <div style={{ fontSize: 22, fontWeight: 900, lineHeight: 1.2 }}>음식만안와요 🍱</div>
+            <div style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>배달 중독 치료 데모 앱</div>
+          </div>
+          <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: 12, border: "none", background: "#f3f4f6", fontSize: 18, cursor: "pointer", flexShrink: 0 }}>✕</button>
+        </div>
+
+        {/* 한 줄 소개 */}
+        <div style={{ background: "linear-gradient(135deg,#fff7ed,#ffedd5)", border: "1px solid #fed7aa", borderRadius: 18, padding: "16px 18px", marginBottom: 20 }}>
+          <div style={{ fontSize: 15, fontWeight: 900, color: "#9a3412", marginBottom: 6 }}>
+            "주문했지만, 음식만 안 왔어요."
+          </div>
+          <div style={{ fontSize: 13, color: "#78350f", lineHeight: 1.7 }}>
+            음식만안와요는 실제 배달앱처럼 메뉴를 고르고, 장바구니에 담고, 주문서를 작성하고, 배달 추적까지 체험할 수 있는 <strong>재미있는 데모 앱</strong>이에요. 단, 실제 주문·결제·배달은 절대 발생하지 않습니다.
+          </div>
+        </div>
+
+        {/* 앱 목적 */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 16, fontWeight: 900, marginBottom: 12, color: "#111827" }}>🎯 이 앱을 만든 이유</div>
+          <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.8 }}>
+            배달앱은 정말 편리하지만, 그만큼 무의식적으로 자주 열게 됩니다. 배달비와 음식값, 그리고 칼로리까지 생각보다 많이 쌓이죠. <br /><br />
+            <strong>음식만안와요</strong>는 "오늘 뭐 먹지?"라는 고민을 하는 순간, 배달앱 대신 이 앱을 열어 실제 주문하는 것처럼 메뉴를 탐색하고, 그 경험만으로 만족감을 얻을 수 있도록 설계됐어요. 주문 완료 후 화면에 표시되는 <strong>"아낀 칼로리"</strong>가 이 앱의 핵심 메시지입니다.
+          </div>
+        </div>
+
+        {/* 주요 기능 */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 16, fontWeight: 900, marginBottom: 12, color: "#111827" }}>✨ 주요 기능</div>
+          <div style={{ display: "grid", gap: 10 }}>
+            {[
+              { emoji: "🍽️", title: "15개 음식점 · 40개 이상 메뉴", desc: "치킨, 라멘, 파스타, 마라탕, 초밥, 피자 등 다양한 카테고리의 메뉴를 실제처럼 탐색할 수 있어요." },
+              { emoji: "🛒", title: "장바구니 & 옵션 선택", desc: "맛 선택, 사이즈, 토핑 추가 등 실제 배달앱과 동일한 옵션 시스템을 체험할 수 있어요." },
+              { emoji: "🗺️", title: "실시간 배달 추적 (데모)", desc: "토끼배달·거북이배달 두 가지 모드로 라이더 위치가 이동하는 가상 지도를 보여줘요." },
+              { emoji: "🔥", title: "칼로리 절약 확인", desc: "주문 완료 후 내가 선택한 메뉴의 칼로리 합산값을 '아낀 칼로리'로 보여줘요." },
+              { emoji: "🎨", title: "4가지 테마 컬러", desc: "상단 이모지 버튼으로 앱 전체 색상 테마를 오렌지·보라·파랑·민트 중 선택할 수 있어요." },
+              { emoji: "📲", title: "PWA — 홈화면 설치 지원", desc: "Android에서는 자동 설치 배너, iOS Safari에서는 '홈 화면에 추가'로 앱처럼 설치할 수 있어요." },
+            ].map((item, i) => (
+              <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 14px", background: "#f9fafb", borderRadius: 14, border: "1px solid #f3f4f6" }}>
+                <div style={{ fontSize: 22, flexShrink: 0 }}>{item.emoji}</div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "#111827", marginBottom: 3 }}>{item.title}</div>
+                  <div style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.6 }}>{item.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 사용 방법 */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 16, fontWeight: 900, marginBottom: 12, color: "#111827" }}>📖 사용 방법</div>
+          <div style={{ display: "grid", gap: 8 }}>
+            {[
+              "원하는 배달 타입(토끼 or 거북이)을 선택하세요.",
+              "마음에 드는 음식점에서 메뉴를 골라 장바구니에 담으세요.",
+              "주문하기 버튼을 눌러 배달 정보를 입력하세요. (실제 정보가 아니어도 됩니다)",
+              "'데모 주문하기'를 누르면 가상 배달 추적이 시작돼요.",
+              "배달 완료 후 내가 아낀 칼로리를 확인하세요! 🎉",
+            ].map((step, i) => (
+              <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                <div style={{ width: 24, height: 24, borderRadius: "50%", background: "#111827", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 900, flexShrink: 0, marginTop: 1 }}>{i + 1}</div>
+                <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.6, paddingTop: 2 }}>{step}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 주의사항 */}
+        <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 16, padding: "14px 16px", marginBottom: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 900, color: "#dc2626", marginBottom: 6 }}>⚠️ 반드시 확인하세요</div>
+          <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: "#7f1d1d", lineHeight: 1.9 }}>
+            <li>이 앱은 완전한 데모(시뮬레이션) 앱입니다.</li>
+            <li>실제 주문, 결제, 배달은 절대 발생하지 않습니다.</li>
+            <li>음식점 정보와 메뉴는 모두 가상의 데이터입니다.</li>
+            <li>배달 추적 화면의 라이더 위치는 실제가 아닙니다.</li>
+            <li>입력한 배달 정보(이름, 주소 등)는 서버에 저장되지 않습니다.</li>
+          </ul>
+        </div>
+
+        {/* 쿠팡파트너스 안내 */}
+        <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 16, padding: "14px 16px", marginBottom: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 900, color: "#9a3412", marginBottom: 6 }}>📢 광고 안내</div>
+          <div style={{ fontSize: 12, color: "#78350f", lineHeight: 1.7 }}>
+            주문 완료 화면에는 쿠팡파트너스 광고가 표시될 수 있습니다. 이 링크를 통해 구매가 이루어질 경우 운영자에게 소정의 수수료가 지급됩니다. 광고 수익은 앱 운영 및 서버 비용에 사용됩니다.
+          </div>
+        </div>
+
+        {/* 문의 */}
+        <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 16, padding: "14px 16px", marginBottom: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 900, color: "#0f172a", marginBottom: 6 }}>📬 문의 및 피드백</div>
+          <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.7, marginBottom: 8 }}>
+            앱 사용 중 불편한 점, 버그 제보, 개선 의견은 언제든지 아래 이메일로 보내주세요. 소중한 피드백은 앱 개선에 적극 반영됩니다.
+          </div>
+          <a href={`mailto:${email}`} style={{ fontSize: 14, fontWeight: 900, color: "#ea580c", textDecoration: "none", wordBreak: "break-all" }}>{email}</a>
+        </div>
+
+        {/* 개인정보처리방침 링크 */}
+        <div style={{ textAlign: "center", marginBottom: 20 }}>
           <button
-            onClick={onClose}
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 12,
-              border: "none",
-              background: "#f3f4f6",
-              fontSize: 18,
-              cursor: "pointer",
-              flexShrink: 0,
-            }}
+            onClick={() => { onClose(); onPrivacy(); }}
+            style={{ background: "none", border: "none", color: "#6b7280", fontSize: 12, textDecoration: "underline", cursor: "pointer", fontFamily: "inherit" }}
           >
-            ✕
+            개인정보처리방침 보기
           </button>
         </div>
 
-        <div
-          style={{
-            background: "#f9fafb",
-            border: "1px solid #eef2f7",
-            borderRadius: 18,
-            padding: "16px 16px",
-            fontSize: 15,
-            color: "#374151",
-            lineHeight: 1.7,
-            marginBottom: 14,
-          }}
-        >
-          <strong style={{ display: "block", fontSize: 16, marginBottom: 8, color: "#111827" }}>
-            음식만안와요는 어떤 앱인가요?
-          </strong>
-          이 앱은 배달앱처럼 주문 과정을 체험하는 재미있는 데모 앱이에요.
-          실제 주문, 결제, 배달은 이루어지지 않으며, 대신
-          <strong> “주문하지 않아서 아낀 칼로리”</strong>를 보여주는 콘셉트로 만들어졌어요.
-          <br />
-          <br />
-          배달 중독을 줄이고, 돈과 칼로리를 아껴보자는 유쾌한 아이디어를 담고 있습니다.
-        </div>
-
-        <div
-          style={{
-            background: "#fff7ed",
-            border: "1px solid #fed7aa",
-            borderRadius: 18,
-            padding: "14px 16px",
-            marginBottom: 16,
-          }}
-        >
-          <div style={{ fontSize: 12, color: "#9a3412", fontWeight: 800, marginBottom: 6 }}>
-            문의 메일
-          </div>
-          <a
-            href={`mailto:${email}`}
-            style={{
-              fontSize: 15,
-              fontWeight: 900,
-              color: "#ea580c",
-              textDecoration: "none",
-              wordBreak: "break-all",
-            }}
-          >
-            {email}
-          </a>
-        </div>
-
+        {/* 닫기 버튼 */}
         <button
           onClick={onClose}
-          style={{
-            width: "100%",
-            border: "none",
-            borderRadius: 16,
-            padding: "14px 16px",
-            background: "#111827",
-            color: "#fff",
-            fontWeight: 900,
-            fontSize: 14,
-            cursor: "pointer",
-            fontFamily: "inherit",
-          }}
+          style={{ width: "100%", border: "none", borderRadius: 16, padding: "15px 16px", background: "#111827", color: "#fff", fontWeight: 900, fontSize: 15, cursor: "pointer", fontFamily: "inherit" }}
         >
           확인
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// PrivacyPage — 개인정보처리방침 (독립 페이지)
+// ──────────────────────────────────────────────
+function PrivacyPage({ onBack, th }) {
+  return (
+    <div style={{ minHeight: "100vh", background: th.phone, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif', color: th.text }}>
+      {/* 헤더 */}
+      <div style={{ position: "sticky", top: 0, zIndex: 10, background: "linear-gradient(180deg," + th.headerStart + "," + th.headerEnd + ")", color: "#fff", padding: "14px 20px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, maxWidth: 540, margin: "0 auto" }}>
+          <button onClick={onBack} style={{ width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, fontSize: 18, border: "none", cursor: "pointer", background: "rgba(255,255,255,0.18)", color: "#fff" }}>←</button>
+          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>개인정보처리방침</h2>
+        </div>
+      </div>
+
+      {/* 본문 */}
+      <div style={{ maxWidth: 540, margin: "0 auto", padding: "24px 20px 60px", display: "grid", gap: 24 }}>
+
+        <div style={{ background: "#fff", borderRadius: 20, padding: "20px 20px", boxShadow: "0 4px 20px rgba(0,0,0,0.04)" }}>
+          <p style={{ margin: "0 0 12px", fontSize: 13, color: "#6b7280", lineHeight: 1.6 }}>
+            <strong style={{ color: "#111827" }}>음식만안와요</strong>(이하 "서비스")는 이용자의 개인정보를 중요하게 생각합니다. 본 방침은 서비스가 어떤 정보를 수집·이용·보관하는지에 대해 명확하게 안내합니다.
+          </p>
+          <p style={{ margin: 0, fontSize: 12, color: "#9ca3af" }}>최종 업데이트: 2025년 1월</p>
+        </div>
+
+        {[
+          {
+            title: "1. 수집하는 개인정보",
+            content: (
+              <>
+                <p>음식만안와요는 <strong>어떠한 개인정보도 수집하거나 서버에 저장하지 않습니다.</strong></p>
+                <p>주문서 작성 화면에서 입력하는 이름, 주소, 연락처 등의 정보는 해당 세션 내에서만 화면 표시 목적으로 사용되며, 외부 서버로 전송되거나 저장되지 않습니다.</p>
+                <p>앱을 새로고침하거나 종료하면 입력된 모든 정보는 즉시 삭제됩니다.</p>
+              </>
+            ),
+          },
+          {
+            title: "2. 쿠키 및 광고",
+            content: (
+              <>
+                <p>본 서비스는 <strong>Google AdSense</strong>를 통해 광고를 제공할 수 있습니다. Google AdSense는 쿠키 또는 유사 기술을 사용하여 광고를 맞춤화할 수 있습니다.</p>
+                <p>Google의 광고 쿠키 사용에 관한 자세한 내용은 <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb" }}>Google 광고 정책</a>을 참고하세요.</p>
+                <p>또한 <strong>쿠팡파트너스</strong> 제휴 광고가 표시될 수 있으며, 해당 링크 클릭 또는 구매 시 운영자에게 소정의 수수료가 지급됩니다. 쿠팡파트너스 이용 과정에서 쿠팡의 정책에 따라 일부 데이터가 처리될 수 있습니다.</p>
+              </>
+            ),
+          },
+          {
+            title: "3. 제3자 서비스",
+            content: (
+              <>
+                <p>본 서비스는 <strong>Vercel</strong>을 통해 호스팅됩니다. Vercel은 서비스 운영을 위해 서버 접속 로그(IP 주소, 접속 시간, 브라우저 정보 등)를 자동으로 수집할 수 있습니다. 이는 서비스 운영자가 직접 수집하는 것이 아니며, Vercel의 개인정보처리방침에 따라 관리됩니다.</p>
+              </>
+            ),
+          },
+          {
+            title: "4. 아동의 개인정보",
+            content: (
+              <>
+                <p>본 서비스는 만 14세 미만 아동을 대상으로 개인정보를 수집하지 않으며, 해당 연령대의 이용자로부터 의도적으로 정보를 수집하지 않습니다.</p>
+              </>
+            ),
+          },
+          {
+            title: "5. 개인정보처리방침 변경",
+            content: (
+              <>
+                <p>본 방침은 법령 또는 서비스 정책의 변경에 따라 업데이트될 수 있습니다. 변경 사항이 있을 경우 앱 내 공지 또는 본 페이지를 통해 안내합니다.</p>
+              </>
+            ),
+          },
+          {
+            title: "6. 문의",
+            content: (
+              <>
+                <p>개인정보 관련 문의 사항이 있으시면 아래 이메일로 연락해 주세요.</p>
+                <a href="mailto:eggmari5713@gmail.com" style={{ color: "#ea580c", fontWeight: 900, fontSize: 15, textDecoration: "none" }}>eggmari5713@gmail.com</a>
+              </>
+            ),
+          },
+        ].map((section, i) => (
+          <div key={i} style={{ background: "#fff", borderRadius: 20, padding: "20px 20px", boxShadow: "0 4px 20px rgba(0,0,0,0.04)" }}>
+            <div style={{ fontSize: 15, fontWeight: 900, color: "#111827", marginBottom: 12 }}>{section.title}</div>
+            <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.85 }}>
+              {section.content}
+            </div>
+          </div>
+        ))}
+
+        <button
+          onClick={onBack}
+          style={{ width: "100%", border: "none", borderRadius: 16, padding: "15px 16px", background: "#111827", color: "#fff", fontWeight: 900, fontSize: 15, cursor: "pointer", fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif' }}
+        >
+          ← 앱으로 돌아가기
         </button>
       </div>
     </div>
@@ -573,6 +688,21 @@ function CoupangAdCard({ th }) {
   );
 }
 
+// ──────────────────────────────────────────────
+// Footer — 공통 하단 링크
+// ──────────────────────────────────────────────
+function Footer({ th, onInfo, onPrivacy }) {
+  return (
+    <div style={{ textAlign: "center", padding: "24px 20px 12px", fontSize: 12, color: th.muted, lineHeight: 2 }}>
+      <div>
+        <button onClick={onInfo} style={{ background: "none", border: "none", color: th.muted, cursor: "pointer", fontFamily: "inherit", fontSize: 12, textDecoration: "underline", marginRight: 12 }}>앱 소개</button>
+        <button onClick={onPrivacy} style={{ background: "none", border: "none", color: th.muted, cursor: "pointer", fontFamily: "inherit", fontSize: 12, textDecoration: "underline" }}>개인정보처리방침</button>
+      </div>
+      <div style={{ marginTop: 4, fontSize: 11, opacity: 0.6 }}>© 2025 음식만안와요 · 데모 앱</div>
+    </div>
+  );
+}
+
 export default function App() {
   const [theme, setTheme] = useState("mint");
   const [deliveryMode, setDeliveryMode] = useState("rabbit");
@@ -610,20 +740,14 @@ export default function App() {
       setDeferredPrompt(e);
       setCanInstall(true);
     };
-
     const onAppInstalled = () => {
       setInstalled(true);
       setCanInstall(false);
       setDeferredPrompt(null);
     };
-
     window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
     window.addEventListener("appinstalled", onAppInstalled);
-
-    if (isInStandalone) {
-      setInstalled(true);
-    }
-
+    if (isInStandalone) setInstalled(true);
     return () => {
       window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
       window.removeEventListener("appinstalled", onAppInstalled);
@@ -640,14 +764,9 @@ export default function App() {
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;
-
     await deferredPrompt.prompt();
     const choice = await deferredPrompt.userChoice;
-
-    if (choice?.outcome === "accepted") {
-      setInstalled(true);
-    }
-
+    if (choice?.outcome === "accepted") setInstalled(true);
     setDeferredPrompt(null);
     setCanInstall(false);
   };
@@ -686,10 +805,7 @@ export default function App() {
     setCart([]);
     setPayment("카드");
     setSearch("");
-    setNm("");
-    setPh("");
-    setAd("");
-    setRq("");
+    setNm(""); setPh(""); setAd(""); setRq("");
     setSteps([0, 0, 0, 0]);
     setShowReceipt(false);
     setReceiptData(null);
@@ -709,58 +825,26 @@ export default function App() {
     clearTimers();
     setSteps([0, 0, 0, 0]);
     setShowReceipt(false);
-
-    const info = {
-      customerName: nm || "주문자",
-      address: ad || "입력된 주소 없음",
-      phone: ph || "연락처 없음",
-      request: rq || "없음",
-      payment,
-      total: totals.total,
-      deliveryMode,
-    };
-
+    const info = { customerName: nm || "주문자", address: ad || "입력된 주소 없음", phone: ph || "연락처 없음", request: rq || "없음", payment, total: totals.total, deliveryMode };
     [100, 300, 500, 700].forEach((d, i) => {
-      timersRef.current.push(
-        setTimeout(() => {
-          setSteps(prev => {
-            const n = [...prev];
-            if (i > 0) n[i - 1] = 2;
-            n[i] = 1;
-            return n;
-          });
-        }, d)
-      );
+      timersRef.current.push(setTimeout(() => {
+        setSteps(prev => { const n = [...prev]; if (i > 0) n[i - 1] = 2; n[i] = 1; return n; });
+      }, d));
     });
-
-    timersRef.current.push(
-      setTimeout(() => {
-        setSteps([2, 2, 2, 2]);
-        setReceiptData(info);
-        setShowReceipt(true);
-
-        timersRef.current.push(
-          setTimeout(() => {
-            setOrderInfo(info);
-            setTrackState(0);
-            setPage("tracking");
-
-            Array.from({ length: mode.etaStart }, (_, i) =>
-              timersRef.current.push(
-                setTimeout(() => setTrackState(i + 1), (i + 1) * mode.intervalMs)
-              )
-            );
-
-            timersRef.current.push(
-              setTimeout(
-                () => setPage("complete"),
-                mode.etaStart * mode.intervalMs + mode.completeDelayMs
-              )
-            );
-          }, 600)
+    timersRef.current.push(setTimeout(() => {
+      setSteps([2, 2, 2, 2]);
+      setReceiptData(info);
+      setShowReceipt(true);
+      timersRef.current.push(setTimeout(() => {
+        setOrderInfo(info);
+        setTrackState(0);
+        setPage("tracking");
+        Array.from({ length: mode.etaStart }, (_, i) =>
+          timersRef.current.push(setTimeout(() => setTrackState(i + 1), (i + 1) * mode.intervalMs))
         );
-      }, 900)
-    );
+        timersRef.current.push(setTimeout(() => setPage("complete"), mode.etaStart * mode.intervalMs + mode.completeDelayMs));
+      }, 600));
+    }, 900));
   };
 
   const trackData = Array.from({ length: mode.etaStart }, (_, i) => {
@@ -770,62 +854,22 @@ export default function App() {
     const startTop = deliveryMode === "rabbit" ? 40 : 30;
     const stepTop = deliveryMode === "rabbit" ? 2.2 : 1.25;
     const pct = startPct + i * stepPct;
-
     return {
       eta: min + "분",
-      text:
-        deliveryMode === "rabbit"
-          ? min > 4
-            ? "토끼 라이더가 엄청 빠르게 달리고 있어요!"
-            : min > 1
-            ? "거의 다 왔어요. 순식간에 도착합니다!"
-            : "토끼배달이 문 앞까지 왔어요!"
-          : min > 10
-          ? "거북이 라이더가 천천히 하지만 꾸준히 오고 있어요."
-          : min > 4
-          ? "조금 느리지만 분명 가까워지고 있어요."
-          : "드디어 거의 도착했어요. 조금만 기다려주세요!",
-      badge:
-        deliveryMode === "rabbit"
-          ? min > 2
-            ? "급행 이동"
-            : "초근접"
-          : min > 5
-          ? "천천히 이동"
-          : "거의 도착",
-      bottom:
-        deliveryMode === "rabbit"
-          ? min + "분 내 초고속 도착 ⚡"
-          : min + "분 내 느긋 도착 🌿",
-      riderLabel:
-        deliveryMode === "rabbit"
-          ? "토끼 " + min + "분 남음"
-          : "거북이 " + min + "분 남음",
-      activeText:
-        deliveryMode === "rabbit"
-          ? "토끼배달이 빠르게 고객님 위치로 이동 중이에요."
-          : "거북이배달이 안정적으로 고객님 위치로 이동 중이에요.",
+      text: deliveryMode === "rabbit" ? (min > 4 ? "토끼 라이더가 엄청 빠르게 달리고 있어요!" : min > 1 ? "거의 다 왔어요. 순식간에 도착합니다!" : "토끼배달이 문 앞까지 왔어요!") : (min > 10 ? "거북이 라이더가 천천히 하지만 꾸준히 오고 있어요." : min > 4 ? "조금 느리지만 분명 가까워지고 있어요." : "드디어 거의 도착했어요. 조금만 기다려주세요!"),
+      badge: deliveryMode === "rabbit" ? (min > 2 ? "급행 이동" : "초근접") : (min > 5 ? "천천히 이동" : "거의 도착"),
+      bottom: deliveryMode === "rabbit" ? min + "분 내 초고속 도착 ⚡" : min + "분 내 느긋 도착 🌿",
+      riderLabel: deliveryMode === "rabbit" ? "토끼 " + min + "분 남음" : "거북이 " + min + "분 남음",
+      activeText: deliveryMode === "rabbit" ? "토끼배달이 빠르게 고객님 위치로 이동 중이에요." : "거북이배달이 안정적으로 고객님 위치로 이동 중이에요.",
       bp: [pct + "%", (startTop + i * stepTop) + "%"],
       finalDone: false,
     };
-  }).concat([
-    {
-      eta: "도착!",
-      text:
-        deliveryMode === "rabbit"
-          ? "토끼배달이 번개처럼 도착한 데모입니다 🎉"
-          : "거북이배달이 마침내 도착한 데모입니다 🎉",
-      badge: "전달 완료",
-      bottom: "전달 완료 ✅",
-      riderLabel: "전달 완료",
-      activeText:
-        deliveryMode === "rabbit"
-          ? "토끼 라이더가 도착했습니다!"
-          : "거북이 라이더가 도착했습니다!",
-      bp: ["84%", "76%"],
-      finalDone: true,
-    },
-  ]);
+  }).concat([{
+    eta: "도착!", text: deliveryMode === "rabbit" ? "토끼배달이 번개처럼 도착한 데모입니다 🎉" : "거북이배달이 마침내 도착한 데모입니다 🎉",
+    badge: "전달 완료", bottom: "전달 완료 ✅", riderLabel: "전달 완료",
+    activeText: deliveryMode === "rabbit" ? "토끼 라이더가 도착했습니다!" : "거북이 라이더가 도착했습니다!",
+    bp: ["84%", "76%"], finalDone: true,
+  }]);
 
   const td = trackData[trackState] || trackData[0];
 
@@ -854,6 +898,17 @@ export default function App() {
   const optRestaurant = optionTarget ? restaurants.find(x => x.id === optionTarget.rid) : null;
   const optMenu = optRestaurant ? optRestaurant.menus.find(x => x.id === optionTarget.mid) : null;
 
+  // ── 개인정보처리방침 페이지
+  if (page === "privacy") {
+    return (
+      <>
+        <style>{globalStyle}</style>
+        <PrivacyPage onBack={() => setPage("order")} th={th} />
+      </>
+    );
+  }
+
+  // ── 완료 페이지
   if (page === "complete") {
     const savedKcal = cart.reduce((s, i) => s + (menuCalories[i.menuId] || 600) * i.qty, 0);
     return (
@@ -870,59 +925,15 @@ export default function App() {
         <CoupangAdCard th={th} />
 
         {installed ? (
-          <div
-            style={{
-              width: "100%",
-              maxWidth: 340,
-              marginBottom: 12,
-              padding: "14px 20px",
-              borderRadius: 16,
-              background: "#dcfce7",
-              border: "1px solid #bbf7d0",
-              color: "#166534",
-              fontWeight: 800,
-              fontSize: 14
-            }}
-          >
+          <div style={{ width: "100%", maxWidth: 340, marginBottom: 12, padding: "14px 20px", borderRadius: 16, background: "#dcfce7", border: "1px solid #bbf7d0", color: "#166534", fontWeight: 800, fontSize: 14 }}>
             ✅ 홈화면에 추가되었어요!
           </div>
         ) : canInstall ? (
-          <button
-            onClick={handleInstall}
-            style={{
-              width: "100%",
-              maxWidth: 340,
-              marginBottom: 12,
-              padding: "16px 20px",
-              border: "none",
-              borderRadius: 16,
-              background: "linear-gradient(135deg," + th.heroStart + "," + th.heroEnd + ")",
-              color: "#fff",
-              fontWeight: 900,
-              fontSize: 15,
-              cursor: "pointer",
-              fontFamily: "inherit"
-            }}
-          >
+          <button onClick={handleInstall} style={{ width: "100%", maxWidth: 340, marginBottom: 12, padding: "16px 20px", border: "none", borderRadius: 16, background: "linear-gradient(135deg," + th.heroStart + "," + th.heroEnd + ")", color: "#fff", fontWeight: 900, fontSize: 15, cursor: "pointer", fontFamily: "inherit" }}>
             📲 홈화면에 앱 추가하기
           </button>
         ) : isIos && !installed ? (
-          <div
-            style={{
-              width: "100%",
-              maxWidth: 340,
-              marginBottom: 16,
-              padding: "14px 16px",
-              borderRadius: 16,
-              background: "#f0f9ff",
-              border: "1px solid #bae6fd",
-              color: "#0369a1",
-              fontSize: 12,
-              fontWeight: 700,
-              lineHeight: 1.7,
-              textAlign: "left"
-            }}
-          >
+          <div style={{ width: "100%", maxWidth: 340, marginBottom: 16, padding: "14px 16px", borderRadius: 16, background: "#f0f9ff", border: "1px solid #bae6fd", color: "#0369a1", fontSize: 12, fontWeight: 700, lineHeight: 1.7, textAlign: "left" }}>
             📱 Safari에서 공유 버튼(□↑) → <strong>홈 화면에 추가</strong>
           </div>
         ) : null}
@@ -930,10 +941,13 @@ export default function App() {
         <button onClick={resetAll} style={{ ...css.orderBtn, fontSize: 16, padding: "16px 32px", marginTop: 4 }}>
           🏠 처음으로
         </button>
+
+        <Footer th={th} onInfo={() => { resetAll(); setShowInfoModal(true); }} onPrivacy={() => setPage("privacy")} />
       </div>
     );
   }
 
+  // ── 배달 추적 페이지
   if (page === "tracking") {
     return (
       <div style={css.wrap}>
@@ -941,9 +955,7 @@ export default function App() {
         <div style={css.header}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, maxWidth: 540, margin: "0 auto" }}>
             <button onClick={() => { clearTimers(); setPage("order"); }} style={{ ...css.backBtn, background: th.iconBtnBg, color: th.iconBtnColor }}>←</button>
-            <div style={{ flex: 1, textAlign: "center" }}>
-              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>{mode.label} 추적 {mode.emoji}</h2>
-            </div>
+            <div style={{ flex: 1, textAlign: "center" }}><h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>{mode.label} 추적 {mode.emoji}</h2></div>
             <div style={{ width: 38 }} />
           </div>
         </div>
@@ -976,16 +988,10 @@ export default function App() {
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 4 }}>라이더 정보 🏍️</div>
             <div style={{ fontSize: 12, color: th.muted, marginBottom: 12 }}>예시 정보입니다</div>
             <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 12, alignItems: "center" }}>
-              <div style={{ width: 52, height: 52, borderRadius: 16, background: "#111827", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>
-                {deliveryMode === "rabbit" ? "🐇" : "🐢"}
-              </div>
+              <div style={{ width: 52, height: 52, borderRadius: 16, background: "#111827", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>{deliveryMode === "rabbit" ? "🐇" : "🐢"}</div>
               <div>
-                <div style={{ fontWeight: 900, fontSize: 15 }}>
-                  {deliveryMode === "rabbit" ? "토끼 라이더" : "거북이 라이더"}
-                </div>
-                <div style={{ color: th.muted, fontSize: 12 }}>
-                  {deliveryMode === "rabbit" ? "급행 · ⭐ 4.9 · 초고속 이동 중" : "안정형 · ⭐ 4.9 · 천천히 이동 중"}
-                </div>
+                <div style={{ fontWeight: 900, fontSize: 15 }}>{deliveryMode === "rabbit" ? "토끼 라이더" : "거북이 라이더"}</div>
+                <div style={{ color: th.muted, fontSize: 12 }}>{deliveryMode === "rabbit" ? "급행 · ⭐ 4.9 · 초고속 이동 중" : "안정형 · ⭐ 4.9 · 천천히 이동 중"}</div>
               </div>
               <button style={{ border: "none", borderRadius: 12, background: "#eef2ff", color: "#3730a3", padding: "10px 12px", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>📞 연락</button>
             </div>
@@ -1013,20 +1019,14 @@ export default function App() {
           {orderInfo && (
             <div style={css.section}>
               <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>주문 요약 📋</div>
-              {[
-                ["주문자", orderInfo.customerName],
-                ["배달 주소", orderInfo.address],
-                ["배달 타입", deliveryModes[orderInfo.deliveryMode]?.label || mode.label],
-                ["결제수단", orderInfo.payment],
-                ["예상 금액", fmt(orderInfo.total)]
-              ].map(([k, v]) => (
+              {[["주문자", orderInfo.customerName], ["배달 주소", orderInfo.address], ["배달 타입", deliveryModes[orderInfo.deliveryMode]?.label || mode.label], ["결제수단", orderInfo.payment], ["예상 금액", fmt(orderInfo.total)]].map(([k, v]) => (
                 <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 13, marginBottom: 6 }}>
-                  <span style={{ color: th.muted }}>{k}</span>
-                  <strong>{v}</strong>
+                  <span style={{ color: th.muted }}>{k}</span><strong>{v}</strong>
                 </div>
               ))}
             </div>
           )}
+          <Footer th={th} onInfo={() => { clearTimers(); setPage("order"); setShowInfoModal(true); }} onPrivacy={() => setPage("privacy")} />
         </div>
         <div style={css.bottomBar}>
           <div style={css.bottomInner}>
@@ -1038,6 +1038,7 @@ export default function App() {
     );
   }
 
+  // ── 주문서 작성 페이지
   if (page === "checkout") {
     return (
       <div style={css.wrap}>
@@ -1075,9 +1076,7 @@ export default function App() {
                 <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: th.muted }}><span>{k}</span><strong style={{ color: th.text }}>{v}</strong></div>
               ))}
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 17, fontWeight: 900, marginTop: 4, paddingTop: 8, borderTop: "1px solid " + th.line }}><span>총 결제예상금액</span><strong style={{ color: th.brand }}>{fmt(totals.total)}</strong></div>
-              <div style={{ fontSize: 13, color: th.brand, fontWeight: 800, marginTop: 6 }}>
-                선택한 배달: {mode.emoji} {mode.label}
-              </div>
+              <div style={{ fontSize: 13, color: th.brand, fontWeight: 800, marginTop: 6 }}>선택한 배달: {mode.emoji} {mode.label}</div>
             </div>
           </div>
           <div style={css.section}>
@@ -1103,6 +1102,7 @@ export default function App() {
               ))}
             </div>
           </div>
+          <Footer th={th} onInfo={() => { setPage("order"); setShowInfoModal(true); }} onPrivacy={() => setPage("privacy")} />
         </div>
         {showReceipt && receiptData && (
           <div style={{ position: "fixed", left: "50%", bottom: 86, transform: "translateX(-50%)", width: "calc(100% - 32px)", maxWidth: 508, zIndex: 21 }}>
@@ -1111,9 +1111,7 @@ export default function App() {
                 <div style={{ fontSize: 22 }}>✅</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 14, fontWeight: 900, color: "#166534" }}>주문이 접수되었습니다!</div>
-                  <div style={{ fontSize: 12, color: "#166534", marginTop: 2 }}>
-                    {deliveryMode === "rabbit" ? "잠시 후 토끼배달 추적 페이지로 이동합니다." : "잠시 후 거북이배달 추적 페이지로 이동합니다."}
-                  </div>
+                  <div style={{ fontSize: 12, color: "#166534", marginTop: 2 }}>{deliveryMode === "rabbit" ? "잠시 후 토끼배달 추적 페이지로 이동합니다." : "잠시 후 거북이배달 추적 페이지로 이동합니다."}</div>
                 </div>
               </div>
             </div>
@@ -1129,6 +1127,7 @@ export default function App() {
     );
   }
 
+  // ── 메인(주문) 페이지
   return (
     <div style={css.wrap}>
       <style>{globalStyle}</style>
@@ -1137,6 +1136,7 @@ export default function App() {
         <InfoModal
           email={inquiryEmail}
           onClose={() => setShowInfoModal(false)}
+          onPrivacy={() => { setShowInfoModal(false); setPage("privacy"); }}
         />
       )}
       {optionTarget && optMenu && (
@@ -1164,21 +1164,10 @@ export default function App() {
             <div style={{ position: "relative" }}>
               <button style={{ ...css.iconBtn, width: 32, height: 32, fontSize: 14 }}>🛒</button>
               {cartCount > 0 && (
-                <div style={{ position: "absolute", top: -4, right: -4, background: "#ef4444", color: "#fff", fontSize: 9, fontWeight: 900, borderRadius: 99, minWidth: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px" }}>
-                  {cartCount}
-                </div>
+                <div style={{ position: "absolute", top: -4, right: -4, background: "#ef4444", color: "#fff", fontSize: 9, fontWeight: 900, borderRadius: 99, minWidth: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px" }}>{cartCount}</div>
               )}
             </div>
-
-            <button
-              onClick={() => setShowInfoModal(true)}
-              style={{ ...css.iconBtn, width: 32, height: 32, fontSize: 14, fontWeight: 900 }}
-              aria-label="앱 안내 보기"
-              title="앱 안내"
-            >
-              ?
-            </button>
-
+            <button onClick={() => setShowInfoModal(true)} style={{ ...css.iconBtn, width: 32, height: 32, fontSize: 14, fontWeight: 900 }} aria-label="앱 안내 보기" title="앱 안내">?</button>
             <button onClick={resetAll} style={{ border: "none", borderRadius: 10, background: "rgba(255,255,255,0.14)", color: th.headerColor, padding: "6px 10px", fontWeight: 800, cursor: "pointer", fontFamily: "inherit", fontSize: 11 }}>초기화</button>
           </div>
         </div>
@@ -1198,24 +1187,10 @@ export default function App() {
             {Object.values(deliveryModes).map((m) => {
               const active = deliveryMode === m.key;
               return (
-                <button
-                  key={m.key}
-                  onClick={() => setDeliveryMode(m.key)}
-                  style={{
-                    border: active ? "2px solid " + th.brand : "1px solid " + th.line,
-                    background: active ? th.activeBg : "#fff",
-                    borderRadius: 16,
-                    padding: "14px 12px",
-                    cursor: "pointer",
-                    textAlign: "left",
-                    fontFamily: "inherit",
-                  }}
-                >
+                <button key={m.key} onClick={() => setDeliveryMode(m.key)} style={{ border: active ? "2px solid " + th.brand : "1px solid " + th.line, background: active ? th.activeBg : "#fff", borderRadius: 16, padding: "14px 12px", cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}>
                   <div style={{ fontSize: 24, marginBottom: 8 }}>{m.emoji}</div>
                   <div style={{ fontWeight: 900, fontSize: 15 }}>{m.label}</div>
-                  <div style={{ fontSize: 12, color: th.muted, marginTop: 4 }}>
-                    {m.key === "rabbit" ? "빠른 도착 연출" : "느긋한 도착 연출"}
-                  </div>
+                  <div style={{ fontSize: 12, color: th.muted, marginTop: 4 }}>{m.key === "rabbit" ? "빠른 도착 연출" : "느긋한 도착 연출"}</div>
                 </button>
               );
             })}
@@ -1278,6 +1253,9 @@ export default function App() {
             ))}
           </div>
         </div>
+
+        {/* 푸터 */}
+        <Footer th={th} onInfo={() => setShowInfoModal(true)} onPrivacy={() => setPage("privacy")} />
       </div>
 
       <div style={css.bottomBar}>
