@@ -1,4 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import CoupangAdCard from "./components/CoupangAdCard";
+import Footer from "./components/Footer";
+import MenuImage from "./components/MenuImage";
+import Stars from "./components/Stars";
+import { getMenuImageSrc } from "./config/menuImages";
+import { deliveryModes, SIZE_OPTIONS, SPICY_OPTIONS, themes } from "./config/ordering";
+import { calcTotals, fmt } from "./lib/format";
 
 const menuCalories = {
   c1: 1800, c2: 1650, c3: 320,
@@ -194,118 +201,6 @@ const sampleReviews = [
   { user: "푸디스타그램", text: "사진보다 실물이 더 나와요!", star: 4 },
   { user: "배달매니아", text: "포장도 깔끔하고 맛도 좋아요", star: 5 },
 ];
-
-const SPICY_OPTIONS = ["순한맛", "보통", "매운맛"];
-const SIZE_OPTIONS = [
-  { label: "Small", price: -1000 },
-  { label: "Regular", price: 0 },
-  { label: "Large", price: 1500 },
-];
-
-const themes = {
-  purple: {
-    phone: "#faf8ff", text: "#1e1040", muted: "#7c6fa0", line: "#ede8f8",
-    brand: "#7c3aed", brandDark: "#6d28d9",
-    headerStart: "#7c3aed", headerEnd: "#6d28d9",
-    heroStart: "#7c3aed", heroEnd: "#a855f7",
-    primaryBtn: "#7c3aed",
-    sectionShadow: "0 4px 20px rgba(124,58,237,0.08)",
-    inputShadow: "0 2px 12px rgba(124,58,237,0.08)",
-    bottomBarBg: "rgba(255,255,255,0.97)", bottomBarBorder: "rgba(237,232,248,1)",
-    headerColor: "#fff", headerTextAlt: "rgba(255,255,255,0.75)",
-    iconBtnBg: "rgba(255,255,255,0.18)", iconBtnColor: "#fff",
-    headerBorderBottom: "none", activeBg: "#f3eeff",
-  },
-  mint: {
-    phone: "#fff7ed", text: "#431407", muted: "#c2410c", line: "#fed7aa",
-    brand: "#f97316", brandDark: "#ea580c",
-    headerStart: "#fb923c", headerEnd: "#f97316",
-    heroStart: "#fb923c", heroEnd: "#f97316",
-    primaryBtn: "#f97316",
-    sectionShadow: "0 4px 20px rgba(249,115,22,0.08)",
-    inputShadow: "0 2px 12px rgba(249,115,22,0.07)",
-    bottomBarBg: "rgba(255,255,255,0.97)", bottomBarBorder: "rgba(254,215,170,1)",
-    headerColor: "#fff", headerTextAlt: "rgba(255,255,255,0.75)",
-    iconBtnBg: "rgba(255,255,255,0.18)", iconBtnColor: "#fff",
-    headerBorderBottom: "none", activeBg: "#fff7ed",
-  },
-  blue: {
-    phone: "#f5f8ff", text: "#0f1e40", muted: "#5a7aa0", line: "#dbeafe",
-    brand: "#2563eb", brandDark: "#1d4ed8",
-    headerStart: "#2563eb", headerEnd: "#1d4ed8",
-    heroStart: "#2563eb", heroEnd: "#1d4ed8",
-    primaryBtn: "#2563eb",
-    sectionShadow: "0 4px 20px rgba(37,99,235,0.08)",
-    inputShadow: "0 2px 12px rgba(37,99,235,0.07)",
-    bottomBarBg: "rgba(255,255,255,0.97)", bottomBarBorder: "rgba(219,234,254,1)",
-    headerColor: "#fff", headerTextAlt: "rgba(255,255,255,0.75)",
-    iconBtnBg: "rgba(255,255,255,0.18)", iconBtnColor: "#fff",
-    headerBorderBottom: "none", activeBg: "#eff6ff",
-  },
-  pink: {
-    phone: "#f7fbfa", text: "#0d2320", muted: "#5a8a80", line: "#d4f0ea",
-    brand: "#0ea768", brandDark: "#0d9460",
-    headerStart: "#15d3b4", headerEnd: "#0ea768",
-    heroStart: "#15d3b4", heroEnd: "#0ea768",
-    primaryBtn: "#0ea768",
-    sectionShadow: "0 4px 20px rgba(14,167,104,0.08)",
-    inputShadow: "0 2px 12px rgba(14,167,104,0.07)",
-    bottomBarBg: "rgba(255,255,255,0.97)", bottomBarBorder: "rgba(212,240,234,1)",
-    headerColor: "#fff", headerTextAlt: "rgba(255,255,255,0.75)",
-    iconBtnBg: "rgba(255,255,255,0.18)", iconBtnColor: "#fff",
-    headerBorderBottom: "none", activeBg: "#ecfdf5",
-  },
-};
-
-const deliveryModes = {
-  rabbit: {
-    key: "rabbit",
-    label: "토끼배달",
-    emoji: "🐇",
-    etaStart: 8,
-    intervalMs: 6000,
-    completeDelayMs: 1500,
-    badge: "급행",
-    heroStart: "#f97316",
-    heroEnd: "#ea580c",
-    mapIcon: "🐇",
-    completeTitle: "토끼배달 완료!",
-    completeDesc: "번개처럼 빠르게 도착한 컨셉의 데모예요 ⚡",
-  },
-  turtle: {
-    key: "turtle",
-    label: "거북이배달",
-    emoji: "🐢",
-    etaStart: 30,
-    intervalMs: 30000,
-    completeDelayMs: 2500,
-    badge: "여유",
-    heroStart: "#16a34a",
-    heroEnd: "#15803d",
-    mapIcon: "🐢",
-    completeTitle: "거북이배달 완료!",
-    completeDesc: "천천히 하지만 꾸준히 오는 컨셉의 데모예요 🌿",
-  },
-};
-
-function fmt(v) { return new Intl.NumberFormat("ko-KR").format(v) + "원"; }
-function calcTotals(cart) {
-  const sub = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const del = cart.length ? Math.max(...cart.map(i => i.fee)) : 0;
-  const svc = sub > 0 ? Math.round(sub * 0.03) : 0;
-  return { sub, del, svc, total: sub + del + svc };
-}
-
-function Stars({ rating, size = 12 }) {
-  const full = Math.floor(rating);
-  const half = rating - full >= 0.5;
-  return (
-    <span style={{ fontSize: size, letterSpacing: -1, lineHeight: 1 }}>
-      {"★".repeat(full)}{half ? "½" : ""}
-      <span style={{ color: "#d1d5db" }}>{"★".repeat(5 - full - (half ? 1 : 0))}</span>
-    </span>
-  );
-}
 
 function ReviewModal({ restaurant, onClose }) {
   const revs = sampleReviews.slice(0, 3 + (restaurant.id % 3));
@@ -603,11 +498,20 @@ function OptionSheet({ menu, onClose, onConfirm, brand }) {
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
       <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "20px 20px 32px", width: "100%", maxWidth: 540, maxHeight: "80vh", overflowY: "auto", animation: "slideUp .25s ease" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
-          <div>
-            <div style={{ fontWeight: 900, fontSize: 18 }}>{menu.name}</div>
-            <div style={{ color: "#6b7280", fontSize: 13, marginTop: 4 }}>{menu.desc}</div>
-            <div style={{ color: "#10b981", fontSize: 12, fontWeight: 700, marginTop: 4 }}>🔥 {(menuCalories[menu.id] || 0).toLocaleString()}kcal</div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 14, marginBottom: 20 }}>
+          <div style={{ display: "flex", gap: 14, minWidth: 0, flex: 1 }}>
+            <MenuImage
+              src={getMenuImageSrc(menu.id)}
+              alt={menu.name}
+              width={96}
+              height={96}
+              borderRadius={18}
+            />
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontWeight: 900, fontSize: 18 }}>{menu.name}</div>
+              <div style={{ color: "#6b7280", fontSize: 13, marginTop: 4 }}>{menu.desc}</div>
+              <div style={{ color: "#10b981", fontSize: 12, fontWeight: 700, marginTop: 6 }}>🔥 {(menuCalories[menu.id] || 0).toLocaleString()}kcal</div>
+            </div>
           </div>
           <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: 12, border: "none", background: "#f3f4f6", fontSize: 18, cursor: "pointer", flexShrink: 0 }}>✕</button>
         </div>
@@ -670,59 +574,6 @@ function OptionSheet({ menu, onClose, onConfirm, brand }) {
   );
 }
 
-function CoupangAdCard({ th }) {
-  const [loaded, setLoaded] = useState(false);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => { setFailed(true); }, 2500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  return (
-    <div style={{ width: "100%", maxWidth: 340, margin: "0 auto 24px", boxSizing: "border-box", textAlign: "left" }}>
-      <div style={{ background: "#fff", borderRadius: 18, padding: "10px", border: "1px solid " + th.line, boxShadow: "0 6px 18px rgba(0,0,0,0.05)", overflow: "hidden", minHeight: 132 }}>
-        <div style={{ fontSize: 11, color: th.muted, marginBottom: 8, paddingLeft: 2, fontWeight: 700 }}>추천 상품</div>
-        {!loaded && !failed && (
-          <div style={{ height: 94, borderRadius: 12, background: "#f8fafc", border: "1px dashed " + th.line, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: th.muted }}>
-            추천 상품 불러오는 중...
-          </div>
-        )}
-        {failed && !loaded && (
-          <div style={{ height: 94, borderRadius: 12, background: "#f8fafc", border: "1px dashed " + th.line, display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", fontSize: 12, color: th.muted, lineHeight: 1.45, padding: "0 12px" }}>
-            광고 차단 또는 브라우저 설정 때문에<br />추천 상품이 표시되지 않을 수 있어요.
-          </div>
-        )}
-        <iframe
-          title="추천 상품"
-          src="https://ads-partners.coupang.com/widgets.html?id=976548&template=carousel&trackingCode=AF7204416&width=300&height=94&tsource="
-          width="300" height="94" frameBorder="0" scrolling="no" referrerPolicy="unsafe-url"
-          onLoad={() => { setLoaded(true); setFailed(false); }}
-          style={{ display: loaded ? "block" : "none", width: "100%", maxWidth: 300, height: 94, margin: "0 auto", border: "none", borderRadius: 12, overflow: "hidden", background: "transparent" }}
-        />
-      </div>
-      <div style={{ fontSize: 9, color: th.muted, opacity: 0.6, marginTop: 6, paddingLeft: 2, lineHeight: 1.4 }}>
-        이 링크는 쿠팡파트너스 활동의 일환으로, 일정액의 수수료를 제공받을 수 있습니다
-      </div>
-    </div>
-  );
-}
-
-// ──────────────────────────────────────────────
-// Footer — 공통 하단 링크
-// ──────────────────────────────────────────────
-function Footer({ th, onInfo, onPrivacy }) {
-  return (
-    <div style={{ textAlign: "center", padding: "24px 20px 12px", fontSize: 12, color: th.muted, lineHeight: 2 }}>
-      <div>
-        <button onClick={onInfo} style={{ background: "none", border: "none", color: th.muted, cursor: "pointer", fontFamily: "inherit", fontSize: 12, textDecoration: "underline", marginRight: 12 }}>앱 소개</button>
-        <button onClick={onPrivacy} style={{ background: "none", border: "none", color: th.muted, cursor: "pointer", fontFamily: "inherit", fontSize: 12, textDecoration: "underline" }}>개인정보처리방침</button>
-      </div>
-      <div style={{ marginTop: 4, fontSize: 11, opacity: 0.6 }}>© 2025 음식만안와요 · 데모 앱</div>
-    </div>
-  );
-}
-
 export default function App() {
   const [theme, setTheme] = useState("mint");
   const [deliveryMode, setDeliveryMode] = useState("rabbit");
@@ -734,7 +585,6 @@ export default function App() {
   const [ph, setPh] = useState("");
   const [ad, setAd] = useState("");
   const [rq, setRq] = useState("");
-  const [steps, setSteps] = useState([0, 0, 0, 0]);
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
   const [trackState, setTrackState] = useState(0);
@@ -747,12 +597,12 @@ export default function App() {
   const timersRef = useRef([]);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [canInstall, setCanInstall] = useState(false);
-  const [installed, setInstalled] = useState(false);
+  const [installed, setInstalled] = useState(() =>
+    window.matchMedia?.("(display-mode: standalone)")?.matches ||
+    window.navigator.standalone === true
+  );
 
   const isIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-  const isInStandalone =
-    window.matchMedia?.("(display-mode: standalone)")?.matches ||
-    window.navigator.standalone === true;
 
   useEffect(() => {
     const onBeforeInstallPrompt = (e) => {
@@ -767,12 +617,11 @@ export default function App() {
     };
     window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
     window.addEventListener("appinstalled", onAppInstalled);
-    if (isInStandalone) setInstalled(true);
     return () => {
       window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
       window.removeEventListener("appinstalled", onAppInstalled);
     };
-  }, [isInStandalone]);
+  }, []);
 
   const th = themes[theme];
   const mode = deliveryModes[deliveryMode];
@@ -826,7 +675,6 @@ export default function App() {
     setPayment("카드");
     setSearch("");
     setNm(""); setPh(""); setAd(""); setRq("");
-    setSteps([0, 0, 0, 0]);
     setShowReceipt(false);
     setReceiptData(null);
     setTrackState(0);
@@ -843,16 +691,9 @@ export default function App() {
 
   const simulateOrder = () => {
     clearTimers();
-    setSteps([0, 0, 0, 0]);
     setShowReceipt(false);
     const info = { customerName: nm || "주문자", address: ad || "입력된 주소 없음", phone: ph || "연락처 없음", request: rq || "없음", payment, total: totals.total, deliveryMode };
-    [100, 300, 500, 700].forEach((d, i) => {
-      timersRef.current.push(setTimeout(() => {
-        setSteps(prev => { const n = [...prev]; if (i > 0) n[i - 1] = 2; n[i] = 1; return n; });
-      }, d));
-    });
     timersRef.current.push(setTimeout(() => {
-      setSteps([2, 2, 2, 2]);
       setReceiptData(info);
       setShowReceipt(true);
       timersRef.current.push(setTimeout(() => {
@@ -1252,11 +1093,20 @@ export default function App() {
                       const hasOpts = m.options && (m.options.spicy || m.options.size || (m.options.toppings && m.options.toppings.length > 0));
                       return (
                         <div key={m.id} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "center", padding: 12, border: "1px solid " + th.line, borderRadius: 14, background: "#fcfcfd" }}>
-                          <div>
-                            <div style={{ fontWeight: 800, marginBottom: 3, fontSize: 14 }}>{m.name}</div>
-                            <div style={{ color: th.muted, fontSize: 12 }}>{m.desc}</div>
-                            <div style={{ color: "#10b981", fontSize: 11, fontWeight: 700, marginTop: 2 }}>🔥 {(menuCalories[m.id] || 0).toLocaleString()}kcal</div>
-                            {hasOpts && <div style={{ fontSize: 10, color: th.brand, fontWeight: 700, marginTop: 3 }}>옵션 선택 가능 ›</div>}
+                          <div style={{ display: "flex", gap: 12, minWidth: 0 }}>
+                            <MenuImage
+                              src={getMenuImageSrc(m.id)}
+                              alt={m.name}
+                              width={88}
+                              height={88}
+                              borderRadius={14}
+                            />
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ fontWeight: 800, marginBottom: 3, fontSize: 14 }}>{m.name}</div>
+                              <div style={{ color: th.muted, fontSize: 12 }}>{m.desc}</div>
+                              <div style={{ color: "#10b981", fontSize: 11, fontWeight: 700, marginTop: 2 }}>🔥 {(menuCalories[m.id] || 0).toLocaleString()}kcal</div>
+                              {hasOpts && <div style={{ fontSize: 10, color: th.brand, fontWeight: 700, marginTop: 3 }}>옵션 선택 가능 ›</div>}
+                            </div>
                           </div>
                           <div style={{ display: "grid", justifyItems: "end", gap: 6 }}>
                             <div style={{ fontWeight: 900, whiteSpace: "nowrap", fontSize: 14 }}>{fmt(m.price)}</div>
@@ -1268,8 +1118,8 @@ export default function App() {
                       );
                     })}
                   </div>
+                  </div>
                 </div>
-              </div>
             ))}
           </div>
         </div>
