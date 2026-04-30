@@ -16,6 +16,8 @@ const menuCalories = {
   su1: 650, su2: 380, su3: 310, su4: 650,
   hb1: 840, hb2: 1090, hb3: 410,
   piz1: 980, piz2: 1120, piz3: 360,
+  tak1: 420, tak2: 560, tak3: 380, tak4: 820,
+  bs1: 380, bs2: 450, bs3: 420, bs4: 350,
 };
 
 const restaurants = [
@@ -140,6 +142,24 @@ const restaurants = [
       { id: "piz1", name: "페퍼로니 피자", desc: "짭짤한 페퍼로니 듬뿍", price: 18900, options: { size: true, toppings: ["치즈 추가+2000원", "핫소스 추가+500원", "갈릭디핑소스 추가+700원"] } },
       { id: "piz2", name: "불고기 피자", desc: "달콤짭짤 불고기 토핑", price: 20900, options: { size: true, toppings: ["치즈 추가+2000원", "콘샐러드 추가+1500원", "갈릭디핑소스 추가+700원"] } },
       { id: "piz3", name: "치즈오븐스파게티", desc: "피자와 찰떡궁합 사이드", price: 6900, options: { toppings: ["치즈 추가+1000원"] } },
+    ],
+  },
+  {
+    id: 16, name: "문어대왕 타코야끼", emoji: "🐙", time: "15~25분", rating: 4.7, reviews: 1243, fee: 2000, category: "타코야끼", badge: "신규",
+    menus: [
+      { id: "tak1", name: "오리지널 타코야끼 6개", desc: "문어 가득 바삭한 겉면, 촉촉한 속살", price: 9000, options: { toppings: ["마요네즈 추가+300원", "가쓰오부시 추가+300원", "치즈소스 추가+700원"] } },
+      { id: "tak2", name: "치즈 타코야끼 8개", desc: "녹진한 모짜렐라 치즈가 쭉쭉", price: 12000, options: { toppings: ["마요네즈 추가+300원", "갈릭소스 추가+500원"] } },
+      { id: "tak3", name: "새우 타코야끼 6개", desc: "탱글탱글 새우살이 통째로", price: 11000, options: { toppings: ["마요네즈 추가+300원", "가쓰오부시 추가+300원"] } },
+      { id: "tak4", name: "타코야끼 + 쇼유라멘 세트", desc: "오리지널 6개 + 간장라멘 한 그릇", price: 17500, options: { spicy: true, toppings: ["차슈 추가+2000원", "반숙달걀 추가+1000원"] } },
+    ],
+  },
+  {
+    id: 17, name: "빙수나라 24시", emoji: "🍧", time: "10~18분", rating: 4.8, reviews: 2134, fee: 1500, category: "빙수", badge: "인기",
+    menus: [
+      { id: "bs1", name: "딸기 설빙", desc: "신선한 생딸기 듬뿍 올린 시그니처", price: 11900, options: { size: true, toppings: ["딸기 추가+1500원", "연유 추가+500원", "아이스크림 추가+1000원"] } },
+      { id: "bs2", name: "인절미 빙수", desc: "콩가루 듬뿍, 쫄깃한 찰떡 토핑", price: 10900, options: { size: true, toppings: ["찰떡 추가+800원", "연유 추가+500원"] } },
+      { id: "bs3", name: "망고 빙수", desc: "달콤한 생망고 시럽과 망고 큐브", price: 12900, options: { size: true, toppings: ["망고 추가+2000원", "코코넛젤리 추가+700원"] } },
+      { id: "bs4", name: "팥 빙수", desc: "정통 국산 팥 빙수, 깊은 단맛", price: 9900, options: { size: true, toppings: ["팥 추가+1000원", "찰떡 추가+800원", "아이스크림 추가+1000원"] } },
     ],
   },
 ];
