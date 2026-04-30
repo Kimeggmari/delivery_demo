@@ -6,7 +6,7 @@ export default function MenuImage({
   width = 92,
   height = 92,
   borderRadius = 16,
-  label = "??? ???",
+  label = "\uC774\uBBF8\uC9C0 \uC900\uBE44\uC911",
 }) {
   const candidates = useMemo(() => {
     if (Array.isArray(src)) return src.filter(Boolean);

@@ -970,39 +970,39 @@ export default function App() {
             <div style={{ position: "fixed", inset: 0, zIndex: 21, background: "rgba(15,23,42,0.18)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
               <div style={{ width: "100%", maxWidth: 360, background: "#fff", borderRadius: 24, padding: "22px 20px 20px", boxShadow: "0 20px 50px rgba(15,23,42,0.18)", border: "1px solid rgba(226,232,240,0.9)", animation: "pop .25s ease" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                  <div style={{ width: 48, height: 48, borderRadius: 16, background: "linear-gradient(135deg,#dbeafe,#bfdbfe)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>??</div>
+                  <div style={{ width: 48, height: 48, borderRadius: 16, background: "linear-gradient(135deg,#dbeafe,#bfdbfe)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>{"\uD83D\uDCB3"}</div>
                   <div>
-                    <div style={{ fontSize: 17, fontWeight: 900, color: "#0f172a" }}>?? ???</div>
-                    <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>{receiptData.payment}? ??? ???? ???</div>
+                    <div style={{ fontSize: 17, fontWeight: 900, color: "#0f172a" }}>{"\uACB0\uC81C \uC9C4\uD589\uC911"}</div>
+                    <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>{receiptData.payment}{"\uB85C \uACB0\uC81C\uB97C \uCC98\uB9AC\uD558\uACE0 \uC788\uC5B4\uC694"}</div>
                   </div>
                 </div>
                 <div style={{ background: "#f8fafc", borderRadius: 18, padding: "14px 16px", border: "1px solid #e2e8f0", display: "grid", gap: 8 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 13 }}>
-                    <span style={{ color: "#64748b" }}>???</span>
+                    <span style={{ color: "#64748b" }}>{"\uC8FC\uBB38\uC790"}</span>
                     <strong style={{ color: "#0f172a" }}>{receiptData.customerName}</strong>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 13 }}>
-                    <span style={{ color: "#64748b" }}>????</span>
+                    <span style={{ color: "#64748b" }}>{"\uACB0\uC81C\uC218\uB2E8"}</span>
                     <strong style={{ color: "#0f172a" }}>{receiptData.payment}</strong>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 14 }}>
-                    <span style={{ color: "#64748b" }}>????</span>
+                    <span style={{ color: "#64748b" }}>{"\uACB0\uC81C\uAE08\uC561"}</span>
                     <strong style={{ color: th.brand }}>{fmt(receiptData.total)}</strong>
                   </div>
                 </div>
                 <div style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 8, color: "#2563eb", fontSize: 12, fontWeight: 800 }}>
                   <span style={{ width: 8, height: 8, borderRadius: 999, background: "#2563eb", boxShadow: "0 0 0 6px rgba(37,99,235,0.14)" }} />
-                  ?? ?? ? ?? ?? ???? ?????.
+                  {"\uACB0\uC81C \uC2B9\uC778 \uD6C4 \uBC30\uB2EC \uCD94\uC801 \uD654\uBA74\uC73C\uB85C \uC774\uB3D9\uD569\uB2C8\uB2E4."}
                 </div>
               </div>
             </div>
             <div style={{ position: "fixed", left: "50%", bottom: 86, transform: "translateX(-50%)", width: "calc(100% - 32px)", maxWidth: 508, zIndex: 22 }}>
               <div style={{ background: "linear-gradient(180deg,#f0fdf4,#ffffff)", border: "1px solid #bbf7d0", boxShadow: "0 10px 30px rgba(22,101,52,0.10)", borderRadius: 18, padding: "14px 16px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ fontSize: 22 }}>?</div>
+                  <div style={{ fontSize: 22 }}>{"\u2705"}</div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 900, color: "#166534" }}>??? ???????!</div>
-                    <div style={{ fontSize: 12, color: "#166534", marginTop: 2 }}>{deliveryMode === "rabbit" ? "?? ? ???? ?? ???? ?????." : "?? ? ????? ?? ???? ?????."}</div>
+                    <div style={{ fontSize: 14, fontWeight: 900, color: "#166534" }}>{"\uC8FC\uBB38\uC774 \uC811\uC218\uB418\uC5C8\uC2B5\uB2C8\uB2E4!"}</div>
+                    <div style={{ fontSize: 12, color: "#166534", marginTop: 2 }}>{deliveryMode === "rabbit" ? "\uC7A0\uC2DC \uD6C4 \uD1A0\uB07C\uBC30\uB2EC \uCD94\uC801 \uD398\uC774\uC9C0\uB85C \uC774\uB3D9\uD569\uB2C8\uB2E4." : "\uC7A0\uC2DC \uD6C4 \uAC70\uBD81\uC774\uBC30\uB2EC \uCD94\uC801 \uD398\uC774\uC9C0\uB85C \uC774\uB3D9\uD569\uB2C8\uB2E4."}</div>
                   </div>
                 </div>
               </div>
