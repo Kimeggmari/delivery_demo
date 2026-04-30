@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+﻿import { useState, useRef, useEffect, useCallback } from "react";
 import CoupangAdCard from "./components/CoupangAdCard";
 import Footer from "./components/Footer";
 import MenuImage from "./components/MenuImage";
@@ -704,7 +704,7 @@ export default function App() {
           timersRef.current.push(setTimeout(() => setTrackState(i + 1), (i + 1) * mode.intervalMs))
         );
         timersRef.current.push(setTimeout(() => setPage("complete"), mode.etaStart * mode.intervalMs + mode.completeDelayMs));
-      }, 600));
+      }, 1500));
     }, 900));
   };
 
@@ -966,17 +966,48 @@ export default function App() {
           <Footer th={th} onInfo={() => { setPage("order"); setShowInfoModal(true); }} onPrivacy={() => setPage("privacy")} />
         </div>
         {showReceipt && receiptData && (
-          <div style={{ position: "fixed", left: "50%", bottom: 86, transform: "translateX(-50%)", width: "calc(100% - 32px)", maxWidth: 508, zIndex: 21 }}>
-            <div style={{ background: "linear-gradient(180deg,#f0fdf4,#ffffff)", border: "1px solid #bbf7d0", boxShadow: "0 10px 30px rgba(22,101,52,0.10)", borderRadius: 18, padding: "14px 16px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ fontSize: 22 }}>✅</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 900, color: "#166534" }}>주문이 접수되었습니다!</div>
-                  <div style={{ fontSize: 12, color: "#166534", marginTop: 2 }}>{deliveryMode === "rabbit" ? "잠시 후 토끼배달 추적 페이지로 이동합니다." : "잠시 후 거북이배달 추적 페이지로 이동합니다."}</div>
+          <>
+            <div style={{ position: "fixed", inset: 0, zIndex: 21, background: "rgba(15,23,42,0.18)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+              <div style={{ width: "100%", maxWidth: 360, background: "#fff", borderRadius: 24, padding: "22px 20px 20px", boxShadow: "0 20px 50px rgba(15,23,42,0.18)", border: "1px solid rgba(226,232,240,0.9)", animation: "pop .25s ease" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                  <div style={{ width: 48, height: 48, borderRadius: 16, background: "linear-gradient(135deg,#dbeafe,#bfdbfe)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>??</div>
+                  <div>
+                    <div style={{ fontSize: 17, fontWeight: 900, color: "#0f172a" }}>?? ???</div>
+                    <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>{receiptData.payment}? ??? ???? ???</div>
+                  </div>
+                </div>
+                <div style={{ background: "#f8fafc", borderRadius: 18, padding: "14px 16px", border: "1px solid #e2e8f0", display: "grid", gap: 8 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 13 }}>
+                    <span style={{ color: "#64748b" }}>???</span>
+                    <strong style={{ color: "#0f172a" }}>{receiptData.customerName}</strong>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 13 }}>
+                    <span style={{ color: "#64748b" }}>????</span>
+                    <strong style={{ color: "#0f172a" }}>{receiptData.payment}</strong>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 14 }}>
+                    <span style={{ color: "#64748b" }}>????</span>
+                    <strong style={{ color: th.brand }}>{fmt(receiptData.total)}</strong>
+                  </div>
+                </div>
+                <div style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 8, color: "#2563eb", fontSize: 12, fontWeight: 800 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 999, background: "#2563eb", boxShadow: "0 0 0 6px rgba(37,99,235,0.14)" }} />
+                  ?? ?? ? ?? ?? ???? ?????.
                 </div>
               </div>
             </div>
-          </div>
+            <div style={{ position: "fixed", left: "50%", bottom: 86, transform: "translateX(-50%)", width: "calc(100% - 32px)", maxWidth: 508, zIndex: 22 }}>
+              <div style={{ background: "linear-gradient(180deg,#f0fdf4,#ffffff)", border: "1px solid #bbf7d0", boxShadow: "0 10px 30px rgba(22,101,52,0.10)", borderRadius: 18, padding: "14px 16px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ fontSize: 22 }}>?</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 900, color: "#166534" }}>??? ???????!</div>
+                    <div style={{ fontSize: 12, color: "#166534", marginTop: 2 }}>{deliveryMode === "rabbit" ? "?? ? ???? ?? ???? ?????." : "?? ? ????? ?? ???? ?????."}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
         )}
         <div style={css.bottomBar}>
           <div style={css.bottomInner}>
