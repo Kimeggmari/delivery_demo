@@ -1,5 +1,10 @@
 export const SPICY_OPTIONS = ["순한맛", "보통", "매운맛"];
 
+export const SPICY_LABELS = {
+  ko: { "순한맛": "순한맛", "보통": "보통", "매운맛": "매운맛" },
+  en: { "순한맛": "Mild", "보통": "Medium", "매운맛": "Hot" },
+};
+
 export const SIZE_OPTIONS = [
   { label: "Small", price: -1000 },
   { label: "Regular", price: 0 },
@@ -64,30 +69,36 @@ export const themes = {
 export const deliveryModes = {
   rabbit: {
     key: "rabbit",
-    label: "토끼배달",
+    label: { ko: "토끼배달", en: "Rabbit Delivery" },
     emoji: "🐇",
     etaStart: 8,
     intervalMs: 6000,
     completeDelayMs: 1500,
-    badge: "급행",
+    badge: { ko: "급행", en: "Express" },
     heroStart: "#f97316",
     heroEnd: "#ea580c",
     mapIcon: "🐇",
-    completeTitle: "토끼배달 완료!",
-    completeDesc: "번개처럼 빠르게 도착한 컨셉의 데모예요 ⚡",
+    completeTitle: { ko: "토끼배달 완료!", en: "Rabbit Delivery complete!" },
+    completeDesc: {
+      ko: "번개처럼 빠르게 도착한 컨셉의 데모예요 ⚡",
+      en: "A demo where everything arrives like lightning ⚡",
+    },
   },
   turtle: {
     key: "turtle",
-    label: "거북이배달",
+    label: { ko: "거북이배달", en: "Turtle Delivery" },
     emoji: "🐢",
     etaStart: 30,
     intervalMs: 30000,
     completeDelayMs: 2500,
-    badge: "여유",
+    badge: { ko: "여유", en: "Easy" },
     heroStart: "#16a34a",
     heroEnd: "#15803d",
     mapIcon: "🐢",
-    completeTitle: "거북이배달 완료!",
-    completeDesc: "천천히 하지만 꾸준히 오는 컨셉의 데모예요 🌿",
+    completeTitle: { ko: "거북이배달 완료!", en: "Turtle Delivery complete!" },
+    completeDesc: {
+      ko: "천천히 하지만 꾸준히 오는 컨셉의 데모예요 🌿",
+      en: "A demo where the courier strolls in slow but sure 🌿",
+    },
   },
 };
