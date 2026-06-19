@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import CoupangAdCard from "./components/CoupangAdCard";
 import Footer from "./components/Footer";
 import MenuImage from "./components/MenuImage";
 import Stars from "./components/Stars";
@@ -633,33 +632,6 @@ export default function App() {
   const t = useMemo(() => makeT(lang), [lang]);
   const inquiryEmail = "eggmari5713@gmail.com";
   const timersRef = useRef([]);
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [canInstall, setCanInstall] = useState(false);
-  const [installed, setInstalled] = useState(() =>
-    window.matchMedia?.("(display-mode: standalone)")?.matches ||
-    window.navigator.standalone === true
-  );
-
-  const isIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-
-  useEffect(() => {
-    const onBeforeInstallPrompt = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setCanInstall(true);
-    };
-    const onAppInstalled = () => {
-      setInstalled(true);
-      setCanInstall(false);
-      setDeferredPrompt(null);
-    };
-    window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
-    window.addEventListener("appinstalled", onAppInstalled);
-    return () => {
-      window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
-      window.removeEventListener("appinstalled", onAppInstalled);
-    };
-  }, []);
 
   const th = themes[theme];
   const mode = deliveryModes[deliveryMode];
@@ -668,15 +640,6 @@ export default function App() {
 
   const clearTimers = useCallback(() => { timersRef.current.forEach(clearTimeout); timersRef.current = []; }, []);
   useEffect(() => () => clearTimers(), [clearTimers]);
-
-  const handleInstall = async () => {
-    if (!deferredPrompt) return;
-    await deferredPrompt.prompt();
-    const choice = await deferredPrompt.userChoice;
-    if (choice?.outcome === "accepted") setInstalled(true);
-    setDeferredPrompt(null);
-    setCanInstall(false);
-  };
 
   const openOption = (rid, mid) => {
     const r = restaurants.find(x => x.id === rid);
@@ -852,22 +815,6 @@ export default function App() {
         <div style={{ fontSize: 13, color: th.muted, marginBottom: 28, lineHeight: 1.6 }}>
           {pick(mode.completeDesc, lang)}<br />{t("completeDemoNote")}
         </div>
-
-        <CoupangAdCard th={th} t={t} />
-
-        {installed ? (
-          <div style={{ width: "100%", maxWidth: 340, marginBottom: 12, padding: "14px 20px", borderRadius: 16, background: "#dcfce7", border: "1px solid #bbf7d0", color: "#166534", fontWeight: 800, fontSize: 14 }}>
-            {t("installedBadge")}
-          </div>
-        ) : canInstall ? (
-          <button onClick={handleInstall} style={{ width: "100%", maxWidth: 340, marginBottom: 12, padding: "16px 20px", border: "none", borderRadius: 16, background: "linear-gradient(135deg," + th.heroStart + "," + th.heroEnd + ")", color: "#fff", fontWeight: 900, fontSize: 15, cursor: "pointer", fontFamily: "inherit" }}>
-            {t("installBtn")}
-          </button>
-        ) : isIos && !installed ? (
-          <div style={{ width: "100%", maxWidth: 340, marginBottom: 16, padding: "14px 16px", borderRadius: 16, background: "#f0f9ff", border: "1px solid #bae6fd", color: "#0369a1", fontSize: 12, fontWeight: 700, lineHeight: 1.7, textAlign: "left" }}>
-            {t("iosInstallHint")}
-          </div>
-        ) : null}
 
         <button onClick={resetAll} style={{ ...css.orderBtn, fontSize: 16, padding: "16px 32px", marginTop: 4 }}>
           {t("goHome")}

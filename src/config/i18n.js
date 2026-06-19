@@ -113,9 +113,6 @@ export const dict = {
     // Complete
     completeSavedSuffix: "아끼셨어요!! 🥗",
     completeDemoNote: "데모 주문이라 실제로는 0칼로리!",
-    installedBadge: "✅ 홈화면에 추가되었어요!",
-    installBtn: "📲 홈화면에 앱 추가하기",
-    iosInstallHint: "📱 Safari에서 공유 버튼(□↑) → 홈 화면에 추가",
     // Footer
     footerAppInfo: "앱 소개",
     footerPrivacy: "개인정보처리방침",
@@ -135,7 +132,6 @@ export const dict = {
       { emoji: "🔥", title: "칼로리 절약 확인", desc: "주문 완료 후 내가 선택한 메뉴의 칼로리 합산값을 '아낀 칼로리'로 보여줘요." },
       { emoji: "🎨", title: "4가지 테마 컬러", desc: "상단 이모지 버튼으로 앱 전체 색상 테마를 오렌지·보라·파랑·민트 중 선택할 수 있어요." },
       { emoji: "🌐", title: "한국어 / English 지원", desc: "헤더의 KO/EN 버튼으로 언어를 즉시 전환할 수 있어요." },
-      { emoji: "📲", title: "PWA — 홈화면 설치 지원", desc: "Android에서는 자동 설치 배너, iOS Safari에서는 '홈 화면에 추가'로 앱처럼 설치할 수 있어요." },
     ],
     infoHowToTitle: "📖 사용 방법",
     infoSteps: [
@@ -181,12 +177,6 @@ export const dict = {
       " (이하 \"서비스\")는 이용자의 개인정보를 중요하게 생각합니다. 본 방침은 서비스가 어떤 정보를 수집·이용·보관하는지에 대해 명확하게 안내합니다.",
     privacyUpdated: "최종 업데이트: 2025년 1월",
     privacyBack: "← 앱으로 돌아가기",
-    // Coupang ad
-    adRecommend: "추천 상품",
-    adLoading: "추천 상품 불러오는 중...",
-    adBlocked: "광고 차단 또는 브라우저 설정 때문에",
-    adBlocked2: "추천 상품이 표시되지 않을 수 있어요",
-    adDisclaimer: "이 링크는 쿠팡파트너스 활동의 일환으로, 일정액의 수수료를 제공받을 수 있습니다",
     // Tracking text variants
     trackRabbitFar: "토끼 라이더가 엄청 빠르게 달리고 있어요!",
     trackRabbitMid: "거의 다 왔어요. 순식간에 도착합니다!",
@@ -329,9 +319,6 @@ export const dict = {
     // Complete
     completeSavedSuffix: "saved! 🥗",
     completeDemoNote: "Demo order — 0 calories for real!",
-    installedBadge: "✅ Installed to your home screen",
-    installBtn: "📲 Add to home screen",
-    iosInstallHint: "📱 In Safari, tap Share (□↑) → Add to Home Screen",
     // Footer
     footerAppInfo: "About",
     footerPrivacy: "Privacy policy",
@@ -351,7 +338,6 @@ export const dict = {
       { emoji: "🔥", title: "Calorie savings", desc: "See the total calories of everything you almost ordered — but didn't." },
       { emoji: "🎨", title: "4 color themes", desc: "Switch the whole app between orange, purple, blue, and mint from the header." },
       { emoji: "🌐", title: "Korean / English", desc: "Toggle the language instantly with the KO/EN button in the header." },
-      { emoji: "📲", title: "PWA — install to home screen", desc: "Android shows an install banner; on iOS Safari use Share → Add to Home Screen." },
     ],
     infoHowToTitle: "📖 How to use",
     infoSteps: [
@@ -397,12 +383,6 @@ export const dict = {
       " (the \"Service\") takes your privacy seriously. This policy explains exactly what information the Service collects, uses, and stores.",
     privacyUpdated: "Last updated: January 2025",
     privacyBack: "← Back to the app",
-    // Coupang ad
-    adRecommend: "Recommended",
-    adLoading: "Loading recommended products…",
-    adBlocked: "An ad blocker or browser setting may be hiding",
-    adBlocked2: "the recommended products area.",
-    adDisclaimer: "This link is part of the Coupang Partners program; a small commission may be paid.",
     // Tracking variants
     trackRabbitFar: "The rabbit courier is sprinting your way!",
     trackRabbitMid: "Almost there — arriving in a flash!",

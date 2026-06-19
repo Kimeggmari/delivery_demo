@@ -37,21 +37,34 @@
     />
     <meta name="twitter:image" content="https://www.음식만안와요.com/og-image.png" />
     <meta name="naver-site-verification" content="b6004e2c01ce5f928a86ab79ced73a7533dc45e1" />
-    <meta name="google-adsense-account" content="ca-pub-6184083010691370">
-
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2MVMBHYY92"></script>
 
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-2MVMBHYY92');
-    </script>
+      // Skip web-only scripts (analytics, ads) when running inside the Capacitor native app.
+      // AdSense in a packaged app violates Google policy; gate it here.
+      (function () {
+        if (/FoodNeverArrivesApp/.test(navigator.userAgent)) return;
+        var meta = document.createElement('meta');
+        meta.name = 'google-adsense-account';
+        meta.content = 'ca-pub-6184083010691370';
+        document.head.appendChild(meta);
 
-    <script
-      async
-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6184083010691370"
-      crossorigin="anonymous"></script>
+        var gtm = document.createElement('script');
+        gtm.async = true;
+        gtm.src = 'https://www.googletagmanager.com/gtag/js?id=G-2MVMBHYY92';
+        document.head.appendChild(gtm);
+
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){ window.dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-2MVMBHYY92');
+
+        var ads = document.createElement('script');
+        ads.async = true;
+        ads.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6184083010691370';
+        ads.crossOrigin = 'anonymous';
+        document.head.appendChild(ads);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -5,8 +5,8 @@ const menuImageOverrides = {
 
 export function getMenuImageSrc(menuId) {
   return menuImageOverrides[menuId] || [
+    `/menu/${menuId}.webp`,
     `/menu/${menuId}.jpg`,
     `/menu/${menuId}.png`,
-    `/menu/${menuId}.webp`,
   ];
 }

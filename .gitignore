@@ -25,3 +25,12 @@ dist-ssr
 
 .granite
 .claude/
+
+# Compressed image originals (kept locally, do not commit)
+.menu-backup/
+
+# Android signing (DO NOT COMMIT)
+android/keystore.properties
+android/app/release.keystore
+*.keystore
+*.jks
