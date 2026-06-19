@@ -161,6 +161,20 @@ export const dict = {
       "앱 사용 중 불편한 점, 버그 제보, 개선 의견은 언제든지 아래 이메일로 보내주세요. 소중한 피드백은 앱 개선에 적극 반영됩니다.",
     infoSeePrivacy: "개인정보처리방침 보기",
     infoConfirm: "확인",
+    // Sponsor popup
+    sponsorTitle: "후원으로 응원해주세요 ☕",
+    sponsorSubtitle: "음식만안와요는 광고 수익과 후원으로 운영돼요.",
+    sponsorBody:
+      "이 앱이 마음에 드셨다면 따뜻한 커피 한 잔 분량의 후원으로 다음 업데이트를 응원해주세요. 후원금은 서버·도메인 비용과 신규 기능 개발에 사용됩니다.",
+    sponsorBankLabel: "은행",
+    sponsorBankValue: "카카오뱅크",
+    sponsorAccountLabel: "계좌번호",
+    sponsorHolderLabel: "예금주",
+    sponsorHolderValue: "ㅂㅅㅎ",
+    sponsorCopy: "계좌번호 복사",
+    sponsorCopied: "✓ 복사됨",
+    sponsorClose: "닫기",
+    sponsorThanks: "감사합니다 💛",
     // Privacy
     privacyTitle: "개인정보처리방침",
     privacyIntro:
@@ -363,6 +377,20 @@ export const dict = {
       "Bugs, ideas, complaints — all welcome. Email the address below and we'll read every message.",
     infoSeePrivacy: "View privacy policy",
     infoConfirm: "OK",
+    // Sponsor popup
+    sponsorTitle: "Buy me a coffee ☕",
+    sponsorSubtitle: "FoodNeverArrives runs on ad revenue and your support.",
+    sponsorBody:
+      "If this app made you smile, a small donation — the price of a coffee — helps fund the next update. Your support covers server and domain costs and powers new features.",
+    sponsorBankLabel: "Bank",
+    sponsorBankValue: "Kakaobank (KR)",
+    sponsorAccountLabel: "Account",
+    sponsorHolderLabel: "Holder",
+    sponsorHolderValue: "ㅂㅅㅎ",
+    sponsorCopy: "Copy account number",
+    sponsorCopied: "✓ Copied",
+    sponsorClose: "Close",
+    sponsorThanks: "Thank you 💛",
     // Privacy
     privacyTitle: "Privacy Policy",
     privacyIntro:

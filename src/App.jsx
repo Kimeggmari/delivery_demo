@@ -239,6 +239,115 @@ function InfoModal({ onClose, email = "eggmari5713@gmail.com", onPrivacy, t, lan
   );
 }
 
+function SponsorModal({ onClose, t, th }) {
+  const accountDisplay = "3333-22-7346954";
+  const accountRaw = "3333227346954";
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(accountRaw);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = accountRaw;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch { /* ignore */ }
+  };
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 130,
+        background: "rgba(0,0,0,0.5)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "20px",
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: "100%", maxWidth: 380,
+          background: "#fff",
+          borderRadius: 24,
+          padding: "26px 22px 22px",
+          boxShadow: "0 20px 50px rgba(15,23,42,0.25)",
+          animation: "pop .25s ease",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: -8 }}>
+          <button
+            onClick={onClose}
+            aria-label={t("sponsorClose")}
+            style={{ width: 32, height: 32, borderRadius: 10, border: "none", background: "#f3f4f6", fontSize: 16, cursor: "pointer" }}
+          >✕</button>
+        </div>
+
+        <div style={{ textAlign: "center", marginBottom: 18 }}>
+          <div style={{ fontSize: 54, lineHeight: 1, marginBottom: 10 }}>☕</div>
+          <div style={{ fontSize: 19, fontWeight: 900, color: "#111827", marginBottom: 6 }}>{t("sponsorTitle")}</div>
+          <div style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5 }}>{t("sponsorSubtitle")}</div>
+        </div>
+
+        <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.7, marginBottom: 16, padding: "0 4px" }}>
+          {t("sponsorBody")}
+        </div>
+
+        <div style={{ background: "linear-gradient(135deg,#fff7ed,#ffedd5)", border: "1px solid #fed7aa", borderRadius: 16, padding: "14px 16px", marginBottom: 14 }}>
+          <div style={{ display: "grid", gap: 8 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, fontSize: 13 }}>
+              <span style={{ color: "#9a3412", fontWeight: 700 }}>{t("sponsorBankLabel")}</span>
+              <strong style={{ color: "#111827", fontWeight: 900 }}>{t("sponsorBankValue")}</strong>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, fontSize: 13 }}>
+              <span style={{ color: "#9a3412", fontWeight: 700 }}>{t("sponsorAccountLabel")}</span>
+              <strong style={{ color: "#111827", fontWeight: 900, fontVariantNumeric: "tabular-nums", letterSpacing: 0.3 }}>{accountDisplay}</strong>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, fontSize: 13 }}>
+              <span style={{ color: "#9a3412", fontWeight: 700 }}>{t("sponsorHolderLabel")}</span>
+              <strong style={{ color: "#111827", fontWeight: 900 }}>{t("sponsorHolderValue")}</strong>
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={handleCopy}
+          style={{
+            width: "100%", border: "none", borderRadius: 14, padding: "13px 16px",
+            background: copied ? "#16a34a" : th.primaryBtn,
+            color: "#fff", fontWeight: 900, fontSize: 14, cursor: "pointer",
+            fontFamily: "inherit", marginBottom: 8, transition: ".2s",
+          }}
+        >
+          {copied ? t("sponsorCopied") : t("sponsorCopy")}
+        </button>
+
+        <button
+          onClick={onClose}
+          style={{
+            width: "100%", border: "none", borderRadius: 14, padding: "12px 16px",
+            background: "#f3f4f6", color: "#374151", fontWeight: 800, fontSize: 13,
+            cursor: "pointer", fontFamily: "inherit",
+          }}
+        >
+          {t("sponsorClose")}
+        </button>
+
+        <div style={{ textAlign: "center", marginTop: 12, fontSize: 11, color: "#9ca3af" }}>{t("sponsorThanks")}</div>
+      </div>
+    </div>
+  );
+}
+
 function PrivacyPage({ onBack, th, t, lang }) {
   const sections = lang === "en" ? [
     {
@@ -505,6 +614,7 @@ export default function App() {
   const [optionTarget, setOptionTarget] = useState(null);
   const [addedAnim, setAddedAnim] = useState(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showSponsorModal, setShowSponsorModal] = useState(true);
   const [lang, setLang] = useState(() => {
     try {
       const saved = localStorage.getItem("lang");
@@ -998,6 +1108,9 @@ export default function App() {
           t={t}
           lang={lang}
         />
+      )}
+      {showSponsorModal && !showInfoModal && (
+        <SponsorModal onClose={() => setShowSponsorModal(false)} t={t} th={th} />
       )}
       {optionTarget && optMenu && (
         <OptionSheet
