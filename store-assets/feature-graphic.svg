@@ -28,24 +28,7 @@
     </g>
   </g>
 
-  <text x="420" y="190" font-family="'Noto Sans KR', Inter, sans-serif" font-size="76" font-weight="900" fill="#FFF7EC">음식만안와요</text>
-  <text x="420" y="250" font-family="'Noto Sans KR', Inter, sans-serif" font-size="32" font-weight="700" fill="#FFE4C8">배달비와 칼로리를 아끼는</text>
-  <text x="420" y="296" font-family="'Noto Sans KR', Inter, sans-serif" font-size="32" font-weight="700" fill="#FFE4C8">가짜 배달 데모 앱</text>
-
-  <g transform="translate(420,340)">
-    <rect width="100" height="34" rx="17" fill="rgba(255,255,255,0.22)"/>
-    <text x="50" y="22" text-anchor="middle" font-family="Inter, sans-serif" font-size="16" font-weight="800" fill="#FFFFFF">🍱 메뉴 17곳</text>
-  </g>
-  <g transform="translate(530,340)">
-    <rect width="110" height="34" rx="17" fill="rgba(255,255,255,0.22)"/>
-    <text x="55" y="22" text-anchor="middle" font-family="Inter, sans-serif" font-size="16" font-weight="800" fill="#FFFFFF">🐇 토끼/🐢 거북이</text>
-  </g>
-  <g transform="translate(650,340)">
-    <rect width="90" height="34" rx="17" fill="rgba(255,255,255,0.22)"/>
-    <text x="45" y="22" text-anchor="middle" font-family="Inter, sans-serif" font-size="16" font-weight="800" fill="#FFFFFF">🔥 칼로리 절약</text>
-  </g>
-  <g transform="translate(750,340)">
-    <rect width="90" height="34" rx="17" fill="rgba(255,255,255,0.22)"/>
-    <text x="45" y="22" text-anchor="middle" font-family="Inter, sans-serif" font-size="16" font-weight="800" fill="#FFFFFF">🌐 KO / EN</text>
-  </g>
+  <text x="420" y="220" font-family="'Noto Sans KR', Inter, sans-serif" font-size="76" font-weight="900" fill="#FFF7EC">음식만안와요</text>
+  <text x="420" y="280" font-family="'Noto Sans KR', Inter, sans-serif" font-size="32" font-weight="700" fill="#FFE4C8">배달비와 칼로리를 아끼는</text>
+  <text x="420" y="326" font-family="'Noto Sans KR', Inter, sans-serif" font-size="32" font-weight="700" fill="#FFE4C8">가짜 배달 데모 앱</text>
 </svg>
