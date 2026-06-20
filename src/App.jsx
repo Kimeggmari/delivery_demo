@@ -2,11 +2,20 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Footer from "./components/Footer";
 import MenuImage from "./components/MenuImage";
 import Stars from "./components/Stars";
+import HistoryPage from "./components/HistoryPage";
+import ReceiptModal from "./components/ReceiptModal";
+import AchievementToast from "./components/AchievementToast";
 import { getMenuImageSrc } from "./config/menuImages";
 import { deliveryModes, SIZE_OPTIONS, SPICY_OPTIONS, SPICY_LABELS, themes } from "./config/ordering";
 import { calcTotals, fmt } from "./lib/format";
 import { dict, makeT, pick } from "./config/i18n";
 import { restaurants } from "./config/restaurants";
+import {
+  loadHistory, saveOrderRecord, clearHistory,
+  loadUnlocked, saveUnlocked,
+  computeStats, buildOrderRecord,
+} from "./lib/storage";
+import { computeNewUnlocks } from "./config/achievements";
 
 const menuCalories = {
   c1: 1800, c2: 1650, c3: 320,
@@ -614,6 +623,10 @@ export default function App() {
   const [addedAnim, setAddedAnim] = useState(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showSponsorModal, setShowSponsorModal] = useState(true);
+  const [history, setHistory] = useState(() => loadHistory());
+  const [unlocked, setUnlocked] = useState(() => loadUnlocked());
+  const [newlyUnlocked, setNewlyUnlocked] = useState([]);
+  const [shareRecord, setShareRecord] = useState(null);
   const [lang, setLang] = useState(() => {
     try {
       const saved = localStorage.getItem("lang");
@@ -699,10 +712,35 @@ export default function App() {
     setPage("checkout");
   };
 
+  const persistOrder = useCallback((info, cartSnapshot, totalsSnapshot) => {
+    const record = buildOrderRecord({
+      cart: cartSnapshot,
+      orderInfo: info,
+      totals: totalsSnapshot,
+      deliveryMode: info.deliveryMode,
+      lang,
+      menuCalories,
+      restaurants,
+    });
+    const nextHistory = saveOrderRecord(record);
+    setHistory(nextHistory);
+    const stats = computeStats(nextHistory);
+    const { newly, nextMap } = computeNewUnlocks(stats, unlocked);
+    if (newly.length) {
+      setUnlocked(nextMap);
+      saveUnlocked(nextMap);
+      setNewlyUnlocked(newly);
+    }
+    return record;
+  }, [lang, unlocked]);
+
   const simulateOrder = () => {
     clearTimers();
     setShowReceipt(false);
     const info = { customerName: nm || (lang === "en" ? "Customer" : "주문자"), address: ad || (lang === "en" ? "No address provided" : "입력된 주소 없음"), phone: ph || (lang === "en" ? "No phone" : "연락처 없음"), request: rq || (lang === "en" ? "None" : "없음"), payment, total: totals.total, deliveryMode };
+    // Snapshot cart & totals at submit time — they're cleared on resetAll later.
+    const cartSnapshot = cart;
+    const totalsSnapshot = totals;
     timersRef.current.push(setTimeout(() => {
       setReceiptData(info);
       setShowReceipt(true);
@@ -713,9 +751,20 @@ export default function App() {
         Array.from({ length: mode.etaStart }, (_, i) =>
           timersRef.current.push(setTimeout(() => setTrackState(i + 1), (i + 1) * mode.intervalMs))
         );
-        timersRef.current.push(setTimeout(() => setPage("complete"), mode.etaStart * mode.intervalMs + mode.completeDelayMs));
+        timersRef.current.push(setTimeout(() => {
+          const rec = persistOrder(info, cartSnapshot, totalsSnapshot);
+          setReceiptData({ ...info, _record: rec });
+          setPage("complete");
+        }, mode.etaStart * mode.intervalMs + mode.completeDelayMs));
       }, 1500));
     }, 900));
+  };
+
+  const clearAllActivity = () => {
+    if (typeof window !== "undefined" && !window.confirm(t("historyClearConfirm"))) return;
+    setHistory(clearHistory());
+    setUnlocked({});
+    saveUnlocked({});
   };
 
   const trackData = Array.from({ length: mode.etaStart }, (_, i) => {
@@ -773,7 +822,7 @@ export default function App() {
     iconBtn: { width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, background: th.iconBtnBg, fontSize: 16, color: th.iconBtnColor, border: "none", cursor: "pointer" },
     addBtn: { border: "none", background: th.brand, color: "#fff", borderRadius: 12, padding: "9px 12px", cursor: "pointer", fontWeight: 800, fontSize: 12, fontFamily: "inherit", transition: "all .15s" },
     backBtn: { width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, fontSize: 18, border: "none", cursor: "pointer" },
-    langBtn: { border: "none", borderRadius: 10, background: "rgba(255,255,255,0.18)", color: th.headerColor, padding: "6px 10px", fontWeight: 800, cursor: "pointer", fontFamily: "inherit", fontSize: 11, letterSpacing: 0.5 },
+    langBtn: { border: "none", borderRadius: 10, background: "rgba(255,255,255,0.18)", color: th.headerColor, padding: "5px 7px", fontWeight: 800, cursor: "pointer", fontFamily: "inherit", fontSize: 11, letterSpacing: 0.3 },
   };
 
   const globalStyle = "@keyframes floatBike{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-50%,calc(-50% - 8px))}} @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}} @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}} *{box-sizing:border-box} body,html{margin:0;padding:0}";
@@ -789,7 +838,7 @@ export default function App() {
       title={t("langToggleAria")}
       style={css.langBtn}
     >
-      {lang === "ko" ? "EN" : "한국어"}
+      {lang === "ko" ? "EN" : "KO"}
     </button>
   );
 
@@ -802,11 +851,48 @@ export default function App() {
     );
   }
 
+  if (page === "history") {
+    return (
+      <>
+        <style>{globalStyle}</style>
+        <HistoryPage
+          onBack={() => setPage("order")}
+          th={th} t={t} lang={lang}
+          brand={th.primaryBtn}
+          history={history}
+          unlocked={unlocked}
+          onClear={clearAllActivity}
+          onInfo={() => { setPage("order"); setShowInfoModal(true); }}
+          onPrivacy={() => setPage("privacy")}
+        />
+      </>
+    );
+  }
+
   if (page === "complete") {
-    const savedKcal = cart.reduce((s, i) => s + (menuCalories[i.menuId] || 600) * i.qty, 0);
+    const completedRecord = receiptData?._record || history[0] || null;
+    const savedKcal = completedRecord?.savedKcal ?? cart.reduce((s, i) => s + (menuCalories[i.menuId] || 600) * i.qty, 0);
     return (
       <div style={{ ...css.wrap, alignItems: "center", justifyContent: "center", textAlign: "center", padding: "40px 24px" }}>
         <style>{globalStyle}</style>
+        {newlyUnlocked.length > 0 && (
+          <AchievementToast
+            items={newlyUnlocked}
+            lang={lang}
+            t={t}
+            onDone={() => setNewlyUnlocked([])}
+          />
+        )}
+        {shareRecord && (
+          <ReceiptModal
+            record={shareRecord}
+            lang={lang}
+            brand={th.primaryBtn}
+            th={th}
+            t={t}
+            onClose={() => setShareRecord(null)}
+          />
+        )}
         <div style={{ position: "absolute", top: 16, right: 16 }}>{LangButton}</div>
         <div style={{ fontSize: 72, marginBottom: 24, animation: "pop .5s ease" }}>{mode.emoji}</div>
         <h1 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 12px", color: th.text }}>{pick(mode.completeTitle, lang)}</h1>
@@ -816,9 +902,34 @@ export default function App() {
           {pick(mode.completeDesc, lang)}<br />{t("completeDemoNote")}
         </div>
 
-        <button onClick={resetAll} style={{ ...css.orderBtn, fontSize: 16, padding: "16px 32px", marginTop: 4 }}>
-          {t("goHome")}
-        </button>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%", maxWidth: 320 }}>
+          {completedRecord && (
+            <button
+              onClick={() => setShareRecord(completedRecord)}
+              style={{
+                border: "none", background: th.primaryBtn, color: "#fff",
+                padding: "14px 20px", borderRadius: 16, fontSize: 15, fontWeight: 900,
+                cursor: "pointer", fontFamily: "inherit",
+                boxShadow: "0 8px 20px " + th.primaryBtn + "44",
+              }}
+            >{t("completeShareBtn")}</button>
+          )}
+          <button
+            onClick={() => { resetAll(); setPage("history"); }}
+            style={{
+              border: "1px solid " + th.line, background: "#fff", color: th.text,
+              padding: "13px 20px", borderRadius: 16, fontSize: 14, fontWeight: 900,
+              cursor: "pointer", fontFamily: "inherit",
+            }}
+          >{t("completeHistoryBtn")}</button>
+          <button onClick={resetAll} style={{
+            border: "none", background: "transparent", color: th.muted,
+            padding: "10px", fontSize: 13, fontWeight: 700,
+            cursor: "pointer", fontFamily: "inherit",
+          }}>
+            {t("goHome")}
+          </button>
+        </div>
 
         <Footer th={th} t={t} onInfo={() => { resetAll(); setShowInfoModal(true); }} onPrivacy={() => setPage("privacy")} />
       </div>
@@ -1072,26 +1183,32 @@ export default function App() {
         />
       )}
       <div style={css.header}>
-        <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, maxWidth: 540, margin: "0 auto", minHeight: 32 }}>
-          <div style={{ display: "flex", gap: 4, zIndex: 1 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, maxWidth: 540, margin: "0 auto", minHeight: 32 }}>
+          <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
             {[["purple","💜"],["mint","🧡"],["blue","💙"],["pink","🩵"]].map(([key, emoji]) => (
-              <button key={key} onClick={() => setTheme(key)} style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 11, opacity: theme === key ? 1 : 0.5, border: theme === key ? "2px solid rgba(255,255,255,0.8)" : "2px solid transparent" }}>{emoji}</button>
+              <button key={key} onClick={() => setTheme(key)} style={{ ...css.iconBtn, width: 24, height: 24, fontSize: 10, opacity: theme === key ? 1 : 0.5, border: theme === key ? "2px solid rgba(255,255,255,0.8)" : "2px solid transparent" }}>{emoji}</button>
             ))}
           </div>
-          <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", textAlign: "center", pointerEvents: "none", width: "max-content" }}>
-            <div style={{ fontSize: 11, color: th.headerTextAlt }}>{t("deliveryAddrLabel")}</div>
-            <div style={{ fontSize: 15, fontWeight: 900 }}>{t("deliveryAddrValue")}</div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, zIndex: 1 }}>
-            <div style={{ position: "relative" }}>
-              <button style={{ ...css.iconBtn, width: 32, height: 32, fontSize: 14 }} aria-label={t("cartIconAria")}>🛒</button>
-              {cartCount > 0 && (
-                <div style={{ position: "absolute", top: -4, right: -4, background: "#ef4444", color: "#fff", fontSize: 9, fontWeight: 900, borderRadius: 99, minWidth: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px" }}>{cartCount}</div>
-              )}
+          <div style={{ flex: 1, textAlign: "center", minWidth: 0, padding: "0 4px" }}>
+            <div style={{ fontSize: 14, fontWeight: 900, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              📍 {t("deliveryAddrValue")}
             </div>
-            <button onClick={() => setShowInfoModal(true)} style={{ ...css.iconBtn, width: 32, height: 32, fontSize: 14, fontWeight: 900 }} aria-label={t("appInfoAria")} title={t("appInfoTitle")}>?</button>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 3, flexShrink: 0 }}>
+            <button
+              onClick={() => setPage("history")}
+              style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 13, position: "relative" }}
+              aria-label={t("historyIconAria")}
+              title={t("historyPageTitle")}
+            >
+              🏆
+              {history.length > 0 && (
+                <div style={{ position: "absolute", top: -4, right: -4, background: "#facc15", color: "#78350f", fontSize: 9, fontWeight: 900, borderRadius: 99, minWidth: 15, height: 15, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px", border: "1px solid #fff" }}>{history.length}</div>
+              )}
+            </button>
+            <button onClick={() => setShowInfoModal(true)} style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 13, fontWeight: 900 }} aria-label={t("appInfoAria")} title={t("appInfoTitle")}>?</button>
             {LangButton}
-            <button onClick={resetAll} style={{ border: "none", borderRadius: 10, background: "rgba(255,255,255,0.14)", color: th.headerColor, padding: "6px 10px", fontWeight: 800, cursor: "pointer", fontFamily: "inherit", fontSize: 11 }}>{t("reset")}</button>
+            <button onClick={resetAll} aria-label={t("reset")} title={t("reset")} style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 13 }}>↺</button>
           </div>
         </div>
         <div style={{ maxWidth: 540, margin: "8px auto 0" }}>
