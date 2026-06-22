@@ -234,8 +234,9 @@ export const dict = {
     receiptItemsTitle: "주문 메뉴",
     receiptDownloaded: "이미지 저장됨",
     receiptShared: "공유 완료",
-    receiptCopied: "클립보드에 복사됨",
-    receiptCopyUnsupported: "이 브라우저는 이미지 복사를 지원하지 않아요",
+    receiptCopied: "이미지가 클립보드에 복사됨",
+    receiptCopiedText: "영수증 내용을 텍스트로 복사했어요",
+    receiptCopyUnsupported: "이 브라우저는 복사를 지원하지 않아요",
     receiptError: "공유 중 오류가 발생했어요",
     // Complete screen extras
     completeShareBtn: "📤 영수증 공유하기",
@@ -472,8 +473,9 @@ export const dict = {
     receiptItemsTitle: "Items",
     receiptDownloaded: "Saved as image",
     receiptShared: "Shared",
-    receiptCopied: "Copied to clipboard",
-    receiptCopyUnsupported: "This browser can't copy images",
+    receiptCopied: "Image copied to clipboard",
+    receiptCopiedText: "Copied receipt as text",
+    receiptCopyUnsupported: "This browser can't copy",
     receiptError: "Something went wrong while sharing",
     // Complete screen extras
     completeShareBtn: "📤 Share receipt",

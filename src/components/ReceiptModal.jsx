@@ -26,6 +26,46 @@ function formatDateTime(ts, lang) {
   });
 }
 
+// Plain-text receipt summary used as the clipboard fallback when image
+// clipboard write is blocked (common on Android WebView / older browsers).
+function buildReceiptText(record, lang, t) {
+  const lines = [];
+  lines.push(`🍱 ${t("appName")} · DEMO`);
+  lines.push(formatDateTime(record.ts, lang));
+  lines.push("");
+  for (const it of record.items) {
+    const nm = pick(it.name, lang) || "";
+    lines.push(`- ${nm} × ${it.qty}  ${fmt((it.price || 0) * (it.qty || 1), lang)}`);
+  }
+  lines.push("");
+  lines.push(`${t("totalLabel")}: ${fmt(record.total, lang)}`);
+  lines.push(`🔥 ${record.savedKcal.toLocaleString()} ${t("kcal")}`);
+  lines.push("");
+  lines.push(t("receiptShareFooter"));
+  return lines.join("\n");
+}
+
+async function writeTextLegacy(text) {
+  return new Promise((resolve, reject) => {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.top = "0";
+      ta.style.left = "0";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      ok ? resolve() : reject(new Error("execCommand failed"));
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+
 function wrapText(ctx, text, maxWidth) {
   // Simple greedy line wrapper (works for both KR and EN).
   if (!text) return [""];
@@ -286,21 +326,41 @@ export default function ReceiptModal({ record, lang, brand, t, th, onClose }) {
 
   const handleCopy = useCallback(async () => {
     setBusy(true);
+    // Try image clipboard first (desktop browsers). If anything in that path
+    // throws or is missing — common on Android WebView and older Safari —
+    // silently fall back to copying the receipt as text so the button still
+    // produces something useful.
     try {
       const blob = await getBlob();
-      if (!blob) throw new Error("blob");
-      if (navigator.clipboard?.write && typeof ClipboardItem !== "undefined") {
-        await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-        flash(t("receiptCopied"));
-      } else {
-        flash(t("receiptCopyUnsupported"));
+      if (blob && navigator.clipboard?.write && typeof ClipboardItem !== "undefined") {
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+          flash(t("receiptCopied"));
+          setBusy(false);
+          return;
+        } catch {
+          // fall through to text
+        }
       }
+      const text = buildReceiptText(record, lang, t);
+      if (navigator.clipboard?.writeText) {
+        try {
+          await navigator.clipboard.writeText(text);
+          flash(t("receiptCopiedText"));
+          setBusy(false);
+          return;
+        } catch {
+          // fall through to legacy
+        }
+      }
+      await writeTextLegacy(text);
+      flash(t("receiptCopiedText"));
     } catch {
       flash(t("receiptCopyUnsupported"));
     } finally {
       setBusy(false);
     }
-  }, [getBlob, flash, t]);
+  }, [getBlob, record, lang, flash, t]);
 
   return (
     <div
