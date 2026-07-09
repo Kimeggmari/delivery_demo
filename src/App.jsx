@@ -6,7 +6,7 @@ import HistoryPage from "./components/HistoryPage";
 import ReceiptModal from "./components/ReceiptModal";
 import AchievementToast from "./components/AchievementToast";
 import { getMenuImageSrc } from "./config/menuImages";
-import { deliveryModes, SIZE_OPTIONS, SPICY_OPTIONS, SPICY_LABELS, themes } from "./config/ordering";
+import { deliveryModes, SIZE_OPTIONS, SPICY_OPTIONS, SPICY_LABELS, theme } from "./config/ordering";
 import { calcTotals, fmt } from "./lib/format";
 import { dict, makeT, pick } from "./config/i18n";
 import { restaurants } from "./config/restaurants";
@@ -35,6 +35,7 @@ const menuCalories = {
   piz1: 980, piz2: 1120, piz3: 360,
   tak1: 420, tak2: 560, tak3: 380, tak4: 820,
   bs1: 380, bs2: 450, bs3: 420, bs4: 350,
+  gb1: 650, gb2: 420, gb3: 480, gb4: 350,
 };
 
 const thumbGradients = [
@@ -659,7 +660,6 @@ function OptionSheet({ menu, onClose, onConfirm, brand, t, lang }) {
 }
 
 export default function App() {
-  const [theme, setTheme] = useState("mint");
   const [deliveryMode, setDeliveryMode] = useState("rabbit");
   const [page, setPage] = useState("order");
   const [cart, setCart] = useState([]);
@@ -702,7 +702,7 @@ export default function App() {
   const inquiryEmail = "eggmari5713@gmail.com";
   const timersRef = useRef([]);
 
-  const th = themes[theme];
+  const th = theme;
   const mode = deliveryModes[deliveryMode];
   const totals = calcTotals(cart);
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
@@ -1243,11 +1243,6 @@ export default function App() {
       )}
       <div style={css.header}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, maxWidth: 540, margin: "0 auto", minHeight: 32 }}>
-          <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
-            {[["purple","💜"],["mint","🧡"],["blue","💙"],["pink","🩵"]].map(([key, emoji]) => (
-              <button key={key} onClick={() => setTheme(key)} style={{ ...css.iconBtn, width: 24, height: 24, fontSize: 10, opacity: theme === key ? 1 : 0.5, border: theme === key ? "2px solid rgba(255,255,255,0.8)" : "2px solid transparent" }}>{emoji}</button>
-            ))}
-          </div>
           <div style={{ flex: 1, textAlign: "center", minWidth: 0, padding: "0 4px" }}>
             <div style={{ fontSize: 14, fontWeight: 900, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               📍 {t("deliveryAddrValue")}

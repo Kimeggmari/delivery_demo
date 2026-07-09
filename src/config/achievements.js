@@ -60,6 +60,22 @@ export const ACHIEVEMENTS = [
     check: (s) => s.maxOrderTotal >= 100000,
   },
   {
+    id: "total_spent_1m",
+    emoji: "🏦",
+    tier: "silver",
+    title: { ko: "누적 100만원", en: "1M Club" },
+    desc: { ko: "누적 주문 금액 100만원 돌파.", en: "Lifetime spend crossed 1,000,000원." },
+    check: (s) => s.totalSpent >= 1000000,
+  },
+  {
+    id: "total_spent_5m",
+    emoji: "💎",
+    tier: "gold",
+    title: { ko: "누적 500만원", en: "5M Whale" },
+    desc: { ko: "누적 주문 금액 500만원 돌파. 데모계의 큰손.", en: "Lifetime spend crossed 5,000,000원. Demo whale." },
+    check: (s) => s.totalSpent >= 5000000,
+  },
+  {
     id: "midnight",
     emoji: "🌙",
     tier: "silver",
