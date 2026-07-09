@@ -157,6 +157,11 @@ export const dict = {
       "앱 사용 중 불편한 점, 버그 제보, 개선 의견은 언제든지 아래 이메일로 보내주세요. 소중한 피드백은 앱 개선에 적극 반영됩니다.",
     infoSeePrivacy: "개인정보처리방침 보기",
     infoConfirm: "확인",
+    // Android app popup
+    androidTitle: "안드로이드 앱이 출시됐어요! 📱",
+    androidBody:
+      "이제 안드로이드 앱으로도 음식만안와요를 즐길 수 있어요. 스토어 등록 절차가 끝나는 대로 다운로드 링크를 공개할게요!",
+    androidClose: "확인",
     // Sponsor popup
     sponsorTitle: "후원으로 응원해주세요 ☕",
     sponsorSubtitle: "음식만안와요는 광고 수익과 후원으로 운영돼요.",
@@ -396,6 +401,11 @@ export const dict = {
       "Bugs, ideas, complaints — all welcome. Email the address below and we'll read every message.",
     infoSeePrivacy: "View privacy policy",
     infoConfirm: "OK",
+    // Android app popup
+    androidTitle: "Our Android app is here! 📱",
+    androidBody:
+      "FoodNeverArrives is now available as an Android app too. We'll share the download link as soon as it's live on the store!",
+    androidClose: "Got it",
     // Sponsor popup
     sponsorTitle: "Buy me a coffee ☕",
     sponsorSubtitle: "FoodNeverArrives runs on ad revenue and your support.",

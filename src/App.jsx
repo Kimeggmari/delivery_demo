@@ -356,6 +356,61 @@ function SponsorModal({ onClose, t, th }) {
   );
 }
 
+function AndroidAppModal({ onClose, t, th }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 130,
+        background: "rgba(0,0,0,0.5)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "20px",
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: "100%", maxWidth: 380,
+          background: "#fff",
+          borderRadius: 24,
+          padding: "26px 22px 22px",
+          boxShadow: "0 20px 50px rgba(15,23,42,0.25)",
+          animation: "pop .25s ease",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: -8 }}>
+          <button
+            onClick={onClose}
+            aria-label={t("androidClose")}
+            style={{ width: 32, height: 32, borderRadius: 10, border: "none", background: "#f3f4f6", fontSize: 16, cursor: "pointer" }}
+          >✕</button>
+        </div>
+
+        <div style={{ textAlign: "center", marginBottom: 18 }}>
+          <div style={{ fontSize: 54, lineHeight: 1, marginBottom: 10 }}>📱</div>
+          <div style={{ fontSize: 19, fontWeight: 900, color: "#111827", marginBottom: 6 }}>{t("androidTitle")}</div>
+        </div>
+
+        <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.7, marginBottom: 18, padding: "0 4px", textAlign: "center" }}>
+          {t("androidBody")}
+        </div>
+
+        <button
+          onClick={onClose}
+          style={{
+            width: "100%", border: "none", borderRadius: 14, padding: "13px 16px",
+            background: th.primaryBtn,
+            color: "#fff", fontWeight: 900, fontSize: 14, cursor: "pointer",
+            fontFamily: "inherit",
+          }}
+        >
+          {t("androidClose")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function PrivacyPage({ onBack, th, t, lang }) {
   const sections = lang === "en" ? [
     {
@@ -622,6 +677,7 @@ export default function App() {
   const [optionTarget, setOptionTarget] = useState(null);
   const [addedAnim, setAddedAnim] = useState(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showAndroidModal, setShowAndroidModal] = useState(true);
   const [showSponsorModal, setShowSponsorModal] = useState(true);
   const [history, setHistory] = useState(() => loadHistory());
   const [unlocked, setUnlocked] = useState(() => loadUnlocked());
@@ -1167,7 +1223,10 @@ export default function App() {
           lang={lang}
         />
       )}
-      {showSponsorModal && !showInfoModal && (
+      {showAndroidModal && !showInfoModal && (
+        <AndroidAppModal onClose={() => setShowAndroidModal(false)} t={t} th={th} />
+      )}
+      {showSponsorModal && !showInfoModal && !showAndroidModal && (
         <SponsorModal onClose={() => setShowSponsorModal(false)} t={t} th={th} />
       )}
       {optionTarget && optMenu && (
