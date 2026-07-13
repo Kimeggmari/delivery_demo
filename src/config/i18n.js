@@ -159,8 +159,9 @@ export const dict = {
     // Android app popup
     androidTitle: "안드로이드 앱이 출시됐어요! 📱",
     androidBody:
-      "이제 안드로이드 앱으로도 음식만안와요를 즐길 수 있어요. 스토어 등록 절차가 끝나는 대로 다운로드 링크를 공개할게요!",
-    androidClose: "확인",
+      "이제 안드로이드 앱으로도 음식만안와요를 다운로드할 수 있어요. 아래 버튼을 눌러 Play 스토어에서 확인해보세요!",
+    androidDownload: "Play 스토어에서 다운로드",
+    androidClose: "닫기",
     // Sponsor popup
     sponsorTitle: "후원으로 응원해주세요 ☕",
     sponsorSubtitle: "음식만안와요는 광고 수익과 후원으로 운영돼요.",
@@ -402,8 +403,9 @@ export const dict = {
     // Android app popup
     androidTitle: "Our Android app is here! 📱",
     androidBody:
-      "FoodNeverArrives is now available as an Android app too. We'll share the download link as soon as it's live on the store!",
-    androidClose: "Got it",
+      "FoodNeverArrives is now available to download on Android. Tap below to get it on Google Play!",
+    androidDownload: "Get it on Google Play",
+    androidClose: "Close",
     // Sponsor popup
     sponsorTitle: "Buy me a coffee ☕",
     sponsorSubtitle: "FoodNeverArrives runs on ad revenue and your support.",

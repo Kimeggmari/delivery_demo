@@ -357,6 +357,8 @@ function SponsorModal({ onClose, t, th }) {
   );
 }
 
+const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.eggmari.foodneverarrives";
+
 function AndroidAppModal({ onClose, t, th }) {
   return (
     <div
@@ -396,17 +398,21 @@ function AndroidAppModal({ onClose, t, th }) {
           {t("androidBody")}
         </div>
 
-        <button
+        <a
+          href={PLAY_STORE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
           onClick={onClose}
           style={{
-            width: "100%", border: "none", borderRadius: 14, padding: "13px 16px",
+            display: "block", width: "100%", border: "none", borderRadius: 14, padding: "13px 16px",
             background: th.primaryBtn,
             color: "#fff", fontWeight: 900, fontSize: 14, cursor: "pointer",
-            fontFamily: "inherit",
+            fontFamily: "inherit", textAlign: "center", textDecoration: "none",
+            boxSizing: "border-box",
           }}
         >
-          {t("androidClose")}
-        </button>
+          {t("androidDownload")}
+        </a>
       </div>
     </div>
   );
