@@ -2,7 +2,7 @@ import { Capacitor } from "@capacitor/core";
 import { AdMob } from "@capacitor-community/admob";
 
 const INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-5173827714526228/4241115991";
-const COLD_START_SHOW_PROBABILITY = 0.5;
+const COLD_START_SHOW_PROBABILITY = 0.3;
 
 let initialized = false;
 
