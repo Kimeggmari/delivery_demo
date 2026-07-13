@@ -16,6 +16,7 @@ import {
   computeStats, buildOrderRecord,
 } from "./lib/storage";
 import { computeNewUnlocks } from "./config/achievements";
+import { maybeShowColdStartInterstitial } from "./lib/ads";
 
 const menuCalories = {
   c1: 1800, c2: 1650, c3: 320,
@@ -715,6 +716,10 @@ export default function App() {
 
   const clearTimers = useCallback(() => { timersRef.current.forEach(clearTimeout); timersRef.current = []; }, []);
   useEffect(() => () => clearTimers(), [clearTimers]);
+
+  useEffect(() => {
+    maybeShowColdStartInterstitial();
+  }, []);
 
   const openOption = (rid, mid) => {
     const r = restaurants.find(x => x.id === rid);
