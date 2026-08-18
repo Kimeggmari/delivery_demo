@@ -37,6 +37,7 @@ const menuCalories = {
   tak1: 420, tak2: 560, tak3: 380, tak4: 820,
   bs1: 380, bs2: 450, bs3: 420, bs4: 350,
   gb1: 650, gb2: 420, gb3: 480, gb4: 350,
+  wf1: 420, wf2: 540, wf3: 610, wf4: 780,
 };
 
 const thumbGradients = [
