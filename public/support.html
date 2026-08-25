@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>고객지원 · 음식만안와요 / Support · FoodNeverArrives</title>
+  <meta name="description" content="음식만안와요(FoodNeverArrives) 고객지원 페이지 — 자주 묻는 질문과 문의처 안내." />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta name="robots" content="index,follow" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{font-family:Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif;background:#f9fafb;color:#111827;line-height:1.7;-webkit-font-smoothing:antialiased}
+    .wrap{max-width:720px;margin:0 auto;padding:32px 20px 80px}
+    header{background:linear-gradient(180deg,#fb923c,#f97316);color:#fff;padding:28px 20px;border-radius:0 0 24px 24px;box-shadow:0 4px 16px rgba(249,115,22,.18);text-align:center}
+    header h1{margin:0;font-size:22px;font-weight:900}
+    header p{margin:6px 0 0;font-size:13px;opacity:.92}
+    .lang-switch{display:flex;justify-content:center;gap:8px;margin:20px 0 28px}
+    .lang-switch button{border:1.5px solid #e5e7eb;background:#fff;border-radius:99px;padding:8px 18px;font-size:13px;font-weight:800;cursor:pointer;color:#374151;font-family:inherit;transition:.15s}
+    .lang-switch button.active{background:#111827;color:#fff;border-color:#111827}
+    .section{background:#fff;border-radius:18px;padding:20px 22px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+    .section h2{margin:0 0 10px;font-size:15px;font-weight:900;color:#111827}
+    .section p{margin:0 0 10px;font-size:14px;color:#374151}
+    .section p:last-child{margin-bottom:0}
+    .section a{color:#2563eb;text-decoration:underline}
+    .intro{background:#fff;border-radius:18px;padding:18px 22px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+    .intro p{margin:0;font-size:13px;color:#6b7280}
+    .intro strong{color:#111827}
+    .back{display:block;text-align:center;margin-top:24px;color:#6b7280;font-size:12px;text-decoration:none}
+    .hidden{display:none}
+    .mail{color:#ea580c;font-weight:900;font-size:15px;text-decoration:none;word-break:break-all}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🍱 음식만안와요</h1>
+    <p>FoodNeverArrives</p>
+  </header>
+
+  <div class="wrap">
+    <div class="lang-switch">
+      <button id="btn-ko" class="active" onclick="setLang('ko')">한국어</button>
+      <button id="btn-en" onclick="setLang('en')">English</button>
+    </div>
+
+    <!-- Korean -->
+    <div id="lang-ko">
+      <div class="intro">
+        <p><strong>음식만안와요</strong>는 실제 주문·결제·배달이 절대 발생하지 않는 완전한 데모/시뮬레이션 앱입니다. 아래에서 자주 묻는 질문을 확인하세요.</p>
+      </div>
+
+      <div class="section">
+        <h2>Q. 이 앱으로 진짜 음식을 주문할 수 있나요?</h2>
+        <p>아니요. 메뉴 선택, 장바구니, 주문서 작성, 배달 추적까지 모두 가상으로 동작하며 실제 주문·결제·배달은 전혀 이루어지지 않습니다.</p>
+      </div>
+
+      <div class="section">
+        <h2>Q. 입력한 이름·주소는 어디에 저장되나요?</h2>
+        <p>어디에도 저장되지 않습니다. 화면 표시 목적으로만 사용되며 앱을 새로고침하거나 종료하면 즉시 사라집니다. 자세한 내용은 <a href="/privacy.html">개인정보처리방침</a>을 참고하세요.</p>
+      </div>
+
+      <div class="section">
+        <h2>Q. 앱에 광고가 나오는데, 끌 수 있나요?</h2>
+        <p>앱 실행 시 낮은 확률로 전면 광고가 표시될 수 있습니다. 별도의 광고 제거 옵션은 현재 제공하지 않습니다.</p>
+      </div>
+
+      <div class="section">
+        <h2>Q. 오류를 발견했거나 건의하고 싶어요.</h2>
+        <p>아래 이메일로 언제든 알려주세요. 기기 모델, 앱 버전, 어떤 화면에서 발생했는지 함께 알려주시면 더 빠르게 도와드릴 수 있어요.</p>
+        <a href="mailto:eggmari5713@gmail.com" class="mail">eggmari5713@gmail.com</a>
+      </div>
+    </div>
+
+    <!-- English -->
+    <div id="lang-en" class="hidden">
+      <div class="intro">
+        <p><strong>FoodNeverArrives</strong> is a fully simulated demo app — no real order, payment, or delivery ever happens. See the FAQ below.</p>
+      </div>
+
+      <div class="section">
+        <h2>Q. Can I actually order food with this app?</h2>
+        <p>No. Browsing menus, the cart, checkout, and delivery tracking are all simulated. No real order, payment, or delivery ever occurs.</p>
+      </div>
+
+      <div class="section">
+        <h2>Q. Where is the name/address I typed stored?</h2>
+        <p>Nowhere — it's only used to render the screen and disappears the moment you refresh or close the app. See the <a href="/privacy.html">Privacy Policy</a> for details.</p>
+      </div>
+
+      <div class="section">
+        <h2>Q. The app shows ads. Can I turn them off?</h2>
+        <p>A full-screen ad may occasionally appear when the app launches. There is currently no option to remove ads.</p>
+      </div>
+
+      <div class="section">
+        <h2>Q. I found a bug or have a suggestion.</h2>
+        <p>Email us any time. Including your device model, app version, and which screen it happened on helps us help you faster.</p>
+        <a href="mailto:eggmari5713@gmail.com" class="mail">eggmari5713@gmail.com</a>
+      </div>
+    </div>
+
+    <a href="/" class="back">← 앱으로 돌아가기 / Back to the app</a>
+  </div>
+
+  <script>
+    function setLang(l){
+      var ko=document.getElementById('lang-ko'), en=document.getElementById('lang-en');
+      var bko=document.getElementById('btn-ko'), ben=document.getElementById('btn-en');
+      if(l==='en'){ko.classList.add('hidden');en.classList.remove('hidden');bko.classList.remove('active');ben.classList.add('active');document.documentElement.lang='en';}
+      else{en.classList.add('hidden');ko.classList.remove('hidden');ben.classList.remove('active');bko.classList.add('active');document.documentElement.lang='ko';}
+    }
+    if(/^en/i.test(navigator.language||'')) setLang('en');
+  </script>
+</body>
+</html>
