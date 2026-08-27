@@ -33,6 +33,16 @@ Developer 계정이 있어야만 할 수 있는 작업입니다.
 - [ ] `www.음식만안와요.com`에 최신 `dist/`가 배포되어 있고 `/privacy.html`, `/support.html`이
       실제로 열리는지 확인 (App Store Connect가 URL을 검증합니다).
 
+**Firebase 백엔드 관련 (2026-08-27 추가)**: 주문 기록·업적·"내 식당 추가" 기능이 이제 Firebase
+(Firestore, 익명 인증)를 사용합니다. Firestore/Auth는 웹 SDK로만 붙어있어서 iOS 쪽 추가 네이티브
+설정 없이 이미 동작합니다 (`.env.local`의 웹 앱 설정 그대로 사용). 단, Android에만 붙여둔 Play
+Integrity App Check의 iOS 버전(App Attest)은 `GoogleService-Info.plist` + Xcode Capability
+설정이 필요해서 Mac 세션으로 미뤄뒀습니다 — 8번 단계(App Store Connect 앱 생성) 전후 여유 있으면
+해도 되고, 없으면 나중에 해도 무방합니다 (App Check는 아직 "적용" 안 켜놔서 안 붙여도 앱 동작에
+지장 없음). App Privacy 설문은 이제 데이터 수집이 있으므로 아래
+[store-assets/app-store-privacy-and-rating.md](store-assets/app-store-privacy-and-rating.md)가
+갱신된 내용대로 답해야 합니다 (예전엔 "서버 없음" 기준이었는데 지금은 아님).
+
 ---
 
 ## Mac 세션 (예상 소요: 약 2.5~3시간)
@@ -132,3 +142,9 @@ appstoreconnect.apple.com → **My Apps → +→ New App**
   광고가 이미 붙어 있었음)을 iOS 포함해서 정확하게 수정
 - `public/support.html`: App Store Connect의 필수 항목인 Support URL용 페이지 신규 작성
 - iPad 미지원으로 설정 (`TARGETED_DEVICE_FAMILY = "1"`) → iPad용 스크린샷/레이아웃 검증 불필요
+- Firebase 백엔드(Firestore + 익명 인증) 연동 완료, Android는 Firebase 등록 + Play Integrity App
+  Check(모니터링 모드)까지 완료·실기기 검증됨. "내 식당 추가" 기능에 사진 첨부 + 신고 3회 시
+  자동숨김 모더레이션 추가됨
+- `public\privacy.html`, `store-assets/*-listing-*.md`, `store-assets/app-store-privacy-and-rating.md`
+  모두 새 백엔드 기준으로 갱신 완료 (이름/주소/연락처는 여전히 기기에만 남고, 그 외 주문기록·업적·
+  사용자 등록 콘텐츠는 서버에 저장된다는 내용)

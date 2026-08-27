@@ -22,14 +22,16 @@ Next time you reach for a delivery app on autopilot, open this one instead. Brow
 🛒 Full cart and options flow with spice level, size, and toppings — just like the real apps
 🗺️ Live courier tracking on a fake map, in Rabbit (fast) or Turtle (slow) mode
 🔥 "Calories saved" total shown after every fake order
-🎨 4 color themes (orange, purple, blue, mint)
+🏪 Add your own restaurant/dish with a photo — shared with every other user in real time
+🧾 Order history & achievement badges
+🔔 Delivery-complete notification
 🌐 Instant Korean / English language toggle
 
 ⚠️ Please note
 • This is a fully simulated demo app.
 • No real orders, payments, or deliveries ever happen.
 • All restaurants and menus are fictional.
-• Anything you type in the delivery form stays on your device — nothing is sent to a server.
+• Your order history is saved to our server, but the name/address/phone you type at checkout stays on your device only.
 • A full-screen ad may occasionally appear when the app launches.
 
 💛 From the developer

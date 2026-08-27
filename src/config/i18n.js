@@ -131,6 +131,9 @@ export const dict = {
       { emoji: "🗺️", title: "실시간 배달 추적 (데모)", desc: "토끼배달·거북이배달 두 가지 모드로 라이더 위치가 이동하는 가상 지도를 보여줘요." },
       { emoji: "🔥", title: "칼로리 절약 확인", desc: "주문 완료 후 내가 선택한 메뉴의 칼로리 합산값을 '아낀 칼로리'로 보여줘요." },
       { emoji: "🌐", title: "한국어 / English 지원", desc: "헤더의 KO/EN 버튼으로 언어를 즉시 전환할 수 있어요." },
+      { emoji: "🏪", title: "내 식당 추가 (사진 포함)", desc: "나만의 음식점·메뉴를 사진과 함께 등록하면 다른 이용자에게도 실시간으로 공유돼요. 부적절한 등록은 신고하면 자동으로 숨겨져요." },
+      { emoji: "🧾", title: "주문 기록 & 업적 배지", desc: "지금까지의 데모 주문 내역과 아낀 칼로리를 모아보고, 조건을 채우면 업적 배지를 모을 수 있어요." },
+      { emoji: "🔔", title: "배달완료 알림", desc: "가상 배달이 끝나면 알림으로 알려드려요." },
     ],
     infoHowToTitle: "📖 사용 방법",
     infoSteps: [
@@ -146,7 +149,7 @@ export const dict = {
       "실제 주문, 결제, 배달은 절대 발생하지 않습니다.",
       "음식점 정보와 메뉴는 모두 가상의 데이터입니다.",
       "배달 추적 화면의 라이더 위치는 실제가 아닙니다.",
-      "입력한 배달 정보(이름, 주소 등)는 서버에 저장되지 않습니다.",
+      "주문 기록은 서버에 저장되지만, 입력한 이름·주소·연락처는 서버에 저장되지 않고 기기에만 남습니다.",
     ],
     infoAdsTitle: "📢 광고 안내",
     infoAds:
@@ -413,6 +416,9 @@ export const dict = {
       { emoji: "🗺️", title: "Live delivery tracking (demo)", desc: "Watch a courier move on a fake map in Rabbit or Turtle mode." },
       { emoji: "🔥", title: "Calorie savings", desc: "See the total calories of everything you almost ordered — but didn't." },
       { emoji: "🌐", title: "Korean / English", desc: "Toggle the language instantly with the KO/EN button in the header." },
+      { emoji: "🏪", title: "Add your own restaurant (with photos)", desc: "Add your own restaurant or dish with a photo, and it's shared with every other user in real time. Reported items are auto-hidden." },
+      { emoji: "🧾", title: "Order history & achievement badges", desc: "Browse your past demo orders and saved calories, and unlock achievement badges as you go." },
+      { emoji: "🔔", title: "Delivery-complete notification", desc: "Get notified the moment your (fake) delivery arrives." },
     ],
     infoHowToTitle: "📖 How to use",
     infoSteps: [
@@ -428,7 +434,7 @@ export const dict = {
       "No real orders, payments, or deliveries happen.",
       "Restaurants and menus are all fictional.",
       "Courier positions on the map are not real.",
-      "Any delivery info you type stays in your browser only.",
+      "Your order history is saved to our server, but the name/address/phone you type at checkout stays on your device only.",
     ],
     infoAdsTitle: "📢 About ads",
     infoAds:
