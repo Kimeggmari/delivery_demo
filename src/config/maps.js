@@ -1,14 +1,13 @@
 // Google Maps API key for the native tracking map (Android/iOS app builds
 // only — the web build keeps the illustrated fake map, see App.jsx).
 //
-// To activate the real map before shipping:
-// 1. In https://console.cloud.google.com/, enable "Maps SDK for Android"
-//    and "Maps SDK for iOS", then create an API key.
-// 2. Replace the placeholder below.
-// 3. Replace the matching placeholder in
-//    android/app/src/main/AndroidManifest.xml (com.google.android.geo.API_KEY)
-//    and ios/App/App/AppDelegate.swift (GMSServices.provideAPIKey).
-export const GOOGLE_MAPS_API_KEY = "AIzaSyB8cYpEuWJIpVKqO-FD_911CPeiL9rj7JA";
+// This value is only actually used by iOS: the @capacitor/google-maps iOS
+// plugin calls GMSServices.provideAPIKey(apiKey) with this JS-passed value
+// when the map is created, which overrides whatever AppDelegate.swift set
+// at launch. The Android plugin ignores this param entirely and reads its
+// key from AndroidManifest.xml's com.google.android.geo.API_KEY instead —
+// so keep this in sync with ios/App/App/AppDelegate.swift, not the manifest.
+export const GOOGLE_MAPS_API_KEY = "AIzaSyCD1SQFSKxcWoWQnlL_pf-DNACXTbIS0Fs";
 
 // Delivery addresses typed at checkout are fake, so the tracking map always
 // shows a made-up route. The destination is the device's real location when

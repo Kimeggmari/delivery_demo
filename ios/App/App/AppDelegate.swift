@@ -9,10 +9,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        // TODO_GOOGLE_MAPS: replace with a real key from
-        // https://console.cloud.google.com/ ("Maps SDK for iOS" enabled),
-        // and update src/config/maps.js to match.
-        GMSServices.provideAPIKey("AIzaSyAwCn2T4MKKoPr2NwWUZnm82UMJqDoZP-E")
+        GMSServices.provideAPIKey("AIzaSyCD1SQFSKxcWoWQnlL_pf-DNACXTbIS0Fs")
         return true
     }
 
