@@ -5,7 +5,7 @@ export const restaurants = [
   {
     id: 1,
     name: { ko: "한입치킨 강남점", en: "OneBite Chicken — Gangnam" },
-    emoji: "🍗", time: "25~35", rating: 4.9, reviews: 2847, fee: 2500,
+    emoji: "🍗", time: "25~35", rating: 4.9, reviews: 2847, fee: 2500, minOrder: 15000,
     category: { ko: "치킨", en: "Chicken" },
     badge: { ko: "인기", en: "Popular" },
     menus: [
@@ -34,7 +34,7 @@ export const restaurants = [
   {
     id: 2,
     name: { ko: "도쿄라멘 스테이션", en: "Tokyo Ramen Station" },
-    emoji: "🍜", time: "18~28", rating: 4.8, reviews: 1523, fee: 3200,
+    emoji: "🍜", time: "18~28", rating: 4.8, reviews: 1523, fee: 3200, minOrder: 12000,
     category: { ko: "일식", en: "Japanese" },
     badge: { ko: "추천", en: "Recommended" },
     menus: [
@@ -64,7 +64,7 @@ export const restaurants = [
   {
     id: 3,
     name: { ko: "파스타랩 성수키친", en: "PastaLab — Seongsu Kitchen" },
-    emoji: "🍝", time: "30~40", rating: 4.7, reviews: 983, fee: 2800,
+    emoji: "🍝", time: "30~40", rating: 4.7, reviews: 983, fee: 2800, minOrder: 13000,
     category: { ko: "양식", en: "Italian" },
     badge: { ko: "", en: "" },
     menus: [
@@ -93,7 +93,7 @@ export const restaurants = [
   {
     id: 4,
     name: { ko: "그린포케 하우스", en: "GreenPoke House" },
-    emoji: "🥗", time: "15~25", rating: 4.9, reviews: 1205, fee: 1800,
+    emoji: "🥗", time: "15~25", rating: 4.9, reviews: 1205, fee: 1800, minOrder: 12000,
     category: { ko: "샐러드", en: "Salad" },
     badge: { ko: "신규", en: "New" },
     menus: [
@@ -123,7 +123,7 @@ export const restaurants = [
   {
     id: 5,
     name: { ko: "엄마손 한식당", en: "Mom's Hand Korean Kitchen" },
-    emoji: "🍚", time: "20~30", rating: 4.8, reviews: 3102, fee: 2000,
+    emoji: "🍚", time: "20~30", rating: 4.8, reviews: 3102, fee: 2000, minOrder: 10000,
     category: { ko: "한식", en: "Korean" },
     badge: { ko: "인기", en: "Popular" },
     menus: [
@@ -155,7 +155,7 @@ export const restaurants = [
   {
     id: 6,
     name: { ko: "용용차이나", en: "YongYong China" },
-    emoji: "🥡", time: "22~32", rating: 4.6, reviews: 1876, fee: 3000,
+    emoji: "🥡", time: "22~32", rating: 4.6, reviews: 1876, fee: 3000, minOrder: 12000,
     category: { ko: "중식", en: "Chinese" },
     badge: { ko: "", en: "" },
     menus: [
@@ -186,7 +186,7 @@ export const restaurants = [
   {
     id: 7,
     name: { ko: "맵다매워 떡볶이", en: "Spicy-AF Tteokbokki" },
-    emoji: "🧡", time: "12~20", rating: 4.5, reviews: 4521, fee: 1500,
+    emoji: "🧡", time: "12~20", rating: 4.5, reviews: 4521, fee: 1500, minOrder: 9000,
     category: { ko: "분식", en: "Street Food" },
     badge: { ko: "최저배달비", en: "Cheap Delivery" },
     menus: [
@@ -215,7 +215,7 @@ export const restaurants = [
   {
     id: 8,
     name: { ko: "카페 달콤 로스터리", en: "Cafe Dalkom Roastery" },
-    emoji: "☕", time: "10~18", rating: 4.7, reviews: 2234, fee: 2500,
+    emoji: "☕", time: "10~18", rating: 4.7, reviews: 2234, fee: 2500, minOrder: 8000,
     category: { ko: "카페", en: "Cafe" },
     badge: { ko: "추천", en: "Recommended" },
     menus: [
@@ -247,7 +247,7 @@ export const restaurants = [
   {
     id: 9,
     name: { ko: "마라홍 마라탕", en: "MaraHong Mala Soup" },
-    emoji: "🌶️", time: "20~30", rating: 4.6, reviews: 1654, fee: 2800,
+    emoji: "🌶️", time: "20~30", rating: 4.6, reviews: 1654, fee: 2800, minOrder: 12000,
     category: { ko: "마라탕", en: "Mala" },
     badge: { ko: "인기", en: "Popular" },
     menus: [
@@ -277,7 +277,7 @@ export const restaurants = [
   {
     id: 10,
     name: { ko: "딜리셔스 디저트", en: "Delicious Desserts" },
-    emoji: "🍦", time: "8~15", rating: 4.8, reviews: 987, fee: 2000,
+    emoji: "🍦", time: "8~15", rating: 4.8, reviews: 987, fee: 2000, minOrder: 9000,
     category: { ko: "아이스크림", en: "Ice Cream" },
     badge: { ko: "신규", en: "New" },
     menus: [
@@ -309,7 +309,7 @@ export const restaurants = [
   {
     id: 11,
     name: { ko: "멋진 막창 예쁜 곱창", en: "Cool Tripe, Pretty Tripe" },
-    emoji: "🫀", time: "25~35", rating: 4.8, reviews: 1342, fee: 2000,
+    emoji: "🫀", time: "25~35", rating: 4.8, reviews: 1342, fee: 2000, minOrder: 13000,
     category: { ko: "곱창", en: "Tripe" },
     badge: { ko: "인기", en: "Popular" },
     menus: [
@@ -341,7 +341,7 @@ export const restaurants = [
   {
     id: 12,
     name: { ko: "스시히로 초밥집", en: "SushiHiro" },
-    emoji: "🍣", time: "20~30", rating: 4.9, reviews: 2105, fee: 3000,
+    emoji: "🍣", time: "20~30", rating: 4.9, reviews: 2105, fee: 3000, minOrder: 14000,
     category: { ko: "초밥", en: "Sushi" },
     badge: { ko: "추천", en: "Recommended" },
     menus: [
@@ -373,7 +373,7 @@ export const restaurants = [
   {
     id: 13,
     name: { ko: "엽땡떡볶이", en: "YeopDdaeng Tteokbokki" },
-    emoji: "🌶️", time: "15~25", rating: 4.7, reviews: 3210, fee: 2000,
+    emoji: "🌶️", time: "15~25", rating: 4.7, reviews: 3210, fee: 2000, minOrder: 9000,
     category: { ko: "분식", en: "Street Food" },
     badge: { ko: "인기", en: "Popular" },
     menus: [
@@ -403,7 +403,7 @@ export const restaurants = [
   {
     id: 14,
     name: { ko: "버거팩토리", en: "Burger Factory" },
-    emoji: "🍔", time: "20~30", rating: 4.8, reviews: 2418, fee: 2800,
+    emoji: "🍔", time: "20~30", rating: 4.8, reviews: 2418, fee: 2800, minOrder: 10000,
     category: { ko: "햄버거", en: "Burger" },
     badge: { ko: "추천", en: "Recommended" },
     menus: [
@@ -436,7 +436,7 @@ export const restaurants = [
   {
     id: 15,
     name: { ko: "화덕피자랩", en: "Stone Oven Pizza Lab" },
-    emoji: "🍕", time: "30~40", rating: 4.9, reviews: 1986, fee: 3500,
+    emoji: "🍕", time: "30~40", rating: 4.9, reviews: 1986, fee: 3500, minOrder: 15000,
     category: { ko: "피자", en: "Pizza" },
     badge: { ko: "인기", en: "Popular" },
     menus: [
@@ -470,7 +470,7 @@ export const restaurants = [
   {
     id: 16,
     name: { ko: "문어대왕 타코야끼", en: "Octo-King Takoyaki" },
-    emoji: "🐙", time: "15~25", rating: 4.7, reviews: 1243, fee: 2000,
+    emoji: "🐙", time: "15~25", rating: 4.7, reviews: 1243, fee: 2000, minOrder: 9000,
     category: { ko: "타코야끼", en: "Takoyaki" },
     badge: { ko: "신규", en: "New" },
     menus: [
@@ -512,7 +512,7 @@ export const restaurants = [
   {
     id: 17,
     name: { ko: "빙수나라 24시", en: "Bingsu World 24h" },
-    emoji: "🍧", time: "10~18", rating: 4.8, reviews: 2134, fee: 1500,
+    emoji: "🍧", time: "10~18", rating: 4.8, reviews: 2134, fee: 1500, minOrder: 9000,
     category: { ko: "빙수", en: "Bingsu" },
     badge: { ko: "인기", en: "Popular" },
     menus: [
@@ -555,7 +555,7 @@ export const restaurants = [
   {
     id: 18,
     name: { ko: "김밥천사", en: "Gimbap Angel" },
-    emoji: "🍱", time: "15~25", rating: 4.7, reviews: 1560, fee: 2000,
+    emoji: "🍱", time: "15~25", rating: 4.7, reviews: 1560, fee: 2000, minOrder: 8000,
     category: { ko: "분식", en: "Street Food" },
     badge: { ko: "", en: "" },
     menus: [
@@ -595,7 +595,7 @@ export const restaurants = [
   {
     id: 19,
     name: { ko: "브뤼셀 와플하우스", en: "Brussels Waffle House" },
-    emoji: "🧇", time: "12~20", rating: 4.8, reviews: 1432, fee: 2000,
+    emoji: "🧇", time: "12~20", rating: 4.8, reviews: 1432, fee: 2000, minOrder: 9000,
     category: { ko: "와플", en: "Waffle" },
     badge: { ko: "신규", en: "New" },
     menus: [

@@ -1,0 +1,32 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Private per-device data: order history + achievements, scoped to the
+    // anonymous auth uid of the device that wrote it.
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      match /orders/{orderId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    // Shared "add your own restaurant/menu" feature: anyone can read, only
+    // the creator can delete their own entry, edits are disallowed (delete
+    // + recreate instead of drift between client and rules validation).
+    match /customRestaurants/{id} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.addedBy == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.addedBy == request.auth.uid;
+      allow update: if false;
+    }
+
+    match /customMenus/{id} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.addedBy == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.addedBy == request.auth.uid;
+      allow update: if false;
+    }
+  }
+}

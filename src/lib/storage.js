@@ -1,56 +1,95 @@
-// localStorage helpers for order history and achievements.
-// All reads are defensive — if storage is blocked (private mode, quota, etc.)
-// we silently return empty defaults so the app keeps working.
+// Firestore-backed persistence for order history, achievements, and
+// user-submitted restaurants/menus. Order history + achievements are
+// private per device (scoped under users/{uid}, uid = anonymous auth uid
+// from ./firebase). Custom restaurants/menus are a shared collection so
+// everyone sees what everyone else added.
 
-const HISTORY_KEY = "fna.history.v1";
-const ACHIEVEMENTS_KEY = "fna.achievements.v1";
-const HISTORY_LIMIT = 50;
+import { db, authReady } from "./firebase";
+import {
+  collection, doc, setDoc, getDoc, getDocs, deleteDoc,
+  query, where, orderBy, limit, onSnapshot, serverTimestamp, writeBatch,
+} from "firebase/firestore";
 
-function safeRead(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return fallback;
-    const parsed = JSON.parse(raw);
-    return parsed ?? fallback;
-  } catch {
-    return fallback;
-  }
+export const HISTORY_LIMIT = 50;
+
+export async function loadHistory() {
+  const uid = await authReady;
+  const q = query(collection(db, "users", uid, "orders"), orderBy("ts", "desc"), limit(HISTORY_LIMIT));
+  const snap = await getDocs(q);
+  return snap.docs.map(d => d.data());
 }
 
-function safeWrite(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-    return true;
-  } catch {
-    return false;
-  }
+// customerName/address are typed at checkout and stay device-local only —
+// people habitually type their real name/address there even though the
+// order is fake, so those two fields never leave the device.
+export async function saveOrderRecord(record) {
+  const uid = await authReady;
+  const { customerName: _customerName, address: _address, ...serverSafeRecord } = record;
+  await setDoc(doc(db, "users", uid, "orders", record.id), serverSafeRecord);
 }
 
-export function loadHistory() {
-  const arr = safeRead(HISTORY_KEY, []);
-  return Array.isArray(arr) ? arr : [];
+export async function clearHistory() {
+  const uid = await authReady;
+  const snap = await getDocs(collection(db, "users", uid, "orders"));
+  const batch = writeBatch(db);
+  snap.docs.forEach(d => batch.delete(d.ref));
+  await batch.commit();
 }
 
-export function saveOrderRecord(record) {
-  const list = loadHistory();
-  // newest first
-  const next = [record, ...list].slice(0, HISTORY_LIMIT);
-  safeWrite(HISTORY_KEY, next);
-  return next;
+export async function loadUnlocked() {
+  const uid = await authReady;
+  const snap = await getDoc(doc(db, "users", uid));
+  const data = snap.exists() ? snap.data() : {};
+  return data.achievements && typeof data.achievements === "object" ? data.achievements : {};
 }
 
-export function clearHistory() {
-  safeWrite(HISTORY_KEY, []);
-  return [];
+export async function saveUnlocked(map) {
+  const uid = await authReady;
+  await setDoc(doc(db, "users", uid), { achievements: map || {} }, { merge: true });
 }
 
-export function loadUnlocked() {
-  const obj = safeRead(ACHIEVEMENTS_KEY, {});
-  return obj && typeof obj === "object" ? obj : {};
+// User-created restaurants & menu items (feature: "add your own restaurant/menu").
+// Shared across everyone via Firestore, kept separate from the built-in
+// config/restaurants.js catalog and merged in at render time.
+
+export function subscribeCustomRestaurants(onChange) {
+  return onSnapshot(collection(db, "customRestaurants"), snap => {
+    onChange(snap.docs.map(d => d.data()));
+  });
 }
 
-export function saveUnlocked(map) {
-  safeWrite(ACHIEVEMENTS_KEY, map || {});
+export function subscribeCustomMenus(onChange) {
+  return onSnapshot(collection(db, "customMenus"), snap => {
+    onChange(snap.docs.map(d => d.data()));
+  });
+}
+
+export async function addCustomRestaurant(restaurant) {
+  const uid = await authReady;
+  await setDoc(doc(db, "customRestaurants", String(restaurant.id)), {
+    ...restaurant,
+    addedBy: uid,
+    createdAt: serverTimestamp(),
+  });
+}
+
+export async function deleteCustomRestaurant(id) {
+  await deleteDoc(doc(db, "customRestaurants", String(id)));
+  const snap = await getDocs(query(collection(db, "customMenus"), where("restaurantId", "==", id)));
+  await Promise.allSettled(snap.docs.map(d => deleteDoc(d.ref)));
+}
+
+export async function addCustomMenu(menu) {
+  const uid = await authReady;
+  await setDoc(doc(db, "customMenus", String(menu.id)), {
+    ...menu,
+    addedBy: uid,
+    createdAt: serverTimestamp(),
+  });
+}
+
+export async function deleteCustomMenu(id) {
+  await deleteDoc(doc(db, "customMenus", String(id)));
 }
 
 // Aggregate stats derived from the full history list.

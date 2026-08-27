@@ -156,12 +156,6 @@ export const dict = {
       "앱 사용 중 불편한 점, 버그 제보, 개선 의견은 언제든지 아래 이메일로 보내주세요. 소중한 피드백은 앱 개선에 적극 반영됩니다.",
     infoSeePrivacy: "개인정보처리방침 보기",
     infoConfirm: "확인",
-    // Android app popup
-    androidTitle: "안드로이드 앱이 출시됐어요! 📱",
-    androidBody:
-      "이제 안드로이드 앱으로도 음식만안와요를 다운로드할 수 있어요. 아래 버튼을 눌러 Play 스토어에서 확인해보세요!",
-    androidDownload: "Play 스토어에서 다운로드",
-    androidClose: "닫기",
     // Sponsor popup
     sponsorTitle: "후원으로 응원해주세요 ☕",
     sponsorSubtitle: "음식만안와요는 광고 수익과 후원으로 운영돼요.",
@@ -246,6 +240,45 @@ export const dict = {
     // Complete screen extras
     completeShareBtn: "📤 영수증 공유하기",
     completeHistoryBtn: "🏆 내 기록 보기",
+    // Minimum order amount
+    minOrderPrefix: "최소주문",
+    minOrderBannerTitle: "최소주문금액을 채워주세요",
+    minOrderShortfallLine: (name, current, needed) => `${name} · ${current} / ${needed}`,
+    minOrderBlockedAlert: "최소주문금액을 채워야 주문할 수 있어요.",
+    // Add restaurant
+    addRestaurantBtn: "🏪+ 내 식당 추가",
+    addRestaurantTitle: "내 식당 추가하기 🏪",
+    restaurantNameLabel: "식당 이름",
+    restaurantNamePh: "예: 우리동네 맛집",
+    restaurantEmojiLabel: "대표 이모지",
+    restaurantEmojiPh: "예: 🍔",
+    restaurantCategoryLabel: "카테고리",
+    restaurantCategoryPh: "예: 한식, 분식, 디저트",
+    restaurantFeeLabel: "배달비 (원)",
+    restaurantFeePh: "예: 3000",
+    restaurantMinOrderLabel: "최소주문금액 (원)",
+    restaurantMinOrderPh: "예: 12000",
+    firstMenuTitle: "첫 메뉴 등록",
+    menuNameLabel: "메뉴 이름",
+    menuNamePh: "예: 특제 김치찌개",
+    menuDescLabel: "메뉴 설명 (선택)",
+    menuDescPh: "예: 묵은지로 끓인 깊은 맛",
+    menuPriceLabel: "가격 (원)",
+    menuPricePh: "예: 9500",
+    createBtn: "만들기",
+    cancelBtn: "취소",
+    restaurantFormRequiredAlert: "식당 이름과 첫 메뉴 이름·가격을 모두 입력해주세요.",
+    // Add menu (to any restaurant)
+    addMenuBtn: "+ 메뉴 추가",
+    addMenuTitle: (name) => `${name}에 메뉴 추가`,
+    menuFormRequiredAlert: "메뉴 이름과 가격을 입력해주세요.",
+    // Custom content badges
+    customBadge: "내가 추가함",
+    deleteCustomAria: "삭제",
+    deleteCustomConfirm: "이 항목을 삭제할까요?",
+    // Delivery-complete push notification
+    notifDeliveryTitle: "배달 완료 (안) 🍱",
+    notifDeliveryBody: "사실 오지 않았어요. 앱을 열어 아낀 칼로리를 확인해보세요.",
   },
 
   en: {
@@ -400,12 +433,6 @@ export const dict = {
       "Bugs, ideas, complaints — all welcome. Email the address below and we'll read every message.",
     infoSeePrivacy: "View privacy policy",
     infoConfirm: "OK",
-    // Android app popup
-    androidTitle: "Our Android app is here! 📱",
-    androidBody:
-      "FoodNeverArrives is now available to download on Android. Tap below to get it on Google Play!",
-    androidDownload: "Get it on Google Play",
-    androidClose: "Close",
     // Sponsor popup
     sponsorTitle: "Buy me a coffee ☕",
     sponsorSubtitle: "FoodNeverArrives runs on ad revenue and your support.",
@@ -490,6 +517,45 @@ export const dict = {
     // Complete screen extras
     completeShareBtn: "📤 Share receipt",
     completeHistoryBtn: "🏆 See my activity",
+    // Minimum order amount
+    minOrderPrefix: "Min. order",
+    minOrderBannerTitle: "Add more to meet the minimum order",
+    minOrderShortfallLine: (name, current, needed) => `${name} · ${current} / ${needed}`,
+    minOrderBlockedAlert: "You need to meet the minimum order amount to check out.",
+    // Add restaurant
+    addRestaurantBtn: "🏪+ Add your restaurant",
+    addRestaurantTitle: "Add your restaurant 🏪",
+    restaurantNameLabel: "Restaurant name",
+    restaurantNamePh: "e.g. My Favorite Spot",
+    restaurantEmojiLabel: "Icon (emoji)",
+    restaurantEmojiPh: "e.g. 🍔",
+    restaurantCategoryLabel: "Category",
+    restaurantCategoryPh: "e.g. Korean, Street Food, Dessert",
+    restaurantFeeLabel: "Delivery fee",
+    restaurantFeePh: "e.g. 3000",
+    restaurantMinOrderLabel: "Minimum order amount",
+    restaurantMinOrderPh: "e.g. 12000",
+    firstMenuTitle: "First menu item",
+    menuNameLabel: "Dish name",
+    menuNamePh: "e.g. Signature Kimchi Stew",
+    menuDescLabel: "Description (optional)",
+    menuDescPh: "e.g. Aged kimchi, deep flavor",
+    menuPriceLabel: "Price",
+    menuPricePh: "e.g. 9500",
+    createBtn: "Create",
+    cancelBtn: "Cancel",
+    restaurantFormRequiredAlert: "Please fill in the restaurant name and the first dish's name and price.",
+    // Add menu (to any restaurant)
+    addMenuBtn: "+ Add dish",
+    addMenuTitle: (name) => `Add a dish to ${name}`,
+    menuFormRequiredAlert: "Please fill in the dish name and price.",
+    // Custom content badges
+    customBadge: "Custom",
+    deleteCustomAria: "Delete",
+    deleteCustomConfirm: "Delete this item?",
+    // Delivery-complete push notification
+    notifDeliveryTitle: "Delivery (not) complete 🍱",
+    notifDeliveryBody: "It never actually arrived. Open the app to see the calories you saved.",
   },
 };
 
@@ -504,7 +570,7 @@ export function makeT(lang) {
 
 export function pick(field, lang) {
   // field is either a plain string or { ko, en } object
-  if (field && typeof field === "object" && (field.ko || field.en)) {
+  if (field && typeof field === "object" && ("ko" in field || "en" in field)) {
     return field[lang] || field.ko || field.en || "";
   }
   return field;

@@ -1,22 +1,31 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { Capacitor } from "@capacitor/core";
 import Footer from "./components/Footer";
 import MenuImage from "./components/MenuImage";
 import Stars from "./components/Stars";
 import HistoryPage from "./components/HistoryPage";
 import ReceiptModal from "./components/ReceiptModal";
 import AchievementToast from "./components/AchievementToast";
+import NotificationBanner from "./components/NotificationBanner";
+import AddRestaurantModal from "./components/AddRestaurantModal";
+import AddMenuModal from "./components/AddMenuModal";
+import TrackingMap from "./components/TrackingMap";
 import { getMenuImageSrc } from "./config/menuImages";
 import { deliveryModes, SIZE_OPTIONS, SPICY_OPTIONS, SPICY_LABELS, theme } from "./config/ordering";
 import { calcTotals, fmt } from "./lib/format";
 import { dict, makeT, pick } from "./config/i18n";
 import { restaurants } from "./config/restaurants";
 import {
-  loadHistory, saveOrderRecord, clearHistory,
+  HISTORY_LIMIT, loadHistory, saveOrderRecord, clearHistory,
   loadUnlocked, saveUnlocked,
   computeStats, buildOrderRecord,
+  subscribeCustomRestaurants, addCustomRestaurant, deleteCustomRestaurant,
+  subscribeCustomMenus, addCustomMenu, deleteCustomMenu,
 } from "./lib/storage";
+import { authReady } from "./lib/firebase";
 import { computeNewUnlocks } from "./config/achievements";
 import { maybeShowColdStartInterstitial } from "./lib/ads";
+import { ensureNotificationPermission, notifyDeliveryComplete } from "./lib/notifications";
 
 const menuCalories = {
   c1: 1800, c2: 1650, c3: 320,
@@ -60,6 +69,7 @@ const badgeColors = {
   "추천": { bg: "#dbeafe", color: "#2563eb", border: "#bfdbfe" },
   "신규": { bg: "#dcfce7", color: "#16a34a", border: "#bbf7d0" },
   "최저배달비": { bg: "#fef3c7", color: "#d97706", border: "#fde68a" },
+  "내가 추가함": { bg: "#ede9fe", color: "#7c3aed", border: "#ddd6fe" },
 };
 
 const PAYMENT_OPTIONS = [
@@ -359,67 +369,6 @@ function SponsorModal({ onClose, t, th }) {
   );
 }
 
-const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.eggmari.foodneverarrives";
-
-function AndroidAppModal({ onClose, t, th }) {
-  return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed", inset: 0, zIndex: 130,
-        background: "rgba(0,0,0,0.5)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "20px",
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          width: "100%", maxWidth: 380,
-          background: "#fff",
-          borderRadius: 24,
-          padding: "26px 22px 22px",
-          boxShadow: "0 20px 50px rgba(15,23,42,0.25)",
-          animation: "pop .25s ease",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: -8 }}>
-          <button
-            onClick={onClose}
-            aria-label={t("androidClose")}
-            style={{ width: 32, height: 32, borderRadius: 10, border: "none", background: "#f3f4f6", fontSize: 16, cursor: "pointer" }}
-          >✕</button>
-        </div>
-
-        <div style={{ textAlign: "center", marginBottom: 18 }}>
-          <div style={{ fontSize: 54, lineHeight: 1, marginBottom: 10 }}>📱</div>
-          <div style={{ fontSize: 19, fontWeight: 900, color: "#111827", marginBottom: 6 }}>{t("androidTitle")}</div>
-        </div>
-
-        <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.7, marginBottom: 18, padding: "0 4px", textAlign: "center" }}>
-          {t("androidBody")}
-        </div>
-
-        <a
-          href={PLAY_STORE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={onClose}
-          style={{
-            display: "block", width: "100%", border: "none", borderRadius: 14, padding: "13px 16px",
-            background: th.primaryBtn,
-            color: "#fff", fontWeight: 900, fontSize: 14, cursor: "pointer",
-            fontFamily: "inherit", textAlign: "center", textDecoration: "none",
-            boxSizing: "border-box",
-          }}
-        >
-          {t("androidDownload")}
-        </a>
-      </div>
-    </div>
-  );
-}
-
 function PrivacyPage({ onBack, th, t, lang }) {
   const sections = lang === "en" ? [
     {
@@ -602,7 +551,7 @@ function OptionSheet({ menu, onClose, onConfirm, brand, t, lang }) {
             <div style={{ minWidth: 0 }}>
               <div style={{ fontWeight: 900, fontSize: 18 }}>{pick(menu.name, lang)}</div>
               <div style={{ color: "#6b7280", fontSize: 13, marginTop: 4 }}>{pick(menu.desc, lang)}</div>
-              <div style={{ color: "#10b981", fontSize: 12, fontWeight: 700, marginTop: 6 }}>🔥 {(menuCalories[menu.id] || 0).toLocaleString()}{t("kcal")}</div>
+              <div style={{ color: "#10b981", fontSize: 12, fontWeight: 700, marginTop: 6 }}>🔥 {(menuCalories[menu.id] || 600).toLocaleString()}{t("kcal")}</div>
             </div>
           </div>
           <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: 12, border: "none", background: "#f3f4f6", fontSize: 18, cursor: "pointer", flexShrink: 0 }}>✕</button>
@@ -685,10 +634,22 @@ export default function App() {
   const [optionTarget, setOptionTarget] = useState(null);
   const [addedAnim, setAddedAnim] = useState(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
-  const [showAndroidModal, setShowAndroidModal] = useState(true);
   const [showSponsorModal, setShowSponsorModal] = useState(true);
-  const [history, setHistory] = useState(() => loadHistory());
-  const [unlocked, setUnlocked] = useState(() => loadUnlocked());
+  const [history, setHistory] = useState([]);
+  const [unlocked, setUnlocked] = useState({});
+  const [uid, setUid] = useState(null);
+
+  useEffect(() => {
+    authReady.then(setUid);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([loadHistory(), loadUnlocked()]).then(([h, u]) => {
+      if (!cancelled) { setHistory(h); setUnlocked(u); }
+    }).catch(err => console.warn("Failed to load history/achievements", err));
+    return () => { cancelled = true; };
+  }, []);
   const [newlyUnlocked, setNewlyUnlocked] = useState([]);
   const [shareRecord, setShareRecord] = useState(null);
   const [lang, setLang] = useState(() => {
@@ -706,6 +667,18 @@ export default function App() {
     }
   }, [lang]);
 
+  const [customRestaurants, setCustomRestaurants] = useState([]);
+  const [customMenus, setCustomMenus] = useState([]);
+  const [showAddRestaurant, setShowAddRestaurant] = useState(false);
+  const [addMenuTarget, setAddMenuTarget] = useState(null);
+  const [deliveryNotif, setDeliveryNotif] = useState(null);
+
+  useEffect(() => {
+    const unsubR = subscribeCustomRestaurants(setCustomRestaurants);
+    const unsubM = subscribeCustomMenus(setCustomMenus);
+    return () => { unsubR(); unsubM(); };
+  }, []);
+
   const t = useMemo(() => makeT(lang), [lang]);
   const inquiryEmail = "eggmari5713@gmail.com";
   const timersRef = useRef([]);
@@ -715,15 +688,42 @@ export default function App() {
   const totals = calcTotals(cart);
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
+  // Merge user-created restaurants/menus into the built-in catalog so the
+  // rest of the app (search, cart, checkout, history) treats them the same.
+  const allRestaurants = useMemo(() => {
+    return [...restaurants, ...customRestaurants].map(r => ({
+      ...r,
+      menus: [...r.menus, ...customMenus.filter(m => m.restaurantId === r.id)],
+    }));
+  }, [customRestaurants, customMenus]);
+
+  const restaurantSubtotals = useMemo(() => {
+    const map = {};
+    cart.forEach(i => { map[i.restaurantId] = (map[i.restaurantId] || 0) + i.price * i.qty; });
+    return map;
+  }, [cart]);
+
+  const unmetMinOrders = useMemo(() => {
+    return Object.entries(restaurantSubtotals)
+      .map(([ridStr, subtotal]) => {
+        const r = allRestaurants.find(x => String(x.id) === ridStr);
+        return r && r.minOrder && subtotal < r.minOrder
+          ? { id: r.id, name: pick(r.name, lang), subtotal, minOrder: r.minOrder }
+          : null;
+      })
+      .filter(Boolean);
+  }, [restaurantSubtotals, allRestaurants, lang]);
+
   const clearTimers = useCallback(() => { timersRef.current.forEach(clearTimeout); timersRef.current = []; }, []);
   useEffect(() => () => clearTimers(), [clearTimers]);
 
   useEffect(() => {
     maybeShowColdStartInterstitial();
+    ensureNotificationPermission();
   }, []);
 
   const openOption = (rid, mid) => {
-    const r = restaurants.find(x => x.id === rid);
+    const r = allRestaurants.find(x => x.id === rid);
     const m = r.menus.find(x => x.id === mid);
     const opts = m.options || {};
     if (!opts.spicy && !opts.size && (!opts.toppings || opts.toppings.length === 0)) {
@@ -734,7 +734,7 @@ export default function App() {
   };
 
   const addToCartDirect = (rid, mid, qty, extraPrice, spicy, size, toppings) => {
-    const r = restaurants.find(x => x.id === rid);
+    const r = allRestaurants.find(x => x.id === rid);
     const m = r.menus.find(x => x.id === mid);
     const unitPrice = m.price + extraPrice;
     // Normalize toppings into [{ko, en}] shape to keep cart language-agnostic
@@ -773,6 +773,7 @@ export default function App() {
     setPage("order");
     setDeliveryMode("rabbit");
     setShowInfoModal(false);
+    setDeliveryNotif(null);
   };
 
   const goToCheckout = () => {
@@ -788,21 +789,23 @@ export default function App() {
       deliveryMode: info.deliveryMode,
       lang,
       menuCalories,
-      restaurants,
+      restaurants: allRestaurants,
     });
-    const nextHistory = saveOrderRecord(record);
+    const nextHistory = [record, ...history].slice(0, HISTORY_LIMIT);
     setHistory(nextHistory);
     const stats = computeStats(nextHistory);
     const { newly, nextMap } = computeNewUnlocks(stats, unlocked);
     if (newly.length) {
       setUnlocked(nextMap);
-      saveUnlocked(nextMap);
+      saveUnlocked(nextMap).catch(err => console.warn("Failed to save achievements", err));
       setNewlyUnlocked(newly);
     }
+    saveOrderRecord(record).catch(err => console.warn("Failed to save order record", err));
     return record;
-  }, [lang, unlocked]);
+  }, [lang, unlocked, allRestaurants, history]);
 
   const simulateOrder = () => {
+    if (unmetMinOrders.length > 0) { alert(t("minOrderBlockedAlert")); return; }
     clearTimers();
     setShowReceipt(false);
     const info = { customerName: nm || (lang === "en" ? "Customer" : "주문자"), address: ad || (lang === "en" ? "No address provided" : "입력된 주소 없음"), phone: ph || (lang === "en" ? "No phone" : "연락처 없음"), request: rq || (lang === "en" ? "None" : "없음"), payment, total: totals.total, deliveryMode };
@@ -823,6 +826,9 @@ export default function App() {
           const rec = persistOrder(info, cartSnapshot, totalsSnapshot);
           setReceiptData({ ...info, _record: rec });
           setPage("complete");
+          const notif = { title: t("notifDeliveryTitle"), body: t("notifDeliveryBody") };
+          notifyDeliveryComplete(notif);
+          setDeliveryNotif(notif);
         }, mode.etaStart * mode.intervalMs + mode.completeDelayMs));
       }, 1500));
     }, 900));
@@ -830,9 +836,10 @@ export default function App() {
 
   const clearAllActivity = () => {
     if (typeof window !== "undefined" && !window.confirm(t("historyClearConfirm"))) return;
-    setHistory(clearHistory());
+    setHistory([]);
     setUnlocked({});
-    saveUnlocked({});
+    clearHistory().catch(err => console.warn("Failed to clear history", err));
+    saveUnlocked({}).catch(err => console.warn("Failed to clear achievements", err));
   };
 
   const trackData = Array.from({ length: mode.etaStart }, (_, i) => {
@@ -866,8 +873,20 @@ export default function App() {
   }]);
 
   const td = trackData[trackState] || trackData[0];
+  const trackProgress = td.finalDone ? 1 : trackState / mode.etaStart;
+  const isNativeApp = Capacitor.isNativePlatform();
 
-  const filtered = restaurants.filter(r => {
+  const handleDeleteRestaurant = (id) => {
+    if (typeof window !== "undefined" && !window.confirm(t("deleteCustomConfirm"))) return;
+    deleteCustomRestaurant(id).catch(err => console.warn("Failed to delete restaurant", err));
+  };
+
+  const handleDeleteMenu = (id) => {
+    if (typeof window !== "undefined" && !window.confirm(t("deleteCustomConfirm"))) return;
+    deleteCustomMenu(id).catch(err => console.warn("Failed to delete menu", err));
+  };
+
+  const filtered = allRestaurants.filter(r => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
     const haystack = [
@@ -895,7 +914,7 @@ export default function App() {
 
   const globalStyle = "@keyframes floatBike{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-50%,calc(-50% - 8px))}} @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}} @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}} *{box-sizing:border-box} body,html{margin:0;padding:0}";
 
-  const optRestaurant = optionTarget ? restaurants.find(x => x.id === optionTarget.rid) : null;
+  const optRestaurant = optionTarget ? allRestaurants.find(x => x.id === optionTarget.rid) : null;
   const optMenu = optRestaurant ? optRestaurant.menus.find(x => x.id === optionTarget.mid) : null;
 
   const toggleLang = () => setLang(prev => prev === "ko" ? "en" : "ko");
@@ -943,6 +962,14 @@ export default function App() {
     return (
       <div style={{ ...css.wrap, alignItems: "center", justifyContent: "center", textAlign: "center", padding: "40px 24px" }}>
         <style>{globalStyle}</style>
+        {deliveryNotif && (
+          <NotificationBanner
+            appName={t("appName")}
+            title={deliveryNotif.title}
+            body={deliveryNotif.body}
+            onDone={() => setDeliveryNotif(null)}
+          />
+        )}
         {newlyUnlocked.length > 0 && (
           <AchievementToast
             items={newlyUnlocked}
@@ -1006,7 +1033,7 @@ export default function App() {
 
   if (page === "tracking") {
     return (
-      <div style={css.wrap}>
+      <div style={isNativeApp ? { ...css.wrap, background: "transparent" } : css.wrap}>
         <style>{globalStyle}</style>
         <div style={css.header}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, maxWidth: 540, margin: "0 auto" }}>
@@ -1019,17 +1046,27 @@ export default function App() {
           <div style={{ background: "linear-gradient(135deg,#fff7ed,#ffedd5)", border: "1px solid #fdba74", color: "#9a3412", padding: "12px 14px", borderRadius: 16, fontSize: 12, fontWeight: 800, lineHeight: 1.45 }}>
             {t("demoTrackBanner")}
           </div>
-          <div style={{ background: "linear-gradient(180deg,#dff7ea 0%,#ecfeff 100%)", borderRadius: 20, padding: 18, minHeight: 220, position: "relative", overflow: "hidden", border: "1px solid #d1fae5" }}>
-            <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.45) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.45) 1px,transparent 1px)", backgroundSize: "34px 34px", opacity: .8 }} />
-            {[{ w: 240, h: 14, t: 56, l: 40, rot: "8deg" }, { w: 16, h: 180, t: 24, r: 76 }, { w: 190, h: 12, b: 54, l: 56, rot: "-18deg" }].map((rd, i) => (
-              <div key={i} style={{ position: "absolute", background: "rgba(148,163,184,0.35)", borderRadius: 999, width: rd.w, height: rd.h, top: rd.t, left: rd.l, right: rd.r, bottom: rd.b, transform: rd.rot ? "rotate(" + rd.rot + ")" : undefined }} />
-            ))}
-            <div style={{ position: "absolute", zIndex: 2, width: 46, height: 46, borderRadius: "50%", background: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", top: 24, left: 34 }}>🏪</div>
-            <div style={{ position: "absolute", zIndex: 2, width: 46, height: 46, borderRadius: "50%", background: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", right: 30, bottom: 30 }}>🏠</div>
-            <div style={{ position: "absolute", zIndex: 2, width: 54, height: 54, borderRadius: "50%", background: "#111827", color: "#fff", fontSize: 24, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", left: td.bp[0], top: td.bp[1], transform: "translate(-50%,-50%)", transition: "left .8s ease,top .8s ease", animation: "floatBike 2.2s ease-in-out infinite" }}>{mode.mapIcon}</div>
-            <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, top: 76, left: 22 }}>{t("storeReady")}</div>
-            <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, right: 18, bottom: 82 }}>{(orderInfo?.customerName || t("address")) + (t("customerSuffix") ? " " + t("customerSuffix") : "")}</div>
-            <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, left: "50%", top: "68%", transform: "translateX(-50%)" }}>{td.riderLabel}</div>
+          <div style={{ background: isNativeApp ? "transparent" : "linear-gradient(180deg,#dff7ea 0%,#ecfeff 100%)", borderRadius: 20, padding: isNativeApp ? 0 : 18, height: 220, minHeight: 220, position: "relative", overflow: "hidden", border: "1px solid #d1fae5" }}>
+            {isNativeApp ? (
+              <TrackingMap progress={trackProgress} mode={deliveryMode} storeLabel={t("storeReady")} />
+            ) : (
+              <>
+                <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.45) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.45) 1px,transparent 1px)", backgroundSize: "34px 34px", opacity: .8 }} />
+                {[{ w: 240, h: 14, t: 56, l: 40, rot: "8deg" }, { w: 16, h: 180, t: 24, r: 76 }, { w: 190, h: 12, b: 54, l: 56, rot: "-18deg" }].map((rd, i) => (
+                  <div key={i} style={{ position: "absolute", background: "rgba(148,163,184,0.35)", borderRadius: 999, width: rd.w, height: rd.h, top: rd.t, left: rd.l, right: rd.r, bottom: rd.b, transform: rd.rot ? "rotate(" + rd.rot + ")" : undefined }} />
+                ))}
+                <div style={{ position: "absolute", zIndex: 2, width: 46, height: 46, borderRadius: "50%", background: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", top: 24, left: 34 }}>🏪</div>
+                <div style={{ position: "absolute", zIndex: 2, width: 46, height: 46, borderRadius: "50%", background: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", right: 30, bottom: 30 }}>🏠</div>
+                <div style={{ position: "absolute", zIndex: 2, width: 54, height: 54, borderRadius: "50%", background: "#111827", color: "#fff", fontSize: 24, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", left: td.bp[0], top: td.bp[1], transform: "translate(-50%,-50%)", transition: "left .8s ease,top .8s ease", animation: "floatBike 2.2s ease-in-out infinite" }}>{mode.mapIcon}</div>
+              </>
+            )}
+            {!isNativeApp && (
+              <>
+                <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, top: 76, left: 22 }}>{t("storeReady")}</div>
+                <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, right: 18, bottom: 82 }}>{(orderInfo?.customerName || t("address")) + (t("customerSuffix") ? " " + t("customerSuffix") : "")}</div>
+                <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, left: "50%", top: "68%", transform: "translateX(-50%)" }}>{td.riderLabel}</div>
+              </>
+            )}
           </div>
           <div style={{ background: "linear-gradient(135deg," + mode.heroStart + "," + mode.heroEnd + ")", color: "#fff", borderRadius: 20, padding: 18 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
@@ -1113,6 +1150,18 @@ export default function App() {
           </div>
         </div>
         <div style={css.content}>
+          {unmetMinOrders.length > 0 && (
+            <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 16, padding: "14px 16px" }}>
+              <div style={{ fontWeight: 900, color: "#dc2626", marginBottom: 8, fontSize: 13 }}>⚠️ {t("minOrderBannerTitle")}</div>
+              <div style={{ display: "grid", gap: 4 }}>
+                {unmetMinOrders.map(u => (
+                  <div key={u.id} style={{ fontSize: 12, color: "#7f1d1d", fontWeight: 700 }}>
+                    {t("minOrderShortfallLine", u.name, fmt(u.subtotal, lang), fmt(u.minOrder, lang))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div style={css.section}>
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>{t("orderItemsTitle", cartCount)}</div>
             <div style={{ display: "grid", gap: 8 }}>
@@ -1214,7 +1263,7 @@ export default function App() {
         <div style={css.bottomBar}>
           <div style={css.bottomInner}>
             <div><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>{t("totalLabel")}</span><br /><strong style={{ fontSize: 18, fontWeight: 900, color: th.brand }}>{fmt(totals.total, lang)}</strong></div>
-            <button onClick={simulateOrder} style={css.orderBtn}>{t("placeOrder")}</button>
+            <button onClick={simulateOrder} style={{ ...css.orderBtn, opacity: unmetMinOrders.length > 0 ? .5 : 1 }}>{t("placeOrder")}</button>
           </div>
         </div>
       </div>
@@ -1235,10 +1284,7 @@ export default function App() {
           lang={lang}
         />
       )}
-      {showAndroidModal && !showInfoModal && (
-        <AndroidAppModal onClose={() => setShowAndroidModal(false)} t={t} th={th} />
-      )}
-      {showSponsorModal && !showInfoModal && !showAndroidModal && (
+      {showSponsorModal && !showInfoModal && (
         <SponsorModal onClose={() => setShowSponsorModal(false)} t={t} th={th} />
       )}
       {optionTarget && optMenu && (
@@ -1249,6 +1295,30 @@ export default function App() {
           onConfirm={({ spicy, size, toppings, qty, extraPrice }) =>
             addToCartDirect(optionTarget.rid, optionTarget.mid, qty, extraPrice, spicy, size, toppings)
           }
+          t={t}
+          lang={lang}
+        />
+      )}
+      {showAddRestaurant && (
+        <AddRestaurantModal
+          onClose={() => setShowAddRestaurant(false)}
+          onCreate={(r) => {
+            addCustomRestaurant(r).catch(err => console.warn("Failed to add restaurant", err));
+            setShowAddRestaurant(false);
+          }}
+          brand={th.primaryBtn}
+          t={t}
+        />
+      )}
+      {addMenuTarget && (
+        <AddMenuModal
+          restaurant={addMenuTarget}
+          onClose={() => setAddMenuTarget(null)}
+          onCreate={(m) => {
+            addCustomMenu(m).catch(err => console.warn("Failed to add menu", err));
+            setAddMenuTarget(null);
+          }}
+          brand={th.primaryBtn}
           t={t}
           lang={lang}
         />
@@ -1304,9 +1374,15 @@ export default function App() {
         </div>
 
         <div style={css.section}>
-          <div style={{ marginBottom: 14 }}>
-            <h2 style={{ margin: 0, fontSize: 18 }}>{t("restaurantsTitle", filtered.length)}</h2>
-            <div style={{ fontSize: 12, color: th.muted, marginTop: 4 }}>{t("restaurantsSub")}</div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 10, marginBottom: 14 }}>
+            <div>
+              <h2 style={{ margin: 0, fontSize: 18 }}>{t("restaurantsTitle", filtered.length)}</h2>
+              <div style={{ fontSize: 12, color: th.muted, marginTop: 4 }}>{t("restaurantsSub")}</div>
+            </div>
+            <button
+              onClick={() => setShowAddRestaurant(true)}
+              style={{ border: "1px dashed " + th.brand, background: "#fff", color: th.brandDark, borderRadius: 12, padding: "9px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", flexShrink: 0 }}
+            >{t("addRestaurantBtn")}</button>
           </div>
           <div style={{ display: "grid", gap: 12 }}>
             {filtered.length === 0 ? (
@@ -1326,7 +1402,17 @@ export default function App() {
                 <div style={{ padding: 14 }}>
                   <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 6 }}>
                     <h3 style={{ margin: 0, fontSize: 16, fontWeight: 900 }}>{pick(r.name, lang)}</h3>
-                    <div style={{ fontSize: 11, padding: "5px 9px", borderRadius: 999, background: "#f3f4f6", color: "#374151", fontWeight: 800, whiteSpace: "nowrap" }}>{pick(r.category, lang)}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                      <div style={{ fontSize: 11, padding: "5px 9px", borderRadius: 999, background: "#f3f4f6", color: "#374151", fontWeight: 800, whiteSpace: "nowrap" }}>{pick(r.category, lang)}</div>
+                      {r.isCustom && r.addedBy === uid && (
+                        <button
+                          onClick={() => handleDeleteRestaurant(r.id)}
+                          aria-label={t("deleteCustomAria")}
+                          title={t("deleteCustomAria")}
+                          style={{ width: 24, height: 24, borderRadius: 999, border: "none", background: "#fef2f2", color: "#dc2626", fontSize: 12, cursor: "pointer", flexShrink: 0 }}
+                        >🗑</button>
+                      )}
+                    </div>
                   </div>
                   <div onClick={() => setReviewTarget(r)} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, cursor: "pointer", padding: "4px 0" }}>
                     <span style={{ color: "#f59e0b" }}><Stars rating={r.rating} /></span>
@@ -1336,6 +1422,7 @@ export default function App() {
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8, color: th.muted, fontSize: 12, marginBottom: 10 }}>
                     <span>⏱ {r.time}{t("minutes")}</span><span>🚚 {fmt(r.fee, lang)}</span>
+                    {r.minOrder > 0 && <span>🧾 {t("minOrderPrefix")} {fmt(r.minOrder, lang)}</span>}
                   </div>
                   <div style={{ display: "grid", gap: 8 }}>
                     {r.menus.map(m => {
@@ -1351,9 +1438,12 @@ export default function App() {
                               borderRadius={14}
                             />
                             <div style={{ minWidth: 0 }}>
-                              <div style={{ fontWeight: 800, marginBottom: 3, fontSize: 14 }}>{pick(m.name, lang)}</div>
+                              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
+                                <div style={{ fontWeight: 800, fontSize: 14 }}>{pick(m.name, lang)}</div>
+                                {m.isCustom && <span style={{ fontSize: 9, fontWeight: 800, color: "#7c3aed", background: "#ede9fe", border: "1px solid #ddd6fe", borderRadius: 999, padding: "1px 6px", whiteSpace: "nowrap" }}>{t("customBadge")}</span>}
+                              </div>
                               <div style={{ color: th.muted, fontSize: 12 }}>{pick(m.desc, lang)}</div>
-                              <div style={{ color: "#10b981", fontSize: 11, fontWeight: 700, marginTop: 2 }}>🔥 {(menuCalories[m.id] || 0).toLocaleString()}{t("kcal")}</div>
+                              <div style={{ color: "#10b981", fontSize: 11, fontWeight: 700, marginTop: 2 }}>🔥 {(menuCalories[m.id] || 600).toLocaleString()}{t("kcal")}</div>
                               {hasOpts && <div style={{ fontSize: 10, color: th.brand, fontWeight: 700, marginTop: 3 }}>{t("optionAvail")}</div>}
                             </div>
                           </div>
@@ -1362,10 +1452,22 @@ export default function App() {
                             <button onClick={() => openOption(r.id, m.id)} style={{ ...css.addBtn, animation: addedAnim === m.id ? "pop .3s ease" : "none" }}>
                               {addedAnim === m.id ? t("added") : t("add")}
                             </button>
+                            {m.isCustom && m.addedBy === uid && (
+                              <button
+                                onClick={() => handleDeleteMenu(m.id)}
+                                aria-label={t("deleteCustomAria")}
+                                title={t("deleteCustomAria")}
+                                style={{ border: "none", background: "none", color: "#dc2626", fontSize: 10, fontWeight: 800, cursor: "pointer", padding: 0, fontFamily: "inherit" }}
+                              >🗑 {t("deleteCustomAria")}</button>
+                            )}
                           </div>
                         </div>
                       );
                     })}
+                    <button
+                      onClick={() => setAddMenuTarget(r)}
+                      style={{ border: "1px dashed #d1d5db", background: "#fafafa", color: "#6b7280", borderRadius: 14, padding: "10px 12px", fontWeight: 800, fontSize: 12, cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}
+                    >{t("addMenuBtn")}</button>
                   </div>
                   </div>
                 </div>

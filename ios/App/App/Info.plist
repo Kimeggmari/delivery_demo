@@ -60,5 +60,7 @@
 	</array>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>이 식별자는 더 관련성 높은 광고를 보여드리는 데 사용됩니다. / This identifier is used to show you more relevant ads.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>배달 추적 데모 화면에서 내 위치를 도착지로 표시하는 데 사용됩니다. / Used to show your location as the demo delivery destination.</string>
 </dict>
 </plist>
