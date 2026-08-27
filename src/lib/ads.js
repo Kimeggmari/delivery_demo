@@ -3,9 +3,7 @@ import { AdMob } from "@capacitor-community/admob";
 
 const INTERSTITIAL_AD_UNIT_ID = {
   android: "ca-app-pub-5173827714526228/4241115991",
-  // TODO_IOS_ADMOB: replace with the real iOS interstitial ad unit ID from
-  // the AdMob console once the iOS app is registered there.
-  ios: "ca-app-pub-3940256099942544/4411468910", // Google's public iOS test interstitial unit
+  ios: "ca-app-pub-5173827714526228/5469889411",
 };
 const COLD_START_SHOW_PROBABILITY = 0.3;
 

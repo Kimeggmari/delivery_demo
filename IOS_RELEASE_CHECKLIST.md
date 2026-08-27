@@ -16,13 +16,13 @@ Developer 계정이 있어야만 할 수 있는 작업입니다.
 
 - [ ] **Apple Developer Program 가입** (developer.apple.com, 연 $99). 개인 가입은 즉시~수 시간,
       법인 가입은 1~2일 걸릴 수 있음.
-- [ ] **AdMob 콘솔(apps.admob.com)에 iOS 앱 등록** → iOS용 App ID + 전면 광고 단위(ad unit) 생성.
-      기존 Android 광고 단위(`ca-app-pub-5173827714526228/4241115991`)는 iOS에서 재사용 불가 —
-      플랫폼마다 별도 등록 필요.
-      - iOS App ID를 [ios/App/App/Info.plist](ios/App/App/Info.plist)의
-        `GADApplicationIdentifier` 값(`ca-app-pub-5173827714526228~REPLACE_WITH_IOS_ADMOB_APP_ID`)에 반영
-      - iOS 전면 광고 단위 ID를 [src/lib/ads.js](src/lib/ads.js)의 `INTERSTITIAL_AD_UNIT_ID.ios`
-        (현재 Google 공식 테스트 ID로 채워둔 placeholder)에 반영
+- [x] **AdMob 콘솔(apps.admob.com)에 iOS 앱 등록** → iOS용 App ID + 전면 광고 단위(ad unit) 생성.
+      (2026-08-27 완료) App ID `ca-app-pub-5173827714526228~5088841963`를
+      [ios/App/App/Info.plist](ios/App/App/Info.plist)의 `GADApplicationIdentifier`에,
+      전면 광고 단위 ID `ca-app-pub-5173827714526228/5469889411`를
+      [src/lib/ads.js](src/lib/ads.js)의 `INTERSTITIAL_AD_UNIT_ID.ios`에 반영 완료. 앱은 새로 등록된
+      상태라 "검토 필요(승인 대기)" 상태이며, 앱스토어 심사 제출 후 며칠 내로 AdMob 쪽 검토도
+      자동으로 진행됩니다.
 - [ ] **Google Cloud 콘솔(console.cloud.google.com)에서 "Maps SDK for iOS" 활성화 + API 키 발급**
       (배달 추적 화면의 실제 지도는 앱에서만 표시되고, 웹 빌드에는 적용되지 않음).
       - 키를 [ios/App/App/AppDelegate.swift](ios/App/App/AppDelegate.swift)의
