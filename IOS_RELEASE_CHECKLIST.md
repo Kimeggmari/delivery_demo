@@ -56,11 +56,11 @@ pod --version || sudo gem install cocoapods
 Xcode, CocoaPods 둘 다 없다면 이 단계에서 App Store에서 Xcode 설치부터 해야 하며, 그 경우 3시간
 예산이 부족할 수 있습니다 (Xcode 설치만 30분~1시간+).
 
-### 2. 의존성 설치 & AdMob ID 반영 (10분)
+### 2. 의존성 설치 (5분)
 ```bash
 npm install
 ```
-- 위 "지금 당장" 항목에서 받아온 iOS AdMob App ID / 광고 단위 ID를 `Info.plist`와 `ads.js`에 채워넣기.
+- iOS AdMob App ID / 광고 단위 ID는 이미 `Info.plist`와 `ads.js`에 반영되어 있음 (위 "지금 당장" 참고) — 확인만.
 
 ### 3. 웹 빌드 → iOS 동기화 → CocoaPods (10분)
 ```bash
