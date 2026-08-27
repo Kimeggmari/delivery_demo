@@ -32,12 +32,9 @@
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-5173827714526228~5196265164" />
 
-        <!-- TODO_GOOGLE_MAPS: replace with a real key from
-             https://console.cloud.google.com/ ("Maps SDK for Android" enabled),
-             and update src/config/maps.js to match. -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAwCn2T4MKKoPr2NwWUZnm82UMJqDoZP-E" />
+            android:value="AIzaSyB8cYpEuWJIpVKqO-FD_911CPeiL9rj7JA" />
     </application>
 
     <!-- Permissions -->

@@ -8,7 +8,7 @@
 // 3. Replace the matching placeholder in
 //    android/app/src/main/AndroidManifest.xml (com.google.android.geo.API_KEY)
 //    and ios/App/App/AppDelegate.swift (GMSServices.provideAPIKey).
-export const GOOGLE_MAPS_API_KEY = "AIzaSyAwCn2T4MKKoPr2NwWUZnm82UMJqDoZP-E";
+export const GOOGLE_MAPS_API_KEY = "AIzaSyB8cYpEuWJIpVKqO-FD_911CPeiL9rj7JA";
 
 // Delivery addresses typed at checkout are fake, so the tracking map always
 // shows a made-up route. The destination is the device's real location when
