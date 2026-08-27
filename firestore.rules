@@ -2,6 +2,17 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // A report: the ONLY thing changing is reportedBy, gaining exactly the
+    // caller's own uid (via arrayUnion) and only once per uid — used to
+    // gate the report-count "update" on the otherwise edit-locked shared
+    // restaurant/menu docs below.
+    function isReportOnlyUpdate() {
+      return request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reportedBy'])
+        && !(request.auth.uid in resource.data.reportedBy)
+        && request.resource.data.reportedBy == resource.data.reportedBy.concat([request.auth.uid]);
+    }
+
     // Private per-device data: order history + achievements, scoped to the
     // anonymous auth uid of the device that wrote it.
     match /users/{uid} {
@@ -14,19 +25,20 @@ service cloud.firestore {
 
     // Shared "add your own restaurant/menu" feature: anyone can read, only
     // the creator can delete their own entry, edits are disallowed (delete
-    // + recreate instead of drift between client and rules validation).
+    // + recreate instead of drift between client and rules validation) —
+    // except reporting, which is the one allowed "update".
     match /customRestaurants/{id} {
       allow read: if true;
       allow create: if request.auth != null && request.resource.data.addedBy == request.auth.uid;
       allow delete: if request.auth != null && resource.data.addedBy == request.auth.uid;
-      allow update: if false;
+      allow update: if isReportOnlyUpdate();
     }
 
     match /customMenus/{id} {
       allow read: if true;
       allow create: if request.auth != null && request.resource.data.addedBy == request.auth.uid;
       allow delete: if request.auth != null && resource.data.addedBy == request.auth.uid;
-      allow update: if false;
+      allow update: if isReportOnlyUpdate();
     }
   }
 }

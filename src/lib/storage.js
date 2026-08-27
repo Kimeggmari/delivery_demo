@@ -6,11 +6,16 @@
 
 import { db, authReady } from "./firebase";
 import {
-  collection, doc, setDoc, getDoc, getDocs, deleteDoc,
-  query, where, orderBy, limit, onSnapshot, serverTimestamp, writeBatch,
+  collection, doc, setDoc, updateDoc, getDoc, getDocs, deleteDoc,
+  query, where, orderBy, limit, onSnapshot, serverTimestamp, writeBatch, arrayUnion,
 } from "firebase/firestore";
 
 export const HISTORY_LIMIT = 50;
+
+// A custom restaurant/menu is hidden client-side once this many distinct
+// users have reported it. Deliberately simple (no server-side moderation,
+// no image scanning) — a low-cost deterrent, not abuse-proof.
+export const REPORT_HIDE_THRESHOLD = 3;
 
 export async function loadHistory() {
   const uid = await authReady;
@@ -69,6 +74,7 @@ export async function addCustomRestaurant(restaurant) {
   await setDoc(doc(db, "customRestaurants", String(restaurant.id)), {
     ...restaurant,
     addedBy: uid,
+    reportedBy: [],
     createdAt: serverTimestamp(),
   });
 }
@@ -79,11 +85,25 @@ export async function deleteCustomRestaurant(id) {
   await Promise.allSettled(snap.docs.map(d => deleteDoc(d.ref)));
 }
 
+// Report a custom restaurant (also hides its embedded first menu, since
+// they were created together). Each uid can only report once — the
+// security rules reject a second attempt from the same uid.
+export async function reportCustomRestaurant(id) {
+  const uid = await authReady;
+  await updateDoc(doc(db, "customRestaurants", String(id)), { reportedBy: arrayUnion(uid) });
+}
+
+export async function reportCustomMenu(id) {
+  const uid = await authReady;
+  await updateDoc(doc(db, "customMenus", String(id)), { reportedBy: arrayUnion(uid) });
+}
+
 export async function addCustomMenu(menu) {
   const uid = await authReady;
   await setDoc(doc(db, "customMenus", String(menu.id)), {
     ...menu,
     addedBy: uid,
+    reportedBy: [],
     createdAt: serverTimestamp(),
   });
 }

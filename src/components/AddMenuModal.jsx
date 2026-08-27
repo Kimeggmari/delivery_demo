@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { pick } from "../config/i18n";
+import { compressImageFile } from "../lib/imageCompress";
 
 // Bottom-sheet form for adding one extra menu item to an existing
 // restaurant (built-in or custom) — the second half of the
@@ -18,14 +19,26 @@ export default function AddMenuModal({ restaurant, onClose, onCreate, brand, t, 
   const [menuName, setMenuName] = useState("");
   const [menuDesc, setMenuDesc] = useState("");
   const [menuPrice, setMenuPrice] = useState("");
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const submit = () => {
+  const pickPhoto = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
+  const submit = async () => {
     const mName = menuName.trim();
     const mPrice = parseInt(menuPrice, 10);
     if (!mName || !mPrice || mPrice <= 0) {
       alert(t("menuFormRequiredAlert"));
       return;
     }
+    setSubmitting(true);
+    const photo = photoFile ? await compressImageFile(photoFile).catch(() => null) : null;
     onCreate({
       id: makeCustomId("custom_m"),
       restaurantId: restaurant.id,
@@ -34,6 +47,7 @@ export default function AddMenuModal({ restaurant, onClose, onCreate, brand, t, 
       price: mPrice,
       options: {},
       isCustom: true,
+      ...(photo ? { photo } : {}),
     });
   };
 
@@ -58,11 +72,25 @@ export default function AddMenuModal({ restaurant, onClose, onCreate, brand, t, 
             <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuPriceLabel")}</label>
             <input value={menuPrice} onChange={e => setMenuPrice(e.target.value)} placeholder={t("menuPricePh")} type="number" inputMode="numeric" style={fieldStyle} />
           </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuPhotoLabel")}</label>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+              <div style={{ width: 56, height: 56, borderRadius: 12, overflow: "hidden", flexShrink: 0, background: "#f3f4f6", border: "1px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {photoPreview ? (
+                  <img src={photoPreview} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  <span style={{ fontSize: 20 }}>📷</span>
+                )}
+              </div>
+              <span style={{ fontSize: 12, color: "#6b7280", fontWeight: 700 }}>{photoPreview ? t("menuPhotoChange") : t("menuPhotoHint")}</span>
+              <input type="file" accept="image/*" onChange={pickPhoto} style={{ display: "none" }} />
+            </label>
+          </div>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 10, marginTop: 20 }}>
           <button onClick={onClose} style={{ border: "1px solid #e5e7eb", background: "#fff", color: "#374151", borderRadius: 14, padding: "13px 10px", fontWeight: 800, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>{t("cancelBtn")}</button>
-          <button onClick={submit} style={{ border: "none", background: brand, color: "#fff", borderRadius: 14, padding: "13px 10px", fontWeight: 900, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>{t("createBtn")}</button>
+          <button onClick={submit} disabled={submitting} style={{ border: "none", background: brand, color: "#fff", borderRadius: 14, padding: "13px 10px", fontWeight: 900, fontSize: 14, cursor: submitting ? "default" : "pointer", opacity: submitting ? 0.7 : 1, fontFamily: "inherit" }}>{t("createBtn")}</button>
         </div>
       </div>
     </div>

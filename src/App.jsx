@@ -19,8 +19,9 @@ import {
   HISTORY_LIMIT, loadHistory, saveOrderRecord, clearHistory,
   loadUnlocked, saveUnlocked,
   computeStats, buildOrderRecord,
-  subscribeCustomRestaurants, addCustomRestaurant, deleteCustomRestaurant,
-  subscribeCustomMenus, addCustomMenu, deleteCustomMenu,
+  subscribeCustomRestaurants, addCustomRestaurant, deleteCustomRestaurant, reportCustomRestaurant,
+  subscribeCustomMenus, addCustomMenu, deleteCustomMenu, reportCustomMenu,
+  REPORT_HIDE_THRESHOLD,
 } from "./lib/storage";
 import { authReady } from "./lib/firebase";
 import { computeNewUnlocks } from "./config/achievements";
@@ -542,7 +543,7 @@ function OptionSheet({ menu, onClose, onConfirm, brand, t, lang }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 14, marginBottom: 20 }}>
           <div style={{ display: "flex", gap: 14, minWidth: 0, flex: 1 }}>
             <MenuImage
-              src={getMenuImageSrc(menu.id)}
+              src={menu.photo || getMenuImageSrc(menu.id)}
               alt={pick(menu.name, lang)}
               width={96}
               height={96}
@@ -690,10 +691,16 @@ export default function App() {
 
   // Merge user-created restaurants/menus into the built-in catalog so the
   // rest of the app (search, cart, checkout, history) treats them the same.
+  const customMenuIds = useMemo(() => new Set(customMenus.map(m => m.id)), [customMenus]);
+
+  const isReported = (item) => (item.reportedBy || []).length >= REPORT_HIDE_THRESHOLD;
+
   const allRestaurants = useMemo(() => {
-    return [...restaurants, ...customRestaurants].map(r => ({
+    const visibleCustomRestaurants = customRestaurants.filter(r => !isReported(r));
+    const visibleCustomMenus = customMenus.filter(m => !isReported(m));
+    return [...restaurants, ...visibleCustomRestaurants].map(r => ({
       ...r,
-      menus: [...r.menus, ...customMenus.filter(m => m.restaurantId === r.id)],
+      menus: [...r.menus, ...visibleCustomMenus.filter(m => m.restaurantId === r.id)],
     }));
   }, [customRestaurants, customMenus]);
 
@@ -884,6 +891,16 @@ export default function App() {
   const handleDeleteMenu = (id) => {
     if (typeof window !== "undefined" && !window.confirm(t("deleteCustomConfirm"))) return;
     deleteCustomMenu(id).catch(err => console.warn("Failed to delete menu", err));
+  };
+
+  const handleReportRestaurant = (id) => {
+    if (typeof window !== "undefined" && !window.confirm(t("reportConfirm"))) return;
+    reportCustomRestaurant(id).catch(err => console.warn("Failed to report restaurant", err));
+  };
+
+  const handleReportMenu = (id) => {
+    if (typeof window !== "undefined" && !window.confirm(t("reportConfirm"))) return;
+    reportCustomMenu(id).catch(err => console.warn("Failed to report menu", err));
   };
 
   const filtered = allRestaurants.filter(r => {
@@ -1412,6 +1429,15 @@ export default function App() {
                           style={{ width: 24, height: 24, borderRadius: 999, border: "none", background: "#fef2f2", color: "#dc2626", fontSize: 12, cursor: "pointer", flexShrink: 0 }}
                         >🗑</button>
                       )}
+                      {r.isCustom && r.addedBy !== uid && (
+                        <button
+                          onClick={() => handleReportRestaurant(r.id)}
+                          disabled={(r.reportedBy || []).includes(uid)}
+                          aria-label={t("reportAria")}
+                          title={t("reportAria")}
+                          style={{ width: 24, height: 24, borderRadius: 999, border: "none", background: "#f3f4f6", color: "#6b7280", fontSize: 11, cursor: (r.reportedBy || []).includes(uid) ? "default" : "pointer", opacity: (r.reportedBy || []).includes(uid) ? 0.4 : 1, flexShrink: 0 }}
+                        >🚩</button>
+                      )}
                     </div>
                   </div>
                   <div onClick={() => setReviewTarget(r)} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, cursor: "pointer", padding: "4px 0" }}>
@@ -1431,7 +1457,7 @@ export default function App() {
                         <div key={m.id} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "center", padding: 12, border: "1px solid " + th.line, borderRadius: 14, background: "#fcfcfd" }}>
                           <div style={{ display: "flex", gap: 12, minWidth: 0 }}>
                             <MenuImage
-                              src={getMenuImageSrc(m.id)}
+                              src={m.photo || getMenuImageSrc(m.id)}
                               alt={pick(m.name, lang)}
                               width={88}
                               height={88}
@@ -1459,6 +1485,15 @@ export default function App() {
                                 title={t("deleteCustomAria")}
                                 style={{ border: "none", background: "none", color: "#dc2626", fontSize: 10, fontWeight: 800, cursor: "pointer", padding: 0, fontFamily: "inherit" }}
                               >🗑 {t("deleteCustomAria")}</button>
+                            )}
+                            {m.isCustom && m.addedBy !== uid && customMenuIds.has(m.id) && (
+                              <button
+                                onClick={() => handleReportMenu(m.id)}
+                                disabled={(m.reportedBy || []).includes(uid)}
+                                aria-label={t("reportAria")}
+                                title={t("reportAria")}
+                                style={{ border: "none", background: "none", color: "#6b7280", fontSize: 10, fontWeight: 800, cursor: (m.reportedBy || []).includes(uid) ? "default" : "pointer", opacity: (m.reportedBy || []).includes(uid) ? 0.4 : 1, padding: 0, fontFamily: "inherit" }}
+                              >🚩 {t("reportAria")}</button>
                             )}
                           </div>
                         </div>
