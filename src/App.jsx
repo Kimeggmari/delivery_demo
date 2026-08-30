@@ -1301,7 +1301,7 @@ export default function App() {
           lang={lang}
         />
       )}
-      {showSponsorModal && !showInfoModal && (
+      {showSponsorModal && !showInfoModal && !isNativeApp && (
         <SponsorModal onClose={() => setShowSponsorModal(false)} t={t} th={th} />
       )}
       {optionTarget && optMenu && (
@@ -1342,7 +1342,7 @@ export default function App() {
       )}
       <div style={css.header}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, maxWidth: 540, margin: "0 auto", minHeight: 32 }}>
-          <div style={{ flex: 1, textAlign: "center", minWidth: 0, padding: "0 4px" }}>
+          <div style={{ flex: 1, textAlign: "left", minWidth: 0, padding: "0 4px" }}>
             <div style={{ fontSize: 14, fontWeight: 900, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               📍 {t("deliveryAddrValue")}
             </div>

@@ -114,9 +114,9 @@ export const dict = {
     completeSavedSuffix: "아끼셨어요!! 🥗",
     completeDemoNote: "데모 주문이라 실제로는 0칼로리!",
     // Footer
-    footerAppInfo: "앱 소개",
-    footerPrivacy: "개인정보처리방침",
-    footerCopy: "© 2025 폭식말고안돼 · 데모 앱",
+    footerAppInfo: "앱소개",
+    footerPrivacy: "개인정보방침",
+    footerCopy: "© 2026 음식만안와요",
     // Info modal
     infoSubtitle: "배달 중독 치료 데모 앱",
     infoReasonTitle: "🎯 이 앱을 만든 이유",
