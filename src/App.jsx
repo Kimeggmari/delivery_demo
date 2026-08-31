@@ -375,12 +375,15 @@ function SponsorModal({ onClose, t, th }) {
 function PrivacyPage({ onBack, th, t, lang }) {
   const sections = lang === "en" ? [
     {
-      title: "1. Personal data we collect",
+      title: "1. Information we collect",
       content: (
         <>
-          <p>FoodNeverArrives <strong>does not collect or store any personal data</strong> on a server.</p>
-          <p>Anything you type on the checkout form (name, address, phone) is used only to render the screen during the current session — it never leaves your device.</p>
-          <p>Refreshing or closing the app clears every field immediately.</p>
+          <p>FoodNeverArrives has <strong>no sign-up or login</strong>. It stores a limited set of data on a server (Google Firebase / Firestore), listed below.</p>
+          <p>Each device is identified only by a randomly-generated <strong>anonymous ID</strong> that contains no name, email, or other identifying information.</p>
+          <p>· <strong>Order history and achievements</strong> — items, prices, delivery mode, and timestamps from demo orders. Tied only to your anonymous ID and never shown to other users.<br />
+          · <strong>Restaurants/menus you submit yourself</strong> (the "Add your own restaurant" feature) — name, description, price, and any photo you attach. Once approved, this content is <strong>public to all users</strong>, and is automatically hidden once enough users report it as inappropriate.</p>
+          <p><strong>The name, address, and phone number you type on the checkout form are never sent to or stored on a server — they stay on your device only</strong> and disappear as soon as you refresh or close the app.</p>
+          <p>The Android app may use Google Play Integrity (Firebase App Check) to verify requests come from a genuine, unmodified copy of the app. This does not identify you or your device.</p>
         </>
       ),
     },
@@ -388,9 +391,10 @@ function PrivacyPage({ onBack, th, t, lang }) {
       title: "2. Cookies & ads",
       content: (
         <>
-          <p>The Service may show ads via <strong>Google AdSense</strong>, which can use cookies or similar technologies to personalize them.</p>
+          <p>The web version may show ads via <strong>Google AdSense</strong>, which can use cookies or similar technologies to personalize them.</p>
+          <p><strong>The Android and iOS apps may show interstitial ads via Google AdMob.</strong> A full-screen ad may appear with some probability when the app launches. AdMob may use an advertising identifier (Android Advertising ID / iOS IDFA) to personalize these ads.</p>
+          <p>On iOS, the app requests App Tracking Transparency (ATT) permission before using this identifier. The app works the same whether or not you grant this permission.</p>
           <p>See <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb" }}>Google's advertising policies</a> for details.</p>
-          <p><strong>Coupang Partners</strong> referral ads may also appear; clicks or purchases through those links may earn a small commission, and Coupang may process some data per its own policies.</p>
         </>
       ),
     },
@@ -398,7 +402,8 @@ function PrivacyPage({ onBack, th, t, lang }) {
       title: "3. Third-party services",
       content: (
         <>
-          <p>This app is hosted on <strong>Vercel</strong>, which automatically captures basic server logs (IP, timestamps, browser info) per its own policy. The operator does not collect these directly.</p>
+          <p>The web version is hosted on <strong>Vercel</strong>, which automatically captures basic server logs (IP, timestamps, browser info) per its own policy. The operator does not collect these directly.</p>
+          <p>The order history, achievements, and user-submitted content described in Section 1 are stored using <strong>Google Firebase</strong> (Firestore, Authentication). The apps also communicate with Google AdMob to display ads. See <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb" }}>Firebase's privacy policy</a> for details.</p>
         </>
       ),
     },
@@ -429,12 +434,15 @@ function PrivacyPage({ onBack, th, t, lang }) {
     },
   ] : [
     {
-      title: "1. 수집하는 개인정보",
+      title: "1. 수집하는 정보",
       content: (
         <>
-          <p>음식만안와요는 <strong>어떠한 개인정보도 수집하거나 서버에 저장하지 않습니다.</strong></p>
-          <p>주문서 작성 화면에서 입력하는 이름, 주소, 연락처 등의 정보는 해당 세션 내에서만 화면 표시 목적으로 사용되며, 외부 서버로 전송되거나 저장되지 않습니다.</p>
-          <p>앱을 새로고침하거나 종료하면 입력된 모든 정보는 즉시 삭제됩니다.</p>
+          <p>음식만안와요는 <strong>회원가입·로그인 없이</strong> Google Firebase(Firestore)를 통해 아래 정보만 서버에 저장합니다.</p>
+          <p>기기마다 이름 등 신원 정보 없이 임의로 발급되는 <strong>익명 식별자</strong>로 구분되며, 이 식별자에는 실명·이메일 등 신원을 알 수 있는 정보가 전혀 포함되지 않습니다.</p>
+          <p>· <strong>주문 기록·업적</strong> — 데모 주문 시 담은 메뉴, 가격, 배달 방식, 시간 등. 익명 식별자에만 연결되며 다른 이용자에게 공개되지 않습니다.<br />
+          · <strong>이용자가 직접 등록한 음식점·메뉴 정보</strong>("내 식당 추가" 기능) — 이름, 설명, 가격, 첨부한 사진 등. 관리자 승인 후 <strong>모든 이용자에게 공개</strong>되며, 부적절한 신고가 누적되면 자동으로 숨김 처리됩니다.</p>
+          <p><strong>주문서 작성 화면에서 입력하는 이름, 주소, 연락처는 서버로 전송되거나 저장되지 않고 기기에만 남습니다.</strong> 앱을 새로고침하거나 종료하면 즉시 사라집니다.</p>
+          <p>Android 앱은 정상적으로 배포된 앱에서의 요청인지 확인하기 위해 Google Play Integrity(Firebase App Check)를 사용할 수 있습니다. 이는 기기나 이용자를 식별하는 목적이 아닙니다.</p>
         </>
       ),
     },
@@ -442,9 +450,10 @@ function PrivacyPage({ onBack, th, t, lang }) {
       title: "2. 쿠키 및 광고",
       content: (
         <>
-          <p>본 서비스는 <strong>Google AdSense</strong>를 통해 광고를 제공할 수 있습니다. Google AdSense는 쿠키 또는 유사 기술을 사용하여 광고를 맞춤화할 수 있습니다.</p>
-          <p>Google의 광고 쿠키 사용에 관한 자세한 내용은 <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb" }}>Google 광고 정책</a>을 참고하세요.</p>
-          <p>또한 <strong>쿠팡파트너스</strong> 제휴 광고가 표시될 수 있으며, 해당 링크 클릭 또는 구매 시 운영자에게 소정의 수수료가 지급됩니다. 쿠팡파트너스 이용 과정에서 쿠팡의 정책에 따라 일부 데이터가 처리될 수 있습니다.</p>
+          <p>웹 버전(음식만안와요.com)은 <strong>Google AdSense</strong>를 통해 광고를 제공할 수 있습니다. Google AdSense는 쿠키 또는 유사 기술을 사용하여 광고를 맞춤화할 수 있습니다.</p>
+          <p><strong>Android / iOS 앱 버전은 Google AdMob을 통해 전면 광고(interstitial ad)를 표시할 수 있습니다.</strong> 앱 실행 시 일정 확률로 광고가 노출되며, AdMob은 광고 개인화를 위해 광고 식별자(Android Advertising ID, iOS IDFA 등)를 사용할 수 있습니다.</p>
+          <p>iOS에서는 앱이 광고 식별자를 사용하기 전에 iOS의 App Tracking Transparency(ATT) 권한 요청을 통해 동의를 구하며, 동의하지 않아도 앱의 다른 기능은 동일하게 이용할 수 있습니다.</p>
+          <p>Google의 광고 데이터 사용에 관한 자세한 내용은 <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb" }}>Google 광고 정책</a>을 참고하세요.</p>
         </>
       ),
     },
@@ -452,7 +461,8 @@ function PrivacyPage({ onBack, th, t, lang }) {
       title: "3. 제3자 서비스",
       content: (
         <>
-          <p>본 서비스는 <strong>Vercel</strong>을 통해 호스팅됩니다. Vercel은 서비스 운영을 위해 서버 접속 로그(IP 주소, 접속 시간, 브라우저 정보 등)를 자동으로 수집할 수 있습니다. 이는 서비스 운영자가 직접 수집하는 것이 아니며, Vercel의 개인정보처리방침에 따라 관리됩니다.</p>
+          <p>웹 버전은 <strong>Vercel</strong>을 통해 호스팅됩니다. Vercel은 서비스 운영을 위해 서버 접속 로그(IP 주소, 접속 시간, 브라우저 정보 등)를 자동으로 수집할 수 있습니다. 이는 서비스 운영자가 직접 수집하는 것이 아니며, Vercel의 개인정보처리방침에 따라 관리됩니다.</p>
+          <p>1번 항목에 안내된 주문 기록·업적·이용자 등록 콘텐츠는 <strong>Google Firebase</strong>(Firestore, Authentication)에 저장됩니다. 광고 표시를 위해서는 Google AdMob과 통신합니다. Firebase의 개인정보 처리에 대한 자세한 내용은 <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb" }}>Firebase 개인정보처리방침</a>을 참고하세요.</p>
         </>
       ),
     },

@@ -126,12 +126,12 @@ export const dict = {
       "음식만안와요는 \"오늘 뭐 먹지?\"라는 고민을 하는 순간, 배달앱 대신 이 앱을 열어 실제 주문하는 것처럼 메뉴를 탐색하고, 그 경험만으로 만족감을 얻을 수 있도록 설계됐어요. 주문 완료 후 화면에 표시되는 \"아낀 칼로리\"가 이 앱의 핵심 메시지입니다.",
     infoFeaturesTitle: "✨ 주요 기능",
     infoFeatures: [
-      { emoji: "🍽️", title: "15개 음식점 · 40개 이상 메뉴", desc: "치킨, 라멘, 파스타, 마라탕, 초밥, 피자 등 다양한 카테고리의 메뉴를 실제처럼 탐색할 수 있어요." },
+      { emoji: "🍽️", title: "19개 음식점 · 60개 이상 메뉴", desc: "치킨, 라멘, 파스타, 마라탕, 초밥, 피자 등 다양한 카테고리의 메뉴를 실제처럼 탐색할 수 있어요." },
       { emoji: "🛒", title: "장바구니 & 옵션 선택", desc: "맛 선택, 사이즈, 토핑 추가 등 실제 배달앱과 동일한 옵션 시스템을 체험할 수 있어요." },
       { emoji: "🗺️", title: "실시간 배달 추적 (데모)", desc: "토끼배달·거북이배달 두 가지 모드로 라이더 위치가 이동하는 가상 지도를 보여줘요." },
       { emoji: "🔥", title: "칼로리 절약 확인", desc: "주문 완료 후 내가 선택한 메뉴의 칼로리 합산값을 '아낀 칼로리'로 보여줘요." },
       { emoji: "🌐", title: "한국어 / English 지원", desc: "헤더의 KO/EN 버튼으로 언어를 즉시 전환할 수 있어요." },
-      { emoji: "🏪", title: "내 식당 추가 (사진 포함)", desc: "나만의 음식점·메뉴를 사진과 함께 등록하면 다른 이용자에게도 실시간으로 공유돼요. 부적절한 등록은 신고하면 자동으로 숨겨져요." },
+      { emoji: "🏪", title: "내 식당 추가 (사진 포함)", desc: "나만의 음식점·메뉴를 사진과 함께 등록해보세요. 관리자 승인 후 다른 이용자에게 공유되고, 부적절한 등록은 신고하면 자동으로 숨겨져요." },
       { emoji: "🧾", title: "주문 기록 & 업적 배지", desc: "지금까지의 데모 주문 내역과 아낀 칼로리를 모아보고, 조건을 채우면 업적 배지를 모을 수 있어요." },
       { emoji: "🔔", title: "배달완료 알림", desc: "가상 배달이 끝나면 알림으로 알려드려요." },
     ],
@@ -153,7 +153,7 @@ export const dict = {
     ],
     infoAdsTitle: "📢 광고 안내",
     infoAds:
-      "주문 완료 화면에는 쿠팡파트너스 광고가 표시될 수 있습니다. 이 링크를 통해 구매가 이루어질 경우 운영자에게 소정의 수수료가 지급됩니다. 광고 수익은 앱 운영 및 서버 비용에 사용됩니다.",
+      "웹 버전은 Google AdSense, 앱 버전은 Google AdMob을 통해 광고가 표시될 수 있습니다. 광고 수익은 앱 운영 및 서버 비용에 사용됩니다.",
     infoContactTitle: "📬 문의 및 피드백",
     infoContact:
       "앱 사용 중 불편한 점, 버그 제보, 개선 의견은 언제든지 아래 이메일로 보내주세요. 소중한 피드백은 앱 개선에 적극 반영됩니다.",
@@ -177,7 +177,7 @@ export const dict = {
     privacyTitle: "개인정보처리방침",
     privacyIntro:
       " (이하 \"서비스\")는 이용자의 개인정보를 중요하게 생각합니다. 본 방침은 서비스가 어떤 정보를 수집·이용·보관하는지에 대해 명확하게 안내합니다.",
-    privacyUpdated: "최종 업데이트: 2025년 1월",
+    privacyUpdated: "최종 업데이트: 2026년 8월",
     privacyBack: "← 앱으로 돌아가기",
     // Tracking text variants
     trackRabbitFar: "토끼 라이더가 엄청 빠르게 달리고 있어요!",
@@ -429,12 +429,12 @@ export const dict = {
       "Whenever \"what should I eat?\" pops into your head, open FoodNeverArrives instead of a real delivery app and shop a virtual cart. The \"calories saved\" number you see at the end is the whole point.",
     infoFeaturesTitle: "✨ Highlights",
     infoFeatures: [
-      { emoji: "🍽️", title: "15 restaurants · 40+ dishes", desc: "Browse a realistic spread across fried chicken, ramen, pasta, mala, sushi, pizza and more." },
+      { emoji: "🍽️", title: "19 restaurants · 60+ dishes", desc: "Browse a realistic spread across fried chicken, ramen, pasta, mala, sushi, pizza and more." },
       { emoji: "🛒", title: "Cart & options", desc: "Pick spice level, size, and add-on toppings — just like the real apps." },
       { emoji: "🗺️", title: "Live delivery tracking (demo)", desc: "Watch a courier move on a fake map in Rabbit or Turtle mode." },
       { emoji: "🔥", title: "Calorie savings", desc: "See the total calories of everything you almost ordered — but didn't." },
       { emoji: "🌐", title: "Korean / English", desc: "Toggle the language instantly with the KO/EN button in the header." },
-      { emoji: "🏪", title: "Add your own restaurant (with photos)", desc: "Add your own restaurant or dish with a photo, and it's shared with every other user in real time. Reported items are auto-hidden." },
+      { emoji: "🏪", title: "Add your own restaurant (with photos)", desc: "Add your own restaurant or dish with a photo — once the admin approves it, it's shared with every other user. Reported items are auto-hidden." },
       { emoji: "🧾", title: "Order history & achievement badges", desc: "Browse your past demo orders and saved calories, and unlock achievement badges as you go." },
       { emoji: "🔔", title: "Delivery-complete notification", desc: "Get notified the moment your (fake) delivery arrives." },
     ],
@@ -456,7 +456,7 @@ export const dict = {
     ],
     infoAdsTitle: "📢 About ads",
     infoAds:
-      "The completion screen may show Coupang Partners ads. If a purchase is made through that link, a small commission supports running this app.",
+      "The web version may show ads via Google AdSense, and the app versions via Google AdMob. Ad revenue helps cover running and server costs.",
     infoContactTitle: "📬 Contact & feedback",
     infoContact:
       "Bugs, ideas, complaints — all welcome. Email the address below and we'll read every message.",
@@ -480,7 +480,7 @@ export const dict = {
     privacyTitle: "Privacy Policy",
     privacyIntro:
       " (the \"Service\") takes your privacy seriously. This policy explains exactly what information the Service collects, uses, and stores.",
-    privacyUpdated: "Last updated: January 2025",
+    privacyUpdated: "Last updated: August 2026",
     privacyBack: "← Back to the app",
     // Tracking variants
     trackRabbitFar: "The rabbit courier is sprinting your way!",
