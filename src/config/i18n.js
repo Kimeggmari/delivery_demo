@@ -248,7 +248,15 @@ export const dict = {
     minOrderBannerTitle: "최소주문금액을 채워주세요",
     minOrderShortfallLine: (name, current, needed) => `${name} · ${current} / ${needed}`,
     minOrderBlockedAlert: "최소주문금액을 채워야 주문할 수 있어요.",
-    // Add restaurant
+    // Add restaurant/menu (separate page)
+    addContentBtn: "🏪+ 내 식당/메뉴 추가",
+    addContentPageTitle: "내 식당/메뉴 추가",
+    addRestaurantTab: "🏪 식당 추가",
+    addMenuTab: "🍴 메뉴 추가",
+    addRestaurantPageDesc: "새로운 식당을 등록해요. 등록 후 관리자 승인이 되면 모두에게 보여요.",
+    addMenuPageDesc: "메뉴를 추가할 식당을 골라주세요.",
+    addMenuSearchPh: "식당 이름으로 검색",
+    addMenuNoRestaurants: "일치하는 식당이 없어요.",
     addRestaurantBtn: "🏪+ 내 식당 추가",
     addRestaurantTitle: "내 식당 추가하기 🏪",
     restaurantNameLabel: "식당 이름",
@@ -543,7 +551,15 @@ export const dict = {
     minOrderBannerTitle: "Add more to meet the minimum order",
     minOrderShortfallLine: (name, current, needed) => `${name} · ${current} / ${needed}`,
     minOrderBlockedAlert: "You need to meet the minimum order amount to check out.",
-    // Add restaurant
+    // Add restaurant/menu (separate page)
+    addContentBtn: "🏪+ Add restaurant/dish",
+    addContentPageTitle: "Add restaurant/dish",
+    addRestaurantTab: "🏪 Add restaurant",
+    addMenuTab: "🍴 Add dish",
+    addRestaurantPageDesc: "Register a new restaurant. It'll show to everyone once the admin approves it.",
+    addMenuPageDesc: "Pick a restaurant to add a dish to.",
+    addMenuSearchPh: "Search by restaurant name",
+    addMenuNoRestaurants: "No matching restaurants.",
     addRestaurantBtn: "🏪+ Add your restaurant",
     addRestaurantTitle: "Add your restaurant 🏪",
     restaurantNameLabel: "Restaurant name",

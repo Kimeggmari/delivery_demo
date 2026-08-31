@@ -9,6 +9,7 @@ import AchievementToast from "./components/AchievementToast";
 import NotificationBanner from "./components/NotificationBanner";
 import AddRestaurantModal from "./components/AddRestaurantModal";
 import AddMenuModal from "./components/AddMenuModal";
+import AddContentPage from "./components/AddContentPage";
 import AdminPanel from "./components/AdminPanel";
 import TrackingMap from "./components/TrackingMap";
 import { getMenuImageSrc } from "./config/menuImages";
@@ -1006,6 +1007,49 @@ export default function App() {
     );
   }
 
+  if (page === "addContent") {
+    return (
+      <>
+        <style>{globalStyle}</style>
+        <AddContentPage
+          onBack={() => setPage("order")}
+          allRestaurants={allRestaurants}
+          lang={lang}
+          t={t}
+          th={th}
+          onOpenAddRestaurant={() => setShowAddRestaurant(true)}
+          onOpenAddMenu={(r) => setAddMenuTarget(r)}
+        />
+        {showAddRestaurant && (
+          <AddRestaurantModal
+            onClose={() => setShowAddRestaurant(false)}
+            onCreate={(r) => {
+              addCustomRestaurant(r).catch(err => console.warn("Failed to add restaurant", err));
+              setShowAddRestaurant(false);
+              setPage("order");
+            }}
+            brand={th.primaryBtn}
+            t={t}
+          />
+        )}
+        {addMenuTarget && (
+          <AddMenuModal
+            restaurant={addMenuTarget}
+            onClose={() => setAddMenuTarget(null)}
+            onCreate={(m) => {
+              addCustomMenu(m).catch(err => console.warn("Failed to add menu", err));
+              setAddMenuTarget(null);
+              setPage("order");
+            }}
+            brand={th.primaryBtn}
+            t={t}
+            lang={lang}
+          />
+        )}
+      </>
+    );
+  }
+
   if (page === "history") {
     return (
       <>
@@ -1382,30 +1426,6 @@ export default function App() {
           lang={lang}
         />
       )}
-      {showAddRestaurant && (
-        <AddRestaurantModal
-          onClose={() => setShowAddRestaurant(false)}
-          onCreate={(r) => {
-            addCustomRestaurant(r).catch(err => console.warn("Failed to add restaurant", err));
-            setShowAddRestaurant(false);
-          }}
-          brand={th.primaryBtn}
-          t={t}
-        />
-      )}
-      {addMenuTarget && (
-        <AddMenuModal
-          restaurant={addMenuTarget}
-          onClose={() => setAddMenuTarget(null)}
-          onCreate={(m) => {
-            addCustomMenu(m).catch(err => console.warn("Failed to add menu", err));
-            setAddMenuTarget(null);
-          }}
-          brand={th.primaryBtn}
-          t={t}
-          lang={lang}
-        />
-      )}
       <div style={css.header}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, maxWidth: 540, margin: "0 auto", minHeight: 32 }}>
           <div style={{ flex: 1, textAlign: "left", minWidth: 0, padding: "0 4px" }}>
@@ -1476,9 +1496,9 @@ export default function App() {
               <div style={{ fontSize: 12, color: th.muted, marginTop: 4 }}>{t("restaurantsSub")}</div>
             </div>
             <button
-              onClick={() => setShowAddRestaurant(true)}
+              onClick={() => setPage("addContent")}
               style={{ border: "1px dashed " + th.brand, background: "#fff", color: th.brandDark, borderRadius: 12, padding: "9px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", flexShrink: 0 }}
-            >{t("addRestaurantBtn")}</button>
+            >{t("addContentBtn")}</button>
           </div>
           <div style={{ display: "grid", gap: 12 }}>
             {filtered.length === 0 ? (
@@ -1581,10 +1601,6 @@ export default function App() {
                         </div>
                       );
                     })}
-                    <button
-                      onClick={() => setAddMenuTarget(r)}
-                      style={{ border: "1px dashed #d1d5db", background: "#fafafa", color: "#6b7280", borderRadius: 14, padding: "10px 12px", fontWeight: 800, fontSize: 12, cursor: "pointer", fontFamily: "inherit", textAlign: "center" }}
-                    >{t("addMenuBtn")}</button>
                   </div>
                   </div>
                 </div>
