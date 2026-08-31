@@ -1185,8 +1185,8 @@ export default function App() {
               {cart.map(item => {
                 const label = buildOptLabel(item, t, lang);
                 return (
-                <div key={item.cartKey} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "center", padding: 13, background: "#f9fafb", border: "1px solid #edf0f3", borderRadius: 16 }}>
-                  <div>
+                <div key={item.cartKey} style={{ display: "grid", gridTemplateColumns: "1fr fit-content(120px)", gap: 10, alignItems: "center", padding: 13, background: "#f9fafb", border: "1px solid #edf0f3", borderRadius: 16 }}>
+                  <div style={{ minWidth: 0 }}>
                     <h4 style={{ margin: "0 0 2px", fontWeight: 900, fontSize: 14 }}>{pick(item.name, lang)}</h4>
                     {label && <div style={{ fontSize: 11, color: th.brand, fontWeight: 700, marginBottom: 2 }}>{label}</div>}
                     <div style={{ color: th.muted, fontSize: 12 }}>{pick(item.restaurantName, lang)}</div>
@@ -1196,15 +1196,15 @@ export default function App() {
                       <button onClick={() => changeQty(item.cartKey, 1)} style={{ width: 30, height: 30, borderRadius: 10, border: "none", background: "#e5e7eb", cursor: "pointer", fontWeight: 900, fontFamily: "inherit", fontSize: 15 }}>＋</button>
                     </div>
                   </div>
-                  <div style={{ fontWeight: 900, whiteSpace: "nowrap", fontSize: 15, color: th.text }}>{fmt(item.price * item.qty, lang)}</div>
+                  <div style={{ fontWeight: 900, fontSize: 15, color: th.text, textAlign: "right", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>{fmt(item.price * item.qty, lang)}</div>
                 </div>
               );})}
             </div>
-            <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid " + th.line, display: "grid", gap: 5 }}>
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid " + th.line, display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 5 }}>
               {[[t("productPrice"), fmt(totals.sub, lang)], [t("deliveryFee"), fmt(totals.del, lang)], [t("serviceFee"), fmt(totals.svc, lang)]].map(([k, v]) => (
-                <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: th.muted }}><span>{k}</span><strong style={{ color: th.text }}>{v}</strong></div>
+                <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 10, fontSize: 13, color: th.muted }}><span style={{ flexShrink: 0 }}>{k}</span><strong style={{ color: th.text, display: "block", minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{v}</strong></div>
               ))}
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 17, fontWeight: 900, marginTop: 4, paddingTop: 8, borderTop: "1px solid " + th.line }}><span>{t("totalLabel")}</span><strong style={{ color: th.brand }}>{fmt(totals.total, lang)}</strong></div>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, fontSize: 17, fontWeight: 900, marginTop: 4, paddingTop: 8, borderTop: "1px solid " + th.line }}><span style={{ flexShrink: 0 }}>{t("totalLabel")}</span><strong style={{ color: th.brand, display: "block", minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{fmt(totals.total, lang)}</strong></div>
               <div style={{ fontSize: 13, color: th.brand, fontWeight: 800, marginTop: 6 }}>{t("selectedDelivery")} {mode.emoji} {pick(mode.label, lang)}</div>
             </div>
           </div>
@@ -1279,7 +1279,7 @@ export default function App() {
         )}
         <div style={css.bottomBar}>
           <div style={css.bottomInner}>
-            <div><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>{t("totalLabel")}</span><br /><strong style={{ fontSize: 18, fontWeight: 900, color: th.brand }}>{fmt(totals.total, lang)}</strong></div>
+            <div style={{ minWidth: 0 }}><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>{t("totalLabel")}</span><br /><strong style={{ fontSize: 18, fontWeight: 900, color: th.brand, display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{fmt(totals.total, lang)}</strong></div>
             <button onClick={simulateOrder} style={{ ...css.orderBtn, opacity: unmetMinOrders.length > 0 ? .5 : 1 }}>{t("placeOrder")}</button>
           </div>
         </div>
@@ -1418,7 +1418,7 @@ export default function App() {
                 </div>
                 <div style={{ padding: 14 }}>
                   <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 6 }}>
-                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 900 }}>{pick(r.name, lang)}</h3>
+                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 900, minWidth: 0 }}>{pick(r.name, lang)}</h3>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
                       <div style={{ fontSize: 11, padding: "5px 9px", borderRadius: 999, background: "#f3f4f6", color: "#374151", fontWeight: 800, whiteSpace: "nowrap" }}>{pick(r.category, lang)}</div>
                       {r.isCustom && r.addedBy === uid && (
@@ -1454,7 +1454,7 @@ export default function App() {
                     {r.menus.map(m => {
                       const hasOpts = m.options && (m.options.spicy || m.options.size || (m.options.toppings && m.options.toppings.length > 0));
                       return (
-                        <div key={m.id} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "center", padding: 12, border: "1px solid " + th.line, borderRadius: 14, background: "#fcfcfd" }}>
+                        <div key={m.id} style={{ display: "grid", gridTemplateColumns: "1fr fit-content(120px)", gap: 10, alignItems: "center", padding: 12, border: "1px solid " + th.line, borderRadius: 14, background: "#fcfcfd" }}>
                           <div style={{ display: "flex", gap: 12, minWidth: 0 }}>
                             <MenuImage
                               src={m.photo || getMenuImageSrc(m.id)}
@@ -1464,17 +1464,17 @@ export default function App() {
                               borderRadius={14}
                             />
                             <div style={{ minWidth: 0 }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-                                <div style={{ fontWeight: 800, fontSize: 14 }}>{pick(m.name, lang)}</div>
-                                {m.isCustom && <span style={{ fontSize: 9, fontWeight: 800, color: "#7c3aed", background: "#ede9fe", border: "1px solid #ddd6fe", borderRadius: 999, padding: "1px 6px", whiteSpace: "nowrap" }}>{t("customBadge")}</span>}
+                              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3, minWidth: 0 }}>
+                                <div style={{ fontWeight: 800, fontSize: 14, minWidth: 0 }}>{pick(m.name, lang)}</div>
+                                {m.isCustom && <span style={{ fontSize: 9, fontWeight: 800, color: "#7c3aed", background: "#ede9fe", border: "1px solid #ddd6fe", borderRadius: 999, padding: "1px 6px", whiteSpace: "nowrap", flexShrink: 0 }}>{t("customBadge")}</span>}
                               </div>
                               <div style={{ color: th.muted, fontSize: 12 }}>{pick(m.desc, lang)}</div>
                               <div style={{ color: "#10b981", fontSize: 11, fontWeight: 700, marginTop: 2 }}>🔥 {(menuCalories[m.id] || 600).toLocaleString()}{t("kcal")}</div>
                               {hasOpts && <div style={{ fontSize: 10, color: th.brand, fontWeight: 700, marginTop: 3 }}>{t("optionAvail")}</div>}
                             </div>
                           </div>
-                          <div style={{ display: "grid", justifyItems: "end", gap: 6 }}>
-                            <div style={{ fontWeight: 900, whiteSpace: "nowrap", fontSize: 14 }}>{fmt(m.price, lang)}</div>
+                          <div style={{ display: "grid", justifyItems: "end", gap: 6, maxWidth: 120, minWidth: 0 }}>
+                            <div style={{ fontWeight: 900, fontSize: 14, textAlign: "right", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>{fmt(m.price, lang)}</div>
                             <button onClick={() => openOption(r.id, m.id)} style={{ ...css.addBtn, animation: addedAnim === m.id ? "pop .3s ease" : "none" }}>
                               {addedAnim === m.id ? t("added") : t("add")}
                             </button>
@@ -1515,7 +1515,7 @@ export default function App() {
 
       <div style={css.bottomBar}>
         <div style={css.bottomInner}>
-          <div><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>{t("totalLabel")}</span><br /><strong style={{ fontSize: 18, fontWeight: 900, color: cart.length ? th.brand : th.text }}>{fmt(totals.total, lang)}</strong></div>
+          <div style={{ minWidth: 0 }}><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>{t("totalLabel")}</span><br /><strong style={{ fontSize: 18, fontWeight: 900, color: cart.length ? th.brand : th.text, display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{fmt(totals.total, lang)}</strong></div>
           <button onClick={goToCheckout} style={{ ...css.orderBtn, opacity: cart.length ? 1 : .5 }}>{t("orderBtn")} {cartCount > 0 ? "(" + cartCount + ")" : ""}</button>
         </div>
       </div>
