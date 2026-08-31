@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { GoogleMap } from "@capacitor/google-maps";
 import { GOOGLE_MAPS_API_KEY, DEMO_HOME_COORD, storeCoordNear } from "../config/maps";
+import rabbitRider from "../assets/riders/rabbit-rider.png";
+import turtleRider from "../assets/riders/turtle-rider.png";
 
-const RIDER_EMOJI = { rabbit: "🐇", turtle: "🐢" };
+const RIDER_IMAGE = { rabbit: rabbitRider, turtle: turtleRider };
 const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 
 function getCurrentCoord() {
@@ -24,7 +26,7 @@ function getCurrentCoord() {
 // when available (falling back to a fixed demo coordinate), and the "store"
 // is placed a short fixed distance from it — see storeCoordNear() — so the
 // map always shows a close, sane-looking delivery regardless of where the
-// device actually is. The rider is a plain emoji overlay (not a native
+// device actually is. The rider is a plain image overlay (not a native
 // marker) positioned between the two via the map's own lat/lng <-> screen
 // bounds, so it renders in full color everywhere.
 export default function TrackingMap({ progress, mode, storeLabel }) {
@@ -114,20 +116,21 @@ export default function TrackingMap({ progress, mode, storeLabel }) {
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
       <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
       {screenPath && (
-        <div
+        <img
+          src={RIDER_IMAGE[mode] || RIDER_IMAGE.rabbit}
+          alt=""
           style={{
             position: "absolute",
             left: `${screenPath.from.xPct + (screenPath.to.xPct - screenPath.from.xPct) * progress}%`,
             top: `${screenPath.from.yPct + (screenPath.to.yPct - screenPath.from.yPct) * progress}%`,
             transform: "translate(-50%,-50%)",
-            fontSize: 30,
+            width: 46,
+            height: 46,
             filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.35))",
             transition: "left .8s ease, top .8s ease",
             pointerEvents: "none",
           }}
-        >
-          {RIDER_EMOJI[mode] || RIDER_EMOJI.rabbit}
-        </div>
+        />
       )}
     </div>
   );

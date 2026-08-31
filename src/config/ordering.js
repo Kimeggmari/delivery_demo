@@ -36,7 +36,6 @@ export const deliveryModes = {
     badge: { ko: "급행", en: "Express" },
     heroStart: "#f97316",
     heroEnd: "#ea580c",
-    mapIcon: "🐇",
     completeTitle: { ko: "토끼배달 완료!", en: "Rabbit Delivery complete!" },
     completeDesc: {
       ko: "번개처럼 빠르게 도착한 컨셉의 데모예요 ⚡",
@@ -53,7 +52,6 @@ export const deliveryModes = {
     badge: { ko: "여유", en: "Easy" },
     heroStart: "#16a34a",
     heroEnd: "#15803d",
-    mapIcon: "🐢",
     completeTitle: { ko: "거북이배달 완료!", en: "Turtle Delivery complete!" },
     completeDesc: {
       ko: "천천히 하지만 꾸준히 오는 컨셉의 데모예요 🌿",

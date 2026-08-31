@@ -12,6 +12,8 @@ import AddMenuModal from "./components/AddMenuModal";
 import AddContentPage from "./components/AddContentPage";
 import AdminPanel from "./components/AdminPanel";
 import TrackingMap from "./components/TrackingMap";
+import rabbitRider from "./assets/riders/rabbit-rider.png";
+import turtleRider from "./assets/riders/turtle-rider.png";
 import { getMenuImageSrc } from "./config/menuImages";
 import { deliveryModes, SIZE_OPTIONS, SPICY_OPTIONS, SPICY_LABELS, theme } from "./config/ordering";
 import { calcTotals, fmt } from "./lib/format";
@@ -67,6 +69,8 @@ const thumbGradients = [
   "linear-gradient(135deg,#ffe4e6,#fda4af)",
   "linear-gradient(135deg,#f0fdf4,#bbf7d0)",
 ];
+
+const RIDER_IMAGE = { rabbit: rabbitRider, turtle: turtleRider };
 
 const badgeColors = {
   "인기": { bg: "#fee2e2", color: "#dc2626", border: "#fecaca" },
@@ -1179,7 +1183,11 @@ export default function App() {
                 ))}
                 <div style={{ position: "absolute", zIndex: 2, width: 46, height: 46, borderRadius: "50%", background: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", top: 24, left: 34 }}>🏪</div>
                 <div style={{ position: "absolute", zIndex: 2, width: 46, height: 46, borderRadius: "50%", background: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", right: 30, bottom: 30 }}>🏠</div>
-                <div style={{ position: "absolute", zIndex: 2, width: 54, height: 54, borderRadius: "50%", background: "#111827", color: "#fff", fontSize: 24, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", left: td.bp[0], top: td.bp[1], transform: "translate(-50%,-50%)", transition: "left .8s ease,top .8s ease", animation: "floatBike 2.2s ease-in-out infinite" }}>{mode.mapIcon}</div>
+                <img
+                  src={RIDER_IMAGE[mode.key] || RIDER_IMAGE.rabbit}
+                  alt=""
+                  style={{ position: "absolute", zIndex: 2, width: 60, height: 60, filter: "drop-shadow(0 6px 10px rgba(15,23,42,0.25))", left: td.bp[0], top: td.bp[1], transform: "translate(-50%,-50%)", transition: "left .8s ease,top .8s ease", animation: "floatBike 2.2s ease-in-out infinite" }}
+                />
               </>
             )}
             {!isNativeApp && (
