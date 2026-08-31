@@ -2,4 +2,4 @@
 // moderation rights (approve/reject pending customRestaurants/customMenus).
 // Mirrored manually in firestore.rules' isAdmin() function since security
 // rules can't import this file.
-export const ADMIN_UID = "REPLACE_WITH_YOUR_UID";
+export const ADMIN_UID = "M9CroYw64wejaVzizvTdi1pMA7s1";

@@ -642,12 +642,7 @@ export default function App() {
   const [uid, setUid] = useState(null);
 
   useEffect(() => {
-    authReady.then(u => {
-      setUid(u);
-      // TEMP: reveal this device's uid so it can be hardcoded as ADMIN_UID.
-      // Remove once src/config/admin.js has the real value.
-      console.log("%c[내 UID] " + u, "font-size:14px;color:#ea580c;font-weight:bold");
-    });
+    authReady.then(setUid);
   }, []);
 
   useEffect(() => {

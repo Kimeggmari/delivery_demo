@@ -5,7 +5,7 @@ service cloud.firestore {
     // Firebase anonymous-auth UID of the developer's own device. Mirrors
     // src/config/admin.js by hand — rules can't import that file.
     function isAdmin() {
-      return request.auth != null && request.auth.uid == "REPLACE_WITH_YOUR_UID";
+      return request.auth != null && request.auth.uid == "M9CroYw64wejaVzizvTdi1pMA7s1";
     }
 
     // A report: the ONLY thing changing is reportedBy, gaining exactly the
