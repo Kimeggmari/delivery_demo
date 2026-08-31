@@ -2,10 +2,13 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Firebase anonymous-auth UID of the developer's own device. Mirrors
-    // src/config/admin.js by hand — rules can't import that file.
+    // Firebase anonymous-auth UIDs of the developer's own devices/browsers.
+    // Mirrors src/config/admin.js by hand — rules can't import that file.
     function isAdmin() {
-      return request.auth != null && request.auth.uid == "M9CroYw64wejaVzizvTdi1pMA7s1";
+      return request.auth != null && request.auth.uid in [
+        "M9CroYw64wejaVzizvTdi1pMA7s1", // web browser
+        "sqfzuAly3DYxbZUJyou0qKEbFSA3", // Android app
+      ];
     }
 
     // A report: the ONLY thing changing is reportedBy, gaining exactly the

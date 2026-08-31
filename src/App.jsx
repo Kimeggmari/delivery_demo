@@ -17,7 +17,7 @@ import { deliveryModes, SIZE_OPTIONS, SPICY_OPTIONS, SPICY_LABELS, theme } from 
 import { calcTotals, fmt } from "./lib/format";
 import { dict, makeT, pick } from "./config/i18n";
 import { restaurants } from "./config/restaurants";
-import { ADMIN_UID } from "./config/admin";
+import { isAdminUid } from "./config/admin";
 import {
   HISTORY_LIMIT, loadHistory, saveOrderRecord, clearHistory,
   loadUnlocked, saveUnlocked,
@@ -1409,7 +1409,7 @@ export default function App() {
       {showSponsorModal && !showInfoModal && !isNativeApp && (
         <SponsorModal onClose={() => setShowSponsorModal(false)} t={t} th={th} />
       )}
-      {showAdminPanel && uid === ADMIN_UID && (
+      {showAdminPanel && isAdminUid(uid) && (
         <AdminPanel
           pendingRestaurants={pendingRestaurants}
           pendingMenus={pendingMenus}
@@ -1455,7 +1455,7 @@ export default function App() {
                 <div style={{ position: "absolute", top: -4, right: -4, background: "#facc15", color: "#78350f", fontSize: 9, fontWeight: 900, borderRadius: 99, minWidth: 15, height: 15, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px", border: "1px solid #fff" }}>{history.length}</div>
               )}
             </button>
-            {uid === ADMIN_UID && (
+            {isAdminUid(uid) && (
               <button
                 onClick={() => setShowAdminPanel(true)}
                 style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 13, position: "relative" }}
