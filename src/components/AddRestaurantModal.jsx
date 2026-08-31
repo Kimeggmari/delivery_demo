@@ -55,7 +55,6 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t }) {
       fee: Math.max(0, parseInt(fee, 10) || 0),
       minOrder: Math.max(0, parseInt(minOrder, 10) || 0),
       category: { ko: category.trim() || "기타", en: category.trim() || "Other" },
-      badge: { ko: "내가 추가함", en: "Custom" },
       isCustom: true,
       menus: [{
         id: makeCustomId("custom_m"),

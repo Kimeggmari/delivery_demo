@@ -9,18 +9,20 @@ import AchievementToast from "./components/AchievementToast";
 import NotificationBanner from "./components/NotificationBanner";
 import AddRestaurantModal from "./components/AddRestaurantModal";
 import AddMenuModal from "./components/AddMenuModal";
+import AdminPanel from "./components/AdminPanel";
 import TrackingMap from "./components/TrackingMap";
 import { getMenuImageSrc } from "./config/menuImages";
 import { deliveryModes, SIZE_OPTIONS, SPICY_OPTIONS, SPICY_LABELS, theme } from "./config/ordering";
 import { calcTotals, fmt } from "./lib/format";
 import { dict, makeT, pick } from "./config/i18n";
 import { restaurants } from "./config/restaurants";
+import { ADMIN_UID } from "./config/admin";
 import {
   HISTORY_LIMIT, loadHistory, saveOrderRecord, clearHistory,
   loadUnlocked, saveUnlocked,
   computeStats, buildOrderRecord,
-  subscribeCustomRestaurants, addCustomRestaurant, deleteCustomRestaurant, reportCustomRestaurant,
-  subscribeCustomMenus, addCustomMenu, deleteCustomMenu, reportCustomMenu,
+  subscribeCustomRestaurants, addCustomRestaurant, deleteCustomRestaurant, reportCustomRestaurant, approveCustomRestaurant,
+  subscribeCustomMenus, addCustomMenu, deleteCustomMenu, reportCustomMenu, approveCustomMenu,
   REPORT_HIDE_THRESHOLD,
 } from "./lib/storage";
 import { authReady } from "./lib/firebase";
@@ -70,7 +72,6 @@ const badgeColors = {
   "추천": { bg: "#dbeafe", color: "#2563eb", border: "#bfdbfe" },
   "신규": { bg: "#dcfce7", color: "#16a34a", border: "#bbf7d0" },
   "최저배달비": { bg: "#fef3c7", color: "#d97706", border: "#fde68a" },
-  "내가 추가함": { bg: "#ede9fe", color: "#7c3aed", border: "#ddd6fe" },
 };
 
 const PAYMENT_OPTIONS = [
@@ -641,7 +642,12 @@ export default function App() {
   const [uid, setUid] = useState(null);
 
   useEffect(() => {
-    authReady.then(setUid);
+    authReady.then(u => {
+      setUid(u);
+      // TEMP: reveal this device's uid so it can be hardcoded as ADMIN_UID.
+      // Remove once src/config/admin.js has the real value.
+      console.log("%c[내 UID] " + u, "font-size:14px;color:#ea580c;font-weight:bold");
+    });
   }, []);
 
   useEffect(() => {
@@ -672,6 +678,7 @@ export default function App() {
   const [customMenus, setCustomMenus] = useState([]);
   const [showAddRestaurant, setShowAddRestaurant] = useState(false);
   const [addMenuTarget, setAddMenuTarget] = useState(null);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [deliveryNotif, setDeliveryNotif] = useState(null);
 
   useEffect(() => {
@@ -695,14 +702,45 @@ export default function App() {
 
   const isReported = (item) => (item.reportedBy || []).length >= REPORT_HIDE_THRESHOLD;
 
+  // A pending submission (anything not yet approved by the admin) only
+  // shows in the main list to the person who submitted it — everyone else,
+  // including the admin's own regular browsing, sees it once approved.
+  // Approved items and legacy ones with no status field (pre-dating this
+  // moderation step) are always visible.
+  const isVisibleToMainList = (item) => {
+    if (isReported(item)) return false;
+    if (item.status === "pending") return item.addedBy === uid;
+    return true;
+  };
+
   const allRestaurants = useMemo(() => {
-    const visibleCustomRestaurants = customRestaurants.filter(r => !isReported(r));
-    const visibleCustomMenus = customMenus.filter(m => !isReported(m));
+    const visibleCustomRestaurants = customRestaurants.filter(isVisibleToMainList);
+    const visibleCustomMenus = customMenus.filter(isVisibleToMainList);
     return [...restaurants, ...visibleCustomRestaurants].map(r => ({
       ...r,
       menus: [...r.menus, ...visibleCustomMenus.filter(m => m.restaurantId === r.id)],
     }));
-  }, [customRestaurants, customMenus]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customRestaurants, customMenus, uid]);
+
+  // Pending queues for the admin moderation panel. For the admin device,
+  // firestore.rules already includes everyone's pending docs in the
+  // customRestaurants/customMenus snapshots; for anyone else this is just
+  // their own pending items (harmless — the panel is admin-only).
+  const pendingRestaurants = useMemo(
+    () => customRestaurants.filter(r => r.status === "pending"),
+    [customRestaurants],
+  );
+  const pendingMenus = useMemo(
+    () => customMenus.filter(m => m.status === "pending"),
+    [customMenus],
+  );
+  const restaurantNameById = useMemo(() => {
+    const map = {};
+    restaurants.forEach(r => { map[r.id] = pick(r.name, lang); });
+    customRestaurants.forEach(r => { map[r.id] = pick(r.name, lang); });
+    return map;
+  }, [customRestaurants, lang]);
 
   const restaurantSubtotals = useMemo(() => {
     const map = {};
@@ -901,6 +939,24 @@ export default function App() {
   const handleReportMenu = (id) => {
     if (typeof window !== "undefined" && !window.confirm(t("reportConfirm"))) return;
     reportCustomMenu(id).catch(err => console.warn("Failed to report menu", err));
+  };
+
+  const handleApproveRestaurant = (id) => {
+    approveCustomRestaurant(id).catch(err => console.warn("Failed to approve restaurant", err));
+  };
+
+  const handleRejectRestaurant = (id) => {
+    if (typeof window !== "undefined" && !window.confirm(t("adminRejectConfirm"))) return;
+    deleteCustomRestaurant(id).catch(err => console.warn("Failed to reject restaurant", err));
+  };
+
+  const handleApproveMenu = (id) => {
+    approveCustomMenu(id).catch(err => console.warn("Failed to approve menu", err));
+  };
+
+  const handleRejectMenu = (id) => {
+    if (typeof window !== "undefined" && !window.confirm(t("adminRejectConfirm"))) return;
+    deleteCustomMenu(id).catch(err => console.warn("Failed to reject menu", err));
   };
 
   const filtered = allRestaurants.filter(r => {
@@ -1304,6 +1360,21 @@ export default function App() {
       {showSponsorModal && !showInfoModal && !isNativeApp && (
         <SponsorModal onClose={() => setShowSponsorModal(false)} t={t} th={th} />
       )}
+      {showAdminPanel && uid === ADMIN_UID && (
+        <AdminPanel
+          pendingRestaurants={pendingRestaurants}
+          pendingMenus={pendingMenus}
+          restaurantNameById={restaurantNameById}
+          onApproveRestaurant={handleApproveRestaurant}
+          onRejectRestaurant={handleRejectRestaurant}
+          onApproveMenu={handleApproveMenu}
+          onRejectMenu={handleRejectMenu}
+          onClose={() => setShowAdminPanel(false)}
+          t={t}
+          lang={lang}
+          th={th}
+        />
+      )}
       {optionTarget && optMenu && (
         <OptionSheet
           menu={optMenu}
@@ -1359,6 +1430,19 @@ export default function App() {
                 <div style={{ position: "absolute", top: -4, right: -4, background: "#facc15", color: "#78350f", fontSize: 9, fontWeight: 900, borderRadius: 99, minWidth: 15, height: 15, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px", border: "1px solid #fff" }}>{history.length}</div>
               )}
             </button>
+            {uid === ADMIN_UID && (
+              <button
+                onClick={() => setShowAdminPanel(true)}
+                style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 13, position: "relative" }}
+                aria-label={t("adminIconAria")}
+                title={t("adminIconAria")}
+              >
+                🛡️
+                {(pendingRestaurants.length + pendingMenus.length) > 0 && (
+                  <div style={{ position: "absolute", top: -4, right: -4, background: "#facc15", color: "#78350f", fontSize: 9, fontWeight: 900, borderRadius: 99, minWidth: 15, height: 15, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px", border: "1px solid #fff" }}>{pendingRestaurants.length + pendingMenus.length}</div>
+                )}
+              </button>
+            )}
             <button onClick={() => setShowInfoModal(true)} style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 13, fontWeight: 900 }} aria-label={t("appInfoAria")} title={t("appInfoTitle")}>?</button>
             {LangButton}
             <button onClick={resetAll} aria-label={t("reset")} title={t("reset")} style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 13 }}>↺</button>
@@ -1420,6 +1504,9 @@ export default function App() {
                   <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 6 }}>
                     <h3 style={{ margin: 0, fontSize: 16, fontWeight: 900, minWidth: 0 }}>{pick(r.name, lang)}</h3>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                      {r.status === "pending" && (
+                        <div style={{ fontSize: 10, padding: "5px 9px", borderRadius: 999, background: "#fef3c7", color: "#d97706", fontWeight: 800, whiteSpace: "nowrap" }}>{t("pendingBadge")}</div>
+                      )}
                       <div style={{ fontSize: 11, padding: "5px 9px", borderRadius: 999, background: "#f3f4f6", color: "#374151", fontWeight: 800, whiteSpace: "nowrap" }}>{pick(r.category, lang)}</div>
                       {r.isCustom && r.addedBy === uid && (
                         <button
@@ -1466,7 +1553,7 @@ export default function App() {
                             <div style={{ minWidth: 0 }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3, minWidth: 0 }}>
                                 <div style={{ fontWeight: 800, fontSize: 14, minWidth: 0 }}>{pick(m.name, lang)}</div>
-                                {m.isCustom && <span style={{ fontSize: 9, fontWeight: 800, color: "#7c3aed", background: "#ede9fe", border: "1px solid #ddd6fe", borderRadius: 999, padding: "1px 6px", whiteSpace: "nowrap", flexShrink: 0 }}>{t("customBadge")}</span>}
+                                {m.status === "pending" && <span style={{ fontSize: 9, fontWeight: 800, color: "#d97706", background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 999, padding: "1px 6px", whiteSpace: "nowrap", flexShrink: 0 }}>{t("pendingBadge")}</span>}
                               </div>
                               <div style={{ color: th.muted, fontSize: 12 }}>{pick(m.desc, lang)}</div>
                               <div style={{ color: "#10b981", fontSize: 11, fontWeight: 700, marginTop: 2 }}>🔥 {(menuCalories[m.id] || 600).toLocaleString()}{t("kcal")}</div>

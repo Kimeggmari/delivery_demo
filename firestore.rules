@@ -2,6 +2,12 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Firebase anonymous-auth UID of the developer's own device. Mirrors
+    // src/config/admin.js by hand — rules can't import that file.
+    function isAdmin() {
+      return request.auth != null && request.auth.uid == "REPLACE_WITH_YOUR_UID";
+    }
+
     // A report: the ONLY thing changing is reportedBy, gaining exactly the
     // caller's own uid (via arrayUnion) and only once per uid — used to
     // gate the report-count "update" on the otherwise edit-locked shared
@@ -11,6 +17,14 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reportedBy'])
         && !(request.auth.uid in resource.data.reportedBy)
         && request.resource.data.reportedBy == resource.data.reportedBy.concat([request.auth.uid]);
+    }
+
+    // Approving a pending submission: only the admin, only flips status to
+    // "approved", nothing else changes.
+    function isApprovalUpdate() {
+      return isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && request.resource.data.status == "approved";
     }
 
     // Private per-device data: order history + achievements, scoped to the
@@ -23,22 +37,39 @@ service cloud.firestore {
       }
     }
 
-    // Shared "add your own restaurant/menu" feature: anyone can read, only
-    // the creator can delete their own entry, edits are disallowed (delete
-    // + recreate instead of drift between client and rules validation) —
-    // except reporting, which is the one allowed "update".
+    // Shared "add your own restaurant/menu" feature. New submissions start
+    // "pending" (except the admin's own, which publish immediately) and are
+    // only readable by their submitter or the admin until approved — see
+    // isApprovalUpdate() above. Docs with no status field predate this
+    // moderation step and stay publicly visible (grandfathered).
+    // Only the creator can delete their own entry (or the admin, to reject
+    // a pending submission); edits are disallowed (delete + recreate
+    // instead of drift between client and rules validation) except
+    // reporting and admin approval, the two allowed "update"s.
     match /customRestaurants/{id} {
-      allow read: if true;
-      allow create: if request.auth != null && request.resource.data.addedBy == request.auth.uid;
-      allow delete: if request.auth != null && resource.data.addedBy == request.auth.uid;
-      allow update: if isReportOnlyUpdate();
+      allow read: if !("status" in resource.data)
+        || resource.data.status == "approved"
+        || (request.auth != null && resource.data.addedBy == request.auth.uid)
+        || isAdmin();
+      allow create: if request.auth != null
+        && request.resource.data.addedBy == request.auth.uid
+        && request.resource.data.status == (isAdmin() ? "approved" : "pending");
+      allow delete: if request.auth != null
+        && (resource.data.addedBy == request.auth.uid || isAdmin());
+      allow update: if isReportOnlyUpdate() || isApprovalUpdate();
     }
 
     match /customMenus/{id} {
-      allow read: if true;
-      allow create: if request.auth != null && request.resource.data.addedBy == request.auth.uid;
-      allow delete: if request.auth != null && resource.data.addedBy == request.auth.uid;
-      allow update: if isReportOnlyUpdate();
+      allow read: if !("status" in resource.data)
+        || resource.data.status == "approved"
+        || (request.auth != null && resource.data.addedBy == request.auth.uid)
+        || isAdmin();
+      allow create: if request.auth != null
+        && request.resource.data.addedBy == request.auth.uid
+        && request.resource.data.status == (isAdmin() ? "approved" : "pending");
+      allow delete: if request.auth != null
+        && (resource.data.addedBy == request.auth.uid || isAdmin());
+      allow update: if isReportOnlyUpdate() || isApprovalUpdate();
     }
   }
 }

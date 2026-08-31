@@ -5,6 +5,7 @@
 // everyone sees what everyone else added.
 
 import { db, authReady } from "./firebase";
+import { ADMIN_UID } from "../config/admin";
 import {
   collection, doc, setDoc, updateDoc, getDoc, getDocs, deleteDoc,
   query, where, orderBy, limit, onSnapshot, serverTimestamp, writeBatch, arrayUnion,
@@ -69,14 +70,23 @@ export function subscribeCustomMenus(onChange) {
   });
 }
 
+// New submissions from anyone but the admin device start "pending" and stay
+// invisible to everyone except their own submitter until approved — see
+// AdminPanel.jsx and the isVisible filter in App.jsx. The admin's own
+// additions publish immediately.
 export async function addCustomRestaurant(restaurant) {
   const uid = await authReady;
   await setDoc(doc(db, "customRestaurants", String(restaurant.id)), {
     ...restaurant,
     addedBy: uid,
+    status: uid === ADMIN_UID ? "approved" : "pending",
     reportedBy: [],
     createdAt: serverTimestamp(),
   });
+}
+
+export async function approveCustomRestaurant(id) {
+  await updateDoc(doc(db, "customRestaurants", String(id)), { status: "approved" });
 }
 
 export async function deleteCustomRestaurant(id) {
@@ -103,6 +113,7 @@ export async function addCustomMenu(menu) {
   await setDoc(doc(db, "customMenus", String(menu.id)), {
     ...menu,
     addedBy: uid,
+    status: uid === ADMIN_UID ? "approved" : "pending",
     reportedBy: [],
     createdAt: serverTimestamp(),
   });
@@ -110,6 +121,10 @@ export async function addCustomMenu(menu) {
 
 export async function deleteCustomMenu(id) {
   await deleteDoc(doc(db, "customMenus", String(id)));
+}
+
+export async function approveCustomMenu(id) {
+  await updateDoc(doc(db, "customMenus", String(id)), { status: "approved" });
 }
 
 // Aggregate stats derived from the full history list.
