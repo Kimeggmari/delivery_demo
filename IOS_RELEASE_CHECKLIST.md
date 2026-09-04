@@ -62,20 +62,20 @@ npm install
 ```
 - iOS AdMob App ID / 광고 단위 ID는 이미 `Info.plist`와 `ads.js`에 반영되어 있음 (위 "지금 당장" 참고) — 확인만.
 
-### 3. 웹 빌드 → iOS 동기화 → CocoaPods (10분)
+### 3. 웹 빌드 → iOS 동기화 (5분)
 ```bash
 npm run build
 npx cap sync ios
-cd ios/App
-pod install
-cd ../..
 ```
+- **CocoaPods `pod install` 불필요** — 이 프로젝트는 SPM만 사용 (`ios/App/Podfile` 없음). 아래
+  "이미 준비되어 실행됨"의 미디어 플러그인 SPM 호환성 메모 참고.
 
 ### 4. Xcode에서 서명 설정 (5분)
 ```bash
-open ios/App/App.xcworkspace
+open ios/App/App.xcodeproj
 ```
-- 반드시 `.xcworkspace`를 열 것 (`.xcodeproj` 아님 — CocoaPods 때문에)
+- `.xcworkspace`가 아니라 `.xcodeproj`를 열 것 — CocoaPods 없이 SPM만 쓰는 프로젝트라 `.xcworkspace`
+  자체가 존재하지 않음. 처음 열면 Xcode가 자동으로 SPM 패키지들을 resolve함 (인터넷 필요, 1~2분).
 - 좌측에서 `App` 타겟 선택 → **Signing & Capabilities**
 - **Automatically manage signing** 체크 → Team에서 본인 Apple Developer 계정 선택
 - Bundle Identifier가 `com.eggmari.foodneverarrives`인지 확인 (이미 설정됨)
@@ -132,6 +132,19 @@ appstoreconnect.apple.com → **My Apps → +→ New App**
 ---
 
 ## 참고: 이미 준비되어 실행됨
+- **영수증 사진 저장 기능(2026-09-04) — SPM 호환성 주의**: `@capacitor-community/media` 8.0.1은
+  `Package.swift`가 없어서 이 프로젝트의 SPM 기반 iOS 빌드에서 자동으로 **누락**됩니다
+  (CocoaPods `Podfile`이 따로 없어서 pod 방식으로도 안 들어감 — Xcode 빌드는 에러 없이 성공하지만
+  네이티브 저장 기능이 조용히 동작 안 하는 상태가 됐을 것). 9.1.0으로 업그레이드해서 해결함
+  (`npm view` 확인 결과 "plugin v9부터 SPM 지원, v7~v9 사이 API 변경 없음"). `npx cap sync ios`
+  재실행 후 [ios/App/CapApp-SPM/Package.swift](ios/App/CapApp-SPM/Package.swift)에
+  `CapacitorCommunityMedia`가 정상적으로 포함된 것 확인함. **Mac 세션에서 CocoaPods/`pod install`은
+  필요 없음** — 이 프로젝트는 처음부터 끝까지 SPM만 사용 (`ios/App/Podfile` 자체가 없음), 위 3번
+  단계의 `pod install`은 무시하고 `npm install` → `npm run build` → `npx cap sync ios` →
+  Xcode에서 `.xcworkspace` 또는 `.xcodeproj` 열기(둘 다 SPM 프로젝트라 상관없음, CocoaPods 워크스페이스가
+  아님)만 하면 됨. `Info.plist`에 `NSPhotoLibraryAddUsageDescription` +
+  `NSPhotoLibraryUsageDescription` 둘 다 추가 완료(플러그인 공식 문서 요구사항). Android는
+  `assembleDebug`로 재빌드 검증 완료.
 - `ios/` 플랫폼 추가 완료 (`@capacitor/ios` 설치, `npx cap add ios`)
 - 앱 아이콘(1024×1024) · 스플래시 화면 iOS 에셋 자동 생성 완료 (`assets/*.svg` 기반)
 - `Info.plist`: `GADApplicationIdentifier`(placeholder), `SKAdNetworkItems`,

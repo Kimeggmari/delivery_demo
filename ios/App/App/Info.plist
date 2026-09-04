@@ -64,5 +64,7 @@
 	<string>배달 추적 데모 화면에서 내 위치를 도착지로 표시하는 데 사용됩니다. / Used to show your location as the demo delivery destination.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>주문 영수증 이미지를 사진 앨범에 저장하는 데 사용됩니다. / Used to save the order receipt image to your photo library.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>주문 영수증 이미지를 저장할 앨범을 찾고 만드는 데 사용됩니다. / Used to find and create the album where the order receipt image is saved.</string>
 </dict>
 </plist>
