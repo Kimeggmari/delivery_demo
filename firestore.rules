@@ -74,5 +74,29 @@ service cloud.firestore {
         && (resource.data.addedBy == request.auth.uid || isAdmin());
       allow update: if isReportOnlyUpdate() || isApprovalUpdate();
     }
+
+    // User-written restaurant reviews (feature: "write a review"). Doc id is
+    // "{restaurantId}_{uid}" so each device can only ever have one review
+    // per restaurant — resubmitting edits it in place rather than creating
+    // a second entry. Public read (there's no moderation queue for these,
+    // just the same report-to-auto-hide pattern as customRestaurants/Menus).
+    function isReviewOwnerEdit() {
+      return request.auth != null
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rating', 'text', 'updatedAt']);
+    }
+
+    match /reviews/{id} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && id == (request.resource.data.restaurantId + '_' + request.auth.uid)
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1 && request.resource.data.rating <= 5
+        && request.resource.data.text is string && request.resource.data.text.size() <= 300
+        && request.resource.data.reportedBy == [];
+      allow update: if isReviewOwnerEdit() || isReportOnlyUpdate();
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
   }
 }

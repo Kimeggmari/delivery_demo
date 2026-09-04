@@ -62,5 +62,7 @@
 	<string>이 식별자는 더 관련성 높은 광고를 보여드리는 데 사용됩니다. / This identifier is used to show you more relevant ads.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>배달 추적 데모 화면에서 내 위치를 도착지로 표시하는 데 사용됩니다. / Used to show your location as the demo delivery destination.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>주문 영수증 이미지를 사진 앨범에 저장하는 데 사용됩니다. / Used to save the order receipt image to your photo library.</string>
 </dict>
 </plist>

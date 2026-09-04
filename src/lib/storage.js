@@ -11,6 +11,8 @@ import {
   query, where, orderBy, limit, onSnapshot, serverTimestamp, writeBatch, arrayUnion,
 } from "firebase/firestore";
 
+export const REVIEW_TEXT_MAX = 300;
+
 export const HISTORY_LIMIT = 50;
 
 // A custom restaurant/menu is hidden client-side once this many distinct
@@ -125,6 +127,41 @@ export async function deleteCustomMenu(id) {
 
 export async function approveCustomMenu(id) {
   await updateDoc(doc(db, "customMenus", String(id)), { status: "approved" });
+}
+
+// User-written restaurant reviews (feature: "write a review"). Shared,
+// public-read, one review per uid per restaurant (doc id encodes both so a
+// resubmit edits in place). Same report-to-auto-hide pattern as
+// customRestaurants/customMenus, no separate moderation queue.
+
+export function subscribeReviews(restaurantId, onChange) {
+  const q = query(collection(db, "reviews"), where("restaurantId", "==", String(restaurantId)));
+  return onSnapshot(q, snap => onChange(snap.docs.map(d => d.data())));
+}
+
+export async function submitReview(restaurantId, rating, text) {
+  const uid = await authReady;
+  const rid = String(restaurantId);
+  const ref = doc(db, "reviews", `${rid}_${uid}`);
+  const trimmedText = (text || "").trim().slice(0, REVIEW_TEXT_MAX);
+  const existing = await getDoc(ref);
+  if (existing.exists()) {
+    await updateDoc(ref, { rating, text: trimmedText, updatedAt: serverTimestamp() });
+  } else {
+    await setDoc(ref, {
+      restaurantId: rid, uid, rating, text: trimmedText,
+      reportedBy: [], createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+    });
+  }
+}
+
+export async function deleteReview(restaurantId, uid) {
+  await deleteDoc(doc(db, "reviews", `${String(restaurantId)}_${uid}`));
+}
+
+export async function reportReview(id) {
+  const uid = await authReady;
+  await updateDoc(doc(db, "reviews", id), { reportedBy: arrayUnion(uid) });
 }
 
 // Aggregate stats derived from the full history list.

@@ -15,6 +15,7 @@ import TrackingMap from "./components/TrackingMap";
 import rabbitRider from "./assets/riders/rabbit-rider.png";
 import turtleRider from "./assets/riders/turtle-rider.png";
 import { getMenuImageSrc } from "./config/menuImages";
+import { nicknameFor } from "./lib/nickname";
 import { deliveryModes, SIZE_OPTIONS, SPICY_OPTIONS, SPICY_LABELS, theme } from "./config/ordering";
 import { calcTotals, fmt } from "./lib/format";
 import { dict, makeT, pick } from "./config/i18n";
@@ -26,7 +27,8 @@ import {
   computeStats, buildOrderRecord,
   subscribeCustomRestaurants, addCustomRestaurant, deleteCustomRestaurant, reportCustomRestaurant, approveCustomRestaurant,
   subscribeCustomMenus, addCustomMenu, deleteCustomMenu, reportCustomMenu, approveCustomMenu,
-  REPORT_HIDE_THRESHOLD,
+  subscribeReviews, submitReview, deleteReview, reportReview,
+  REPORT_HIDE_THRESHOLD, REVIEW_TEXT_MAX,
 } from "./lib/storage";
 import { authReady } from "./lib/firebase";
 import { computeNewUnlocks } from "./config/achievements";
@@ -114,12 +116,46 @@ function buildOptLabel(item, t, lang) {
   return [spicy, size, ...tops].filter(Boolean).join(", ");
 }
 
-function ReviewModal({ restaurant, onClose, t, lang }) {
+function ReviewModal({ restaurant, onClose, t, lang, uid, th }) {
   const reviews = dict[lang]?.sampleReviews || dict.ko.sampleReviews;
   const revs = reviews.slice(0, 3 + (restaurant.id % 3));
+
+  const [realReviews, setRealReviews] = useState([]);
+  const [rating, setRating] = useState(0);
+  const [text, setText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => subscribeReviews(restaurant.id, setRealReviews), [restaurant.id]);
+
+  const myReview = realReviews.find(r => r.uid === uid);
+  useEffect(() => {
+    setRating(myReview?.rating || 0);
+    setText(myReview?.text || "");
+  }, [myReview?.rating, myReview?.text]);
+
+  const visibleReviews = realReviews.filter(r => (r.reportedBy || []).length < REPORT_HIDE_THRESHOLD);
+
+  const handleSubmit = () => {
+    if (rating < 1 || submitting) return;
+    setSubmitting(true);
+    submitReview(restaurant.id, rating, text)
+      .catch(err => console.warn("Failed to submit review", err))
+      .finally(() => setSubmitting(false));
+  };
+
+  const handleDelete = () => {
+    if (typeof window !== "undefined" && !window.confirm(t("deleteCustomConfirm"))) return;
+    deleteReview(restaurant.id, uid).catch(err => console.warn("Failed to delete review", err));
+  };
+
+  const handleReport = (id) => {
+    if (typeof window !== "undefined" && !window.confirm(t("reportConfirm"))) return;
+    reportReview(id).catch(err => console.warn("Failed to report review", err));
+  };
+
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "20px 20px 32px", width: "100%", maxWidth: 540, maxHeight: "70vh", overflowY: "auto", animation: "slideUp .3s ease" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "20px 20px 32px", width: "100%", maxWidth: 540, maxHeight: "80vh", overflowY: "auto", animation: "slideUp .3s ease" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <div>
             <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>{restaurant.emoji} {pick(restaurant.name, lang)}</h3>
@@ -131,6 +167,69 @@ function ReviewModal({ restaurant, onClose, t, lang }) {
           </div>
           <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: 12, border: "none", background: "#f3f4f6", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
         </div>
+
+        <div style={{ border: "1px solid #fde68a", background: "#fffbeb", borderRadius: 16, padding: 14, marginBottom: 16 }}>
+          <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 8 }}>{myReview ? t("editReviewTitle") : t("writeReviewTitle")}</div>
+          <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
+            {[1, 2, 3, 4, 5].map(n => (
+              <button
+                key={n}
+                onClick={() => setRating(n)}
+                aria-label={String(n)}
+                style={{ border: "none", background: "none", fontSize: 24, lineHeight: 1, cursor: "pointer", padding: 0, color: n <= rating ? "#f59e0b" : "#d1d5db" }}
+              >★</button>
+            ))}
+          </div>
+          <textarea
+            value={text}
+            onChange={e => setText(e.target.value.slice(0, REVIEW_TEXT_MAX))}
+            placeholder={t("reviewPlaceholder")}
+            rows={2}
+            style={{ width: "100%", boxSizing: "border-box", border: "1px solid #e5e7eb", borderRadius: 10, padding: "8px 10px", fontSize: 13, fontFamily: "inherit", resize: "vertical" }}
+          />
+          <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12, marginTop: 8 }}>
+            {myReview && (
+              <button onClick={handleDelete} style={{ border: "none", background: "none", color: "#dc2626", fontSize: 12, fontWeight: 800, cursor: "pointer", padding: 0, fontFamily: "inherit" }}>{t("deleteCustomAria")}</button>
+            )}
+            <button
+              onClick={handleSubmit}
+              disabled={rating < 1 || submitting}
+              style={{ border: "none", borderRadius: 10, padding: "8px 16px", background: rating < 1 ? "#d1d5db" : th.brand, color: "#fff", fontWeight: 800, fontSize: 12, cursor: rating < 1 || submitting ? "default" : "pointer", fontFamily: "inherit" }}
+            >{myReview ? t("updateReviewBtn") : t("reviewSubmit")}</button>
+          </div>
+        </div>
+
+        {visibleReviews.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: "#6b7280", marginBottom: 10 }}>{t("realReviewsTitle", visibleReviews.length)}</div>
+            <div style={{ display: "grid", gap: 10 }}>
+              {visibleReviews.map(r => (
+                <div key={r.uid} style={{ background: "#f9fafb", borderRadius: 16, padding: "14px 16px", border: "1px solid #f3f4f6" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <span style={{ fontWeight: 800, fontSize: 13 }}>{nicknameFor(r.uid, lang)}</span>
+                    <span style={{ color: "#f59e0b", fontSize: 11 }}>{"★".repeat(r.rating)}<span style={{ color: "#d1d5db" }}>{"★".repeat(5 - r.rating)}</span></span>
+                  </div>
+                  {r.text && <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.5, marginBottom: 6 }}>{r.text}</div>}
+                  <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                    {r.uid === uid ? (
+                      <span style={{ fontSize: 10, fontWeight: 800, color: th.brand }}>{t("myReviewLabel")}</span>
+                    ) : (
+                      <button
+                        onClick={() => handleReport(`${restaurant.id}_${r.uid}`)}
+                        disabled={(r.reportedBy || []).includes(uid)}
+                        aria-label={t("reportAria")}
+                        title={t("reportAria")}
+                        style={{ border: "none", background: "none", color: "#9ca3af", fontSize: 10, fontWeight: 800, cursor: (r.reportedBy || []).includes(uid) ? "default" : "pointer", opacity: (r.reportedBy || []).includes(uid) ? 0.4 : 1, padding: 0, fontFamily: "inherit" }}
+                      >🚩 {t("reportAria")}</button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div style={{ fontSize: 12, fontWeight: 800, color: "#6b7280", marginBottom: 10 }}>{t("sampleReviewsTitle")}</div>
         <div style={{ display: "grid", gap: 10 }}>
           {revs.map((r, i) => (
             <div key={i} style={{ background: "#f9fafb", borderRadius: 16, padding: "14px 16px", border: "1px solid #f3f4f6" }}>
@@ -1068,12 +1167,14 @@ export default function App() {
     return (
       <>
         <style>{globalStyle}</style>
+        {reviewTarget && <ReviewModal restaurant={reviewTarget} onClose={() => setReviewTarget(null)} t={t} lang={lang} uid={uid} th={th} />}
         <HistoryPage
           onBack={() => setPage("order")}
-          th={th} t={t} lang={lang}
-          brand={th.primaryBtn}
+          th={th} t={t} lang={lang} uid={uid}
           history={history}
           unlocked={unlocked}
+          allRestaurants={allRestaurants}
+          onWriteReview={setReviewTarget}
           onClear={clearAllActivity}
           onInfo={() => { setPage("order"); setShowInfoModal(true); }}
           onPrivacy={() => setPage("privacy")}
@@ -1271,7 +1372,7 @@ export default function App() {
     return (
       <div style={css.wrap}>
         <style>{globalStyle}</style>
-        {reviewTarget && <ReviewModal restaurant={reviewTarget} onClose={() => setReviewTarget(null)} t={t} lang={lang} />}
+        {reviewTarget && <ReviewModal restaurant={reviewTarget} onClose={() => setReviewTarget(null)} t={t} lang={lang} uid={uid} th={th} />}
         <div style={css.header}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, maxWidth: 540, margin: "0 auto" }}>
             <button onClick={() => setPage("order")} style={{ ...css.backBtn, background: th.iconBtnBg, color: th.iconBtnColor }}>←</button>
@@ -1404,7 +1505,7 @@ export default function App() {
   return (
     <div style={css.wrap}>
       <style>{globalStyle}</style>
-      {reviewTarget && <ReviewModal restaurant={reviewTarget} onClose={() => setReviewTarget(null)} t={t} lang={lang} />}
+      {reviewTarget && <ReviewModal restaurant={reviewTarget} onClose={() => setReviewTarget(null)} t={t} lang={lang} uid={uid} th={th} />}
       {showInfoModal && (
         <InfoModal
           email={inquiryEmail}

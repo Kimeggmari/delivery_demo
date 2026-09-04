@@ -1,6 +1,27 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { Capacitor } from "@capacitor/core";
+import { Media } from "@capacitor-community/media";
 import { fmt } from "../lib/format";
 import { pick } from "../config/i18n";
+
+// Android's savePhoto() requires an existing directory path as the album
+// identifier (unlike iOS, where it's optional) — see @capacitor-community/media's
+// android source, isStoragePermissionGranted() there returns true with no
+// runtime permission prompt as long as androidGalleryMode isn't enabled
+// (it isn't here), since we're only writing to the app's own scoped
+// external-media directory, not browsing the whole device gallery.
+const GALLERY_ALBUM_NAME = "FoodNeverArrives";
+
+async function ensureAndroidAlbumDir() {
+  const { path } = await Media.getAlbumsPath();
+  const albumDir = `${path}/${GALLERY_ALBUM_NAME}`;
+  try {
+    await Media.createAlbum({ name: GALLERY_ALBUM_NAME });
+  } catch {
+    // Already exists — fine, savePhoto just needs the directory to be there.
+  }
+  return albumDir;
+}
 
 // Draws a shareable receipt to canvas (no extra deps), then offers
 // Web Share (mobile) and PNG download fallbacks.
@@ -66,6 +87,45 @@ async function writeTextLegacy(text) {
   });
 }
 
+// Deterministic PRNG (mulberry32) seeded from a string — same order id
+// always draws the same barcode, no Math.random() needed.
+function hashSeed(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function mulberry32(seed) {
+  let a = seed;
+  return function rand() {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Decorative barcode — visually plausible bar pattern, not a real
+// scannable code (there's nothing to scan it into).
+function drawBarcode(ctx, x, y, width, height, seedStr) {
+  const rand = mulberry32(hashSeed(seedStr));
+  ctx.fillStyle = "#111827";
+  let bx = x;
+  while (bx < x + width - 2) {
+    const barW = 1 + Math.floor(rand() * 3);
+    if (rand() > 0.45) ctx.fillRect(bx, y, barW, height);
+    bx += barW;
+  }
+}
+
+function barcodeNumberFromId(id) {
+  const digits = String(hashSeed(id)).padStart(10, "0").slice(-10);
+  return digits.match(/.{1,4}/g).join(" ");
+}
+
 function wrapText(ctx, text, maxWidth) {
   // Simple greedy line wrapper (works for both KR and EN).
   if (!text) return [""];
@@ -88,7 +148,7 @@ function drawReceipt(canvas, { record, lang, brand, t }) {
   const ctx = canvas.getContext("2d");
   const itemLines = record.items.length;
   // Measured layout — height grows with item count.
-  const baseHeight = 460;
+  const baseHeight = 470;
   const perItem = 44;
   const height = baseHeight + perItem * itemLines;
 
@@ -217,13 +277,19 @@ function drawReceipt(canvas, { record, lang, brand, t }) {
   ctx.setLineDash([]);
   y += 14;
 
+  // Plain breakdown, ending with the formal total as just another line —
+  // the flashy focal point is the SAVED callout below, not this: since the
+  // order never really happened, that "total" is money that stayed in
+  // your pocket, which is the whole point of the app.
   const totalRows = [
     [t("productPrice"), fmt(record.subtotal, lang)],
     [t("deliveryFee"), fmt(record.deliveryFee, lang)],
     [t("serviceFee"), fmt(record.serviceFee, lang)],
+    [t("totalLabel"), fmt(record.total, lang)],
   ];
-  ctx.font = "600 12px Inter, 'Noto Sans KR', system-ui, sans-serif";
-  for (const [k, v] of totalRows) {
+  totalRows.forEach(([k, v], i) => {
+    const isTotal = i === totalRows.length - 1;
+    ctx.font = (isTotal ? "800" : "600") + " 12px Inter, 'Noto Sans KR', system-ui, sans-serif";
     ctx.fillStyle = "#6b7280";
     ctx.fillText(k, x, y);
     ctx.fillStyle = "#111827";
@@ -231,25 +297,49 @@ function drawReceipt(canvas, { record, lang, brand, t }) {
     ctx.fillText(v, WIDTH - PADDING, y);
     ctx.textAlign = "left";
     y += 18;
+  });
+  y += 10;
+
+  // Saved callout — the real focal point of the receipt.
+  const calloutH = 72;
+  const calloutGrad = ctx.createLinearGradient(x, y, x, y + calloutH);
+  calloutGrad.addColorStop(0, "#dcfce7");
+  calloutGrad.addColorStop(1, "#bbf7d0");
+  ctx.fillStyle = calloutGrad;
+  if (ctx.roundRect) {
+    ctx.beginPath();
+    ctx.roundRect(x, y, contentW, calloutH, 12);
+    ctx.fill();
+  } else {
+    ctx.fillRect(x, y, contentW, calloutH);
   }
 
-  y += 4;
-  ctx.fillStyle = "#111827";
-  ctx.font = "900 16px Inter, 'Noto Sans KR', system-ui, sans-serif";
-  ctx.fillText(t("totalLabel"), x, y);
-  ctx.textAlign = "right";
-  ctx.fillStyle = brand;
-  ctx.fillText(fmt(record.total, lang), WIDTH - PADDING, y);
-  ctx.textAlign = "left";
-  y += 26;
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#166534";
+  ctx.font = "800 11px Inter, 'Noto Sans KR', system-ui, sans-serif";
+  ctx.fillText(t("receiptSavedLabel"), WIDTH / 2, y + 12);
 
-  // Saved kcal callout
-  ctx.fillStyle = "#dcfce7";
-  ctx.fillRect(x, y, contentW, 44);
   ctx.fillStyle = "#15803d";
-  ctx.font = "900 14px Inter, 'Noto Sans KR', system-ui, sans-serif";
-  ctx.fillText(`🔥 ${record.savedKcal.toLocaleString()} ${t("kcal")} ${t("completeSavedSuffix")}`, x + 12, y + 14);
-  y += 56;
+  ctx.font = "900 26px Inter, 'Noto Sans KR', system-ui, sans-serif";
+  ctx.fillText(fmt(record.total, lang), WIDTH / 2, y + 28);
+
+  ctx.fillStyle = "#166534";
+  ctx.font = "700 11px Inter, 'Noto Sans KR', system-ui, sans-serif";
+  ctx.fillText(`🔥 ${record.savedKcal.toLocaleString()} ${t("kcal")} ${t("completeSavedSuffix")}`, WIDTH / 2, y + 56);
+  ctx.textAlign = "left";
+  y += calloutH + 20;
+
+  // Barcode — decorative, gives it that real-receipt feel.
+  const barcodeH = 38;
+  drawBarcode(ctx, x, y, contentW, barcodeH, record.id);
+  y += barcodeH + 6;
+
+  ctx.fillStyle = "#9ca3af";
+  ctx.font = "600 10px 'Courier New', monospace";
+  ctx.textAlign = "center";
+  ctx.fillText(barcodeNumberFromId(record.id), WIDTH / 2, y);
+  ctx.textAlign = "left";
+  y += 22;
 
   // Footer
   ctx.fillStyle = "#9ca3af";
@@ -281,16 +371,32 @@ export default function ReceiptModal({ record, lang, brand, t, th, onClose }) {
   const handleDownload = useCallback(async () => {
     setBusy(true);
     try {
-      const blob = await getBlob();
-      if (!blob) throw new Error("blob");
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `foodneverarrives_${record.id}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 500);
+      if (Capacitor.isNativePlatform()) {
+        // The web <a download> approach below is a no-op in a native
+        // WebView — it doesn't reach the system Download Manager or the
+        // gallery, so nothing appeared to happen when tapping the button.
+        const dataUri = canvasRef.current?.toDataURL("image/png");
+        if (!dataUri) throw new Error("canvas");
+        const albumIdentifier = Capacitor.getPlatform() === "android"
+          ? await ensureAndroidAlbumDir()
+          : undefined;
+        await Media.savePhoto({
+          path: dataUri,
+          ...(albumIdentifier ? { albumIdentifier } : {}),
+          fileName: `foodneverarrives_${record.id}`,
+        });
+      } else {
+        const blob = await getBlob();
+        if (!blob) throw new Error("blob");
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `foodneverarrives_${record.id}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 500);
+      }
       flash(t("receiptDownloaded"));
     } catch {
       flash(t("receiptError"));

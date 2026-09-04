@@ -1,10 +1,10 @@
 import { useState, useMemo } from "react";
 import Footer from "./Footer";
-import ReceiptModal from "./ReceiptModal";
 import { ACHIEVEMENTS, TIER_COLORS } from "../config/achievements";
 import { computeStats } from "../lib/storage";
 import { fmt } from "../lib/format";
 import { pick } from "../config/i18n";
+import { nicknameFor } from "../lib/nickname";
 
 function formatDate(ts, lang) {
   const d = new Date(ts);
@@ -14,7 +14,21 @@ function formatDate(ts, lang) {
   return d.toLocaleString("ko-KR", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
-function HistoryTab({ history, lang, t, th, onShowReceipt, onClear }) {
+// Restaurants featured in an order, in first-appearance order — usually
+// just one, but a cart can span several restaurants at once.
+function orderRestaurants(order, allRestaurants) {
+  const seen = new Set();
+  const list = [];
+  order.items.forEach(it => {
+    if (seen.has(it.restaurantId)) return;
+    seen.add(it.restaurantId);
+    const r = allRestaurants.find(x => x.id === it.restaurantId);
+    if (r) list.push(r);
+  });
+  return list;
+}
+
+function HistoryTab({ history, lang, t, th, allRestaurants, onWriteReview, onClear }) {
   if (history.length === 0) {
     return (
       <div style={{ background: "#fff", borderRadius: 20, padding: "48px 20px", textAlign: "center", boxShadow: th.sectionShadow }}>
@@ -27,7 +41,9 @@ function HistoryTab({ history, lang, t, th, onShowReceipt, onClear }) {
   return (
     <>
       <div style={{ display: "grid", gap: 10 }}>
-        {history.map(o => (
+        {history.map(o => {
+          const rests = orderRestaurants(o, allRestaurants);
+          return (
           <div key={o.id} style={{ background: "#fff", borderRadius: 18, padding: "14px 16px", boxShadow: th.sectionShadow, border: "1px solid " + th.line }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 8 }}>
               <div style={{ minWidth: 0 }}>
@@ -38,16 +54,21 @@ function HistoryTab({ history, lang, t, th, onShowReceipt, onClear }) {
               </div>
               <div style={{ fontSize: 15, fontWeight: 900, color: th.brand, whiteSpace: "nowrap" }}>{fmt(o.total, lang)}</div>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-              <div style={{ fontSize: 11, color: th.muted }}>🔥 {o.savedKcal.toLocaleString()} {t("kcal")} · {t("itemsCount", o.itemCount)}</div>
-              <button onClick={() => onShowReceipt(o)} style={{
-                border: "none", background: th.activeBg, color: th.brandDark,
-                borderRadius: 10, padding: "7px 12px", fontWeight: 800, fontSize: 12,
-                cursor: "pointer", fontFamily: "inherit",
-              }}>{t("historyReceiptBtn")} →</button>
-            </div>
+            <div style={{ fontSize: 11, color: th.muted, marginBottom: 8 }}>🔥 {o.savedKcal.toLocaleString()} {t("kcal")} · {t("itemsCount", o.itemCount)}</div>
+            {rests.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {rests.map(r => (
+                  <button key={r.id} onClick={() => onWriteReview(r)} style={{
+                    border: "none", background: th.brand, color: "#fff",
+                    borderRadius: 10, padding: "8px 12px", fontWeight: 800, fontSize: 12,
+                    cursor: "pointer", fontFamily: "inherit",
+                  }}>⭐ {t("historyReviewBtn", pick(r.name, lang))}</button>
+                ))}
+              </div>
+            )}
           </div>
-        ))}
+          );
+        })}
       </div>
       <button onClick={onClear} style={{
         marginTop: 14, width: "100%",
@@ -111,9 +132,8 @@ function AchievementsTab({ history, unlocked, lang, t, th }) {
   );
 }
 
-export default function HistoryPage({ onBack, th, t, lang, history, unlocked, onClear, onInfo, onPrivacy, brand }) {
+export default function HistoryPage({ onBack, th, t, lang, uid, history, unlocked, allRestaurants, onWriteReview, onClear, onInfo, onPrivacy }) {
   const [tab, setTab] = useState("history");
-  const [receiptTarget, setReceiptTarget] = useState(null);
 
   return (
     <div style={{ minHeight: "100vh", background: th.phone, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif', color: th.text }}>
@@ -125,6 +145,15 @@ export default function HistoryPage({ onBack, th, t, lang, history, unlocked, on
       </div>
 
       <div style={{ maxWidth: 540, margin: "0 auto", padding: "16px 16px 60px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, background: "#fff", borderRadius: 16, padding: "14px 16px", marginBottom: 14, boxShadow: th.sectionShadow, border: "1px solid " + th.line }}>
+          <div style={{ width: 44, height: 44, borderRadius: 12, background: th.activeBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>🙂</div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>{t("myNicknameLabel")}</div>
+            <div style={{ fontSize: 16, fontWeight: 900, color: th.text, marginTop: 1 }}>{nicknameFor(uid, lang)}</div>
+          </div>
+        </div>
+        <div style={{ fontSize: 11, color: th.muted, lineHeight: 1.5, marginTop: -8, marginBottom: 14, padding: "0 4px" }}>{t("myNicknameDesc")}</div>
+
         <div style={{
           display: "grid", gridTemplateColumns: "1fr 1fr",
           background: "#fff", borderRadius: 14, padding: 4, marginBottom: 14,
@@ -145,24 +174,13 @@ export default function HistoryPage({ onBack, th, t, lang, history, unlocked, on
         </div>
 
         {tab === "history" ? (
-          <HistoryTab history={history} lang={lang} t={t} th={th} onShowReceipt={setReceiptTarget} onClear={onClear} />
+          <HistoryTab history={history} lang={lang} t={t} th={th} allRestaurants={allRestaurants} onWriteReview={onWriteReview} onClear={onClear} />
         ) : (
           <AchievementsTab history={history} unlocked={unlocked} lang={lang} t={t} th={th} />
         )}
 
         <Footer th={th} t={t} onInfo={onInfo} onPrivacy={onPrivacy} />
       </div>
-
-      {receiptTarget && (
-        <ReceiptModal
-          record={receiptTarget}
-          lang={lang}
-          brand={brand}
-          th={th}
-          t={t}
-          onClose={() => setReceiptTarget(null)}
-        />
-      )}
     </div>
   );
 }
