@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { pick } from "../config/i18n";
 import { compressImageFile } from "../lib/imageCompress";
 
 // Bottom-sheet form for the "add your own restaurant" feature. Creates a
@@ -10,14 +11,38 @@ const fieldStyle = {
   borderRadius: 12, fontFamily: "inherit", fontSize: 14, boxSizing: "border-box",
 };
 
+// Mirrors the categories already used across the built-in catalog
+// (config/restaurants.js) so custom restaurants sort/filter alongside them.
+const CATEGORY_OPTIONS = [
+  { ko: "치킨", en: "Chicken" },
+  { ko: "일식", en: "Japanese" },
+  { ko: "양식", en: "Italian" },
+  { ko: "샐러드", en: "Salad" },
+  { ko: "한식", en: "Korean" },
+  { ko: "중식", en: "Chinese" },
+  { ko: "분식", en: "Street Food" },
+  { ko: "카페", en: "Cafe" },
+  { ko: "마라탕", en: "Mala" },
+  { ko: "아이스크림", en: "Ice Cream" },
+  { ko: "곱창", en: "Tripe" },
+  { ko: "초밥", en: "Sushi" },
+  { ko: "햄버거", en: "Burger" },
+  { ko: "피자", en: "Pizza" },
+  { ko: "타코야끼", en: "Takoyaki" },
+  { ko: "빙수", en: "Bingsu" },
+  { ko: "와플", en: "Waffle" },
+];
+const OTHER_CATEGORY = "__other__";
+
 function makeCustomId(prefix) {
   return prefix + "_" + Date.now().toString(36) + "_" + Math.floor(Math.random() * 1e6).toString(36);
 }
 
-export default function AddRestaurantModal({ onClose, onCreate, brand, t }) {
+export default function AddRestaurantModal({ onClose, onCreate, brand, t, lang }) {
   const [name, setName] = useState("");
   const [emoji, setEmoji] = useState("🍴");
   const [category, setCategory] = useState("");
+  const [customCategory, setCustomCategory] = useState("");
   const [fee, setFee] = useState("3000");
   const [minOrder, setMinOrder] = useState("12000");
   const [menuName, setMenuName] = useState("");
@@ -45,6 +70,10 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t }) {
     setSubmitting(true);
     const photo = photoFile ? await compressImageFile(photoFile).catch(() => null) : null;
     const restaurantId = makeCustomId("custom_r");
+    const preset = CATEGORY_OPTIONS.find(c => c.ko === category);
+    const categoryField = category === OTHER_CATEGORY
+      ? { ko: customCategory.trim() || "기타", en: customCategory.trim() || "Other" }
+      : preset || { ko: "기타", en: "Other" };
     onCreate({
       id: restaurantId,
       name: { ko: nm, en: nm },
@@ -54,7 +83,7 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t }) {
       reviews: 1,
       fee: Math.max(0, parseInt(fee, 10) || 0),
       minOrder: Math.max(0, parseInt(minOrder, 10) || 0),
-      category: { ko: category.trim() || "기타", en: category.trim() || "Other" },
+      category: categoryField,
       isCustom: true,
       menus: [{
         id: makeCustomId("custom_m"),
@@ -91,7 +120,21 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t }) {
 
           <div>
             <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("restaurantCategoryLabel")}</label>
-            <input value={category} onChange={e => setCategory(e.target.value)} placeholder={t("restaurantCategoryPh")} style={fieldStyle} />
+            <select value={category} onChange={e => setCategory(e.target.value)} style={fieldStyle}>
+              <option value="" disabled>{t("restaurantCategoryPh")}</option>
+              {CATEGORY_OPTIONS.map(c => (
+                <option key={c.ko} value={c.ko}>{pick(c, lang)}</option>
+              ))}
+              <option value={OTHER_CATEGORY}>{t("restaurantCategoryOther")}</option>
+            </select>
+            {category === OTHER_CATEGORY && (
+              <input
+                value={customCategory}
+                onChange={e => setCustomCategory(e.target.value)}
+                placeholder={t("restaurantCategoryCustomPh")}
+                style={{ ...fieldStyle, marginTop: 8 }}
+              />
+            )}
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>

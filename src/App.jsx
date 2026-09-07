@@ -16,7 +16,7 @@ import rabbitRider from "./assets/riders/rabbit-rider.png";
 import turtleRider from "./assets/riders/turtle-rider.png";
 import { getMenuImageSrc } from "./config/menuImages";
 import { nicknameFor } from "./lib/nickname";
-import { deliveryModes, SIZE_OPTIONS, SPICY_OPTIONS, SPICY_LABELS, theme } from "./config/ordering";
+import { deliveryModes, RABBIT_SURCHARGE, SIZE_OPTIONS, SPICY_OPTIONS, SPICY_LABELS, theme } from "./config/ordering";
 import { calcTotals, fmt } from "./lib/format";
 import { dict, makeT, pick } from "./config/i18n";
 import { restaurants } from "./config/restaurants";
@@ -802,7 +802,7 @@ export default function App() {
 
   const th = theme;
   const mode = deliveryModes[deliveryMode];
-  const totals = calcTotals(cart);
+  const totals = calcTotals(cart, deliveryMode);
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
   // Merge user-created restaurants/menus into the built-in catalog so the
@@ -1142,6 +1142,7 @@ export default function App() {
               setPage("order");
             }}
             brand={th.primaryBtn}
+            lang={lang}
             t={t}
           />
         )}
@@ -1419,7 +1420,22 @@ export default function App() {
                 <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 10, fontSize: 13, color: th.muted }}><span style={{ flexShrink: 0 }}>{k}</span><strong style={{ color: th.text, display: "block", minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{v}</strong></div>
               ))}
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10, fontSize: 17, fontWeight: 900, marginTop: 4, paddingTop: 8, borderTop: "1px solid " + th.line }}><span style={{ flexShrink: 0 }}>{t("totalLabel")}</span><strong style={{ color: th.brand, display: "block", minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{fmt(totals.total, lang)}</strong></div>
-              <div style={{ fontSize: 13, color: th.brand, fontWeight: 800, marginTop: 6 }}>{t("selectedDelivery")} {mode.emoji} {pick(mode.label, lang)}</div>
+            </div>
+          </div>
+          <div style={css.section}>
+            <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>{t("deliveryTypeTitle")}</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              {Object.values(deliveryModes).map((m) => {
+                const active = deliveryMode === m.key;
+                return (
+                  <button key={m.key} onClick={() => setDeliveryMode(m.key)} style={{ border: active ? "2px solid " + th.brand : "1px solid " + th.line, background: active ? th.activeBg : "#fff", borderRadius: 16, padding: "14px 12px", cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}>
+                    <div style={{ fontSize: 24, marginBottom: 8 }}>{m.emoji}</div>
+                    <div style={{ fontWeight: 900, fontSize: 15 }}>{pick(m.label, lang)}</div>
+                    <div style={{ fontSize: 12, color: th.muted, marginTop: 4 }}>{m.key === "rabbit" ? t("fastDeliveryDesc") : t("slowDeliveryDesc")}</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: m.key === "rabbit" ? th.brandDark : "#16a34a", marginTop: 6 }}>{m.key === "rabbit" ? "+" + fmt(RABBIT_SURCHARGE, lang) : t("baseDeliveryFee")}</div>
+                  </button>
+                );
+              })}
             </div>
           </div>
           <div style={css.section}>
@@ -1579,7 +1595,6 @@ export default function App() {
             )}
             <button onClick={() => setShowInfoModal(true)} style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 13, fontWeight: 900 }} aria-label={t("appInfoAria")} title={t("appInfoTitle")}>?</button>
             {LangButton}
-            <button onClick={resetAll} aria-label={t("reset")} title={t("reset")} style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 13 }}>↺</button>
           </div>
         </div>
         <div style={{ maxWidth: 540, margin: "8px auto 0" }}>
@@ -1590,22 +1605,6 @@ export default function App() {
       <div style={css.content}>
         <div style={{ background: "linear-gradient(135deg,#fff7ed,#ffedd5)", border: "1px solid #fdba74", color: "#9a3412", padding: "12px 14px", borderRadius: 16, fontSize: 12, fontWeight: 800, lineHeight: 1.45 }}>
           {t("demoBanner")}
-        </div>
-
-        <div style={css.section}>
-          <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>{t("deliveryTypeTitle")}</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            {Object.values(deliveryModes).map((m) => {
-              const active = deliveryMode === m.key;
-              return (
-                <button key={m.key} onClick={() => setDeliveryMode(m.key)} style={{ border: active ? "2px solid " + th.brand : "1px solid " + th.line, background: active ? th.activeBg : "#fff", borderRadius: 16, padding: "14px 12px", cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}>
-                  <div style={{ fontSize: 24, marginBottom: 8 }}>{m.emoji}</div>
-                  <div style={{ fontWeight: 900, fontSize: 15 }}>{pick(m.label, lang)}</div>
-                  <div style={{ fontSize: 12, color: th.muted, marginTop: 4 }}>{m.key === "rabbit" ? t("fastDeliveryDesc") : t("slowDeliveryDesc")}</div>
-                </button>
-              );
-            })}
-          </div>
         </div>
 
         <div style={css.section}>

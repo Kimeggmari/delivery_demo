@@ -25,6 +25,8 @@ export const theme = {
   headerBorderBottom: "none", activeBg: "#fff7ed",
 };
 
+export const RABBIT_SURCHARGE = 1000;
+
 export const deliveryModes = {
   rabbit: {
     key: "rabbit",
