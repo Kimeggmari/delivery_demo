@@ -139,6 +139,12 @@ export function subscribeReviews(restaurantId, onChange) {
   return onSnapshot(q, snap => onChange(snap.docs.map(d => d.data())));
 }
 
+// Every review across every restaurant, for the real (non-hidden) review
+// counts shown on restaurant cards — see reviewCountByRestaurant in App.jsx.
+export function subscribeAllReviews(onChange) {
+  return onSnapshot(collection(db, "reviews"), snap => onChange(snap.docs.map(d => d.data())));
+}
+
 export async function submitReview(restaurantId, rating, text) {
   const uid = await authReady;
   const rid = String(restaurantId);
@@ -219,7 +225,7 @@ export function buildOrderRecord({ cart, orderInfo, totals, deliveryMode, lang, 
   });
 
   const savedKcal = cart.reduce(
-    (s, i) => s + (menuCalories[i.menuId] || 600) * i.qty,
+    (s, i) => s + (i.calories || menuCalories[i.menuId] || 600) * i.qty,
     0,
   );
 

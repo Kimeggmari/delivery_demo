@@ -48,6 +48,7 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t, lang }
   const [menuName, setMenuName] = useState("");
   const [menuDesc, setMenuDesc] = useState("");
   const [menuPrice, setMenuPrice] = useState("");
+  const [menuCalories, setMenuCalories] = useState("");
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -80,6 +81,7 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t, lang }
     }
     setSubmitting(true);
     const photo = photoFile ? await compressImageFile(photoFile).catch(() => null) : null;
+    const cal = parseInt(menuCalories, 10);
     const restaurantId = makeCustomId("custom_r");
     const preset = CATEGORY_OPTIONS.find(c => c.ko === category);
     const categoryField = category === OTHER_CATEGORY
@@ -105,6 +107,7 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t, lang }
         options: {},
         isCustom: true,
         ...(photo ? { photo } : {}),
+        ...(Number.isFinite(cal) && cal > 0 ? { calories: cal } : {}),
       }],
     });
   };
@@ -198,9 +201,15 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t, lang }
                 <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuDescLabel")}</label>
                 <input value={menuDesc} onChange={e => setMenuDesc(e.target.value)} placeholder={t("menuDescPh")} style={fieldStyle} />
               </div>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuPriceLabel")}</label>
-                <input value={menuPrice} onChange={e => setMenuPrice(e.target.value)} placeholder={t("menuPricePh")} type="number" inputMode="numeric" style={fieldStyle} />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuPriceLabel")}</label>
+                  <input value={menuPrice} onChange={e => setMenuPrice(e.target.value)} placeholder={t("menuPricePh")} type="number" inputMode="numeric" style={fieldStyle} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuCaloriesLabel")}</label>
+                  <input value={menuCalories} onChange={e => setMenuCalories(e.target.value)} placeholder={t("menuCaloriesPh")} type="number" inputMode="numeric" style={fieldStyle} />
+                </div>
               </div>
               <div>
                 <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuPhotoLabel")}</label>

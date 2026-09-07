@@ -10,6 +10,7 @@ import NotificationBanner from "./components/NotificationBanner";
 import AddRestaurantModal from "./components/AddRestaurantModal";
 import AddMenuModal from "./components/AddMenuModal";
 import AddContentPage from "./components/AddContentPage";
+import AddContentNoticeModal from "./components/AddContentNoticeModal";
 import AdminPanel from "./components/AdminPanel";
 import rabbitRider from "./assets/riders/rabbit-rider.png";
 import turtleRider from "./assets/riders/turtle-rider.png";
@@ -26,7 +27,7 @@ import {
   computeStats, buildOrderRecord,
   subscribeCustomRestaurants, addCustomRestaurant, deleteCustomRestaurant, reportCustomRestaurant, approveCustomRestaurant,
   subscribeCustomMenus, addCustomMenu, deleteCustomMenu, reportCustomMenu, approveCustomMenu,
-  subscribeReviews, submitReview, deleteReview, reportReview,
+  subscribeReviews, subscribeAllReviews, submitReview, deleteReview, reportReview,
   REPORT_HIDE_THRESHOLD, REVIEW_TEXT_MAX,
 } from "./lib/storage";
 import { authReady } from "./lib/firebase";
@@ -133,9 +134,10 @@ function ReviewModal({ restaurant, onClose, t, lang, uid, th }) {
   }, [myReview?.rating, myReview?.text]);
 
   const visibleReviews = realReviews.filter(r => (r.reportedBy || []).length < REPORT_HIDE_THRESHOLD);
+  const canSubmit = rating >= 1 && text.trim().length > 0;
 
   const handleSubmit = () => {
-    if (rating < 1 || submitting) return;
+    if (!canSubmit || submitting) return;
     setSubmitting(true);
     submitReview(restaurant.id, rating, text)
       .catch(err => console.warn("Failed to submit review", err))
@@ -161,7 +163,7 @@ function ReviewModal({ restaurant, onClose, t, lang, uid, th }) {
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
               <span style={{ color: "#f59e0b" }}><Stars rating={restaurant.rating} size={14} /></span>
               <span style={{ fontWeight: 900, fontSize: 15 }}>{restaurant.rating}</span>
-              <span style={{ color: "#9ca3af", fontSize: 12 }}>{t("reviewCountSuffix", restaurant.reviews)}</span>
+              <span style={{ color: "#9ca3af", fontSize: 12 }}>{t("reviewCountSuffix", visibleReviews.length)}</span>
             </div>
           </div>
           <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: 12, border: "none", background: "#f3f4f6", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
@@ -192,8 +194,8 @@ function ReviewModal({ restaurant, onClose, t, lang, uid, th }) {
             )}
             <button
               onClick={handleSubmit}
-              disabled={rating < 1 || submitting}
-              style={{ border: "none", borderRadius: 10, padding: "8px 16px", background: rating < 1 ? "#d1d5db" : th.brand, color: "#fff", fontWeight: 800, fontSize: 12, cursor: rating < 1 || submitting ? "default" : "pointer", fontFamily: "inherit" }}
+              disabled={!canSubmit || submitting}
+              style={{ border: "none", borderRadius: 10, padding: "8px 16px", background: !canSubmit ? "#d1d5db" : th.brand, color: "#fff", fontWeight: 800, fontSize: 12, cursor: !canSubmit || submitting ? "default" : "pointer", fontFamily: "inherit" }}
             >{myReview ? t("updateReviewBtn") : t("reviewSubmit")}</button>
           </div>
         </div>
@@ -666,7 +668,7 @@ function OptionSheet({ menu, onClose, onConfirm, brand, t, lang }) {
             <div style={{ minWidth: 0 }}>
               <div style={{ fontWeight: 900, fontSize: 18 }}>{pick(menu.name, lang)}</div>
               <div style={{ color: "#6b7280", fontSize: 13, marginTop: 4 }}>{pick(menu.desc, lang)}</div>
-              <div style={{ color: "#10b981", fontSize: 12, fontWeight: 700, marginTop: 6 }}>🔥 {(menuCalories[menu.id] || 600).toLocaleString()}{t("kcal")}</div>
+              <div style={{ color: "#10b981", fontSize: 12, fontWeight: 700, marginTop: 6 }}>🔥 {(menu.calories || menuCalories[menu.id] || 600).toLocaleString()}{t("kcal")}</div>
             </div>
           </div>
           <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: 12, border: "none", background: "#f3f4f6", fontSize: 18, cursor: "pointer", flexShrink: 0 }}>✕</button>
@@ -784,16 +786,30 @@ export default function App() {
 
   const [customRestaurants, setCustomRestaurants] = useState([]);
   const [customMenus, setCustomMenus] = useState([]);
+  const [allReviews, setAllReviews] = useState([]);
   const [showAddRestaurant, setShowAddRestaurant] = useState(false);
   const [addMenuTarget, setAddMenuTarget] = useState(null);
+  const [pendingAddAction, setPendingAddAction] = useState(null);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [deliveryNotif, setDeliveryNotif] = useState(null);
 
   useEffect(() => {
     const unsubR = subscribeCustomRestaurants(setCustomRestaurants);
     const unsubM = subscribeCustomMenus(setCustomMenus);
-    return () => { unsubR(); unsubM(); };
+    const unsubRev = subscribeAllReviews(setAllReviews);
+    return () => { unsubR(); unsubM(); unsubRev(); };
   }, []);
+
+  // Real, non-hidden review count per restaurant — replaces the static
+  // seed `reviews` field on restaurant cards (see reviewCountSuffix usages).
+  const reviewCountByRestaurant = useMemo(() => {
+    const map = {};
+    allReviews.forEach(r => {
+      if ((r.reportedBy || []).length >= REPORT_HIDE_THRESHOLD) return;
+      map[r.restaurantId] = (map[r.restaurantId] || 0) + 1;
+    });
+    return map;
+  }, [allReviews]);
 
   const t = useMemo(() => makeT(lang), [lang]);
   const inquiryEmail = "eggmari5713@gmail.com";
@@ -904,6 +920,7 @@ export default function App() {
         name: m.name, // bilingual object
         price: unitPrice, fee: r.fee, qty,
         spicy, size, toppings: normToppings,
+        ...(m.calories ? { calories: m.calories } : {}),
       }];
     });
     setAddedAnim(mid);
@@ -1128,9 +1145,21 @@ export default function App() {
           lang={lang}
           t={t}
           th={th}
-          onOpenAddRestaurant={() => setShowAddRestaurant(true)}
-          onOpenAddMenu={(r) => setAddMenuTarget(r)}
+          onOpenAddRestaurant={() => setPendingAddAction({ type: "restaurant" })}
+          onOpenAddMenu={(r) => setPendingAddAction({ type: "menu", restaurant: r })}
         />
+        {pendingAddAction && (
+          <AddContentNoticeModal
+            onClose={() => setPendingAddAction(null)}
+            onConfirm={() => {
+              if (pendingAddAction.type === "restaurant") setShowAddRestaurant(true);
+              else setAddMenuTarget(pendingAddAction.restaurant);
+              setPendingAddAction(null);
+            }}
+            t={t}
+            th={th}
+          />
+        )}
         {showAddRestaurant && (
           <AddRestaurantModal
             onClose={() => setShowAddRestaurant(false)}
@@ -1184,7 +1213,7 @@ export default function App() {
 
   if (page === "complete") {
     const completedRecord = receiptData?._record || history[0] || null;
-    const savedKcal = completedRecord?.savedKcal ?? cart.reduce((s, i) => s + (menuCalories[i.menuId] || 600) * i.qty, 0);
+    const savedKcal = completedRecord?.savedKcal ?? cart.reduce((s, i) => s + (i.calories || menuCalories[i.menuId] || 600) * i.qty, 0);
     return (
       <div style={{ ...css.wrap, alignItems: "center", justifyContent: "center", textAlign: "center", padding: "40px 24px" }}>
         <style>{globalStyle}</style>
@@ -1651,7 +1680,7 @@ export default function App() {
                   <div onClick={() => setReviewTarget(r)} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, cursor: "pointer", padding: "4px 0" }}>
                     <span style={{ color: "#f59e0b" }}><Stars rating={r.rating} /></span>
                     <span style={{ fontWeight: 800, fontSize: 13 }}>{r.rating}</span>
-                    <span style={{ color: th.muted, fontSize: 12 }}>{t("reviewCountSuffix", r.reviews)}</span>
+                    <span style={{ color: th.muted, fontSize: 12 }}>{t("reviewCountSuffix", reviewCountByRestaurant[String(r.id)] || 0)}</span>
                     <span style={{ color: th.brand, fontSize: 11, fontWeight: 700 }}>{t("seeReviews")}</span>
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8, color: th.muted, fontSize: 12, marginBottom: 10 }}>
@@ -1677,7 +1706,7 @@ export default function App() {
                                 {m.status === "pending" && <span style={{ fontSize: 9, fontWeight: 800, color: "#d97706", background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 999, padding: "1px 6px", whiteSpace: "nowrap", flexShrink: 0 }}>{t("pendingBadge")}</span>}
                               </div>
                               <div style={{ color: th.muted, fontSize: 12 }}>{pick(m.desc, lang)}</div>
-                              <div style={{ color: "#10b981", fontSize: 11, fontWeight: 700, marginTop: 2 }}>🔥 {(menuCalories[m.id] || 600).toLocaleString()}{t("kcal")}</div>
+                              <div style={{ color: "#10b981", fontSize: 11, fontWeight: 700, marginTop: 2 }}>🔥 {(m.calories || menuCalories[m.id] || 600).toLocaleString()}{t("kcal")}</div>
                               {hasOpts && <div style={{ fontSize: 10, color: th.brand, fontWeight: 700, marginTop: 3 }}>{t("optionAvail")}</div>}
                             </div>
                           </div>
