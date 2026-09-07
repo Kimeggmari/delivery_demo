@@ -11,26 +11,19 @@ const fieldStyle = {
   borderRadius: 12, fontFamily: "inherit", fontSize: 14, boxSizing: "border-box",
 };
 
-// Mirrors the categories already used across the built-in catalog
-// (config/restaurants.js) so custom restaurants sort/filter alongside them.
+// A simplified set of broad categories (narrower built-in catalog categories
+// like 초밥/타코야끼, 마라탕, 곱창, 아이스크림/빙수/와플 fold into the closest
+// one here) — pick "기타" for anything that doesn't fit.
 const CATEGORY_OPTIONS = [
-  { ko: "치킨", en: "Chicken" },
-  { ko: "일식", en: "Japanese" },
-  { ko: "양식", en: "Italian" },
-  { ko: "샐러드", en: "Salad" },
   { ko: "한식", en: "Korean" },
   { ko: "중식", en: "Chinese" },
+  { ko: "일식", en: "Japanese" },
+  { ko: "양식", en: "Western" },
   { ko: "분식", en: "Street Food" },
-  { ko: "카페", en: "Cafe" },
-  { ko: "마라탕", en: "Mala" },
-  { ko: "아이스크림", en: "Ice Cream" },
-  { ko: "곱창", en: "Tripe" },
-  { ko: "초밥", en: "Sushi" },
-  { ko: "햄버거", en: "Burger" },
+  { ko: "치킨", en: "Chicken" },
   { ko: "피자", en: "Pizza" },
-  { ko: "타코야끼", en: "Takoyaki" },
-  { ko: "빙수", en: "Bingsu" },
-  { ko: "와플", en: "Waffle" },
+  { ko: "햄버거", en: "Burger" },
+  { ko: "카페·디저트", en: "Cafe & Dessert" },
 ];
 const OTHER_CATEGORY = "__other__";
 

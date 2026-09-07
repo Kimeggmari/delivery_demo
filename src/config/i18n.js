@@ -20,6 +20,8 @@ export const dict = {
     langToggleAria: "언어 변경",
     // Banner / sections
     demoBanner: "🚧 실제 주문·결제·배달은 발생하지 않습니다.",
+    activeOrderBannerTitle: "주문이 진행 중이에요",
+    activeOrderBannerSub: (eta) => `${eta} 남음 · 배달 현황 보기`,
     deliveryTypeTitle: "배달 타입 선택",
     fastDeliveryDesc: "빠른 도착 연출",
     slowDeliveryDesc: "느긋한 도착 연출",
@@ -343,6 +345,8 @@ export const dict = {
     langToggleAria: "Change language",
     // Banner
     demoBanner: "🚧 No real orders, payments, or deliveries happen here.",
+    activeOrderBannerTitle: "Your order is in progress",
+    activeOrderBannerSub: (eta) => `${eta} left · View delivery status`,
     deliveryTypeTitle: "Choose delivery type",
     fastDeliveryDesc: "Lightning-fast vibes",
     slowDeliveryDesc: "Slow-and-steady vibes",

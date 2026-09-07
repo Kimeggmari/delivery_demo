@@ -1620,6 +1620,25 @@ export default function App() {
       </div>
 
       <div style={css.content}>
+        {orderInfo && (
+          <div
+            onClick={() => setPage("tracking")}
+            style={{
+              background: "linear-gradient(135deg," + mode.heroStart + "," + mode.heroEnd + ")",
+              color: "#fff", borderRadius: 16, padding: "12px 14px",
+              display: "flex", alignItems: "center", gap: 10, cursor: "pointer",
+              boxShadow: "0 8px 24px rgba(15,23,42,0.16)",
+            }}
+          >
+            <div style={{ fontSize: 22, flexShrink: 0 }}>{mode.emoji}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 900 }}>{t("activeOrderBannerTitle")}</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", marginTop: 2 }}>{t("activeOrderBannerSub", td.eta)}</div>
+            </div>
+            <div style={{ fontSize: 18, flexShrink: 0 }}>→</div>
+          </div>
+        )}
+
         <div style={{ background: "linear-gradient(135deg,#fff7ed,#ffedd5)", border: "1px solid #fdba74", color: "#9a3412", padding: "12px 14px", borderRadius: 16, fontSize: 12, fontWeight: 800, lineHeight: 1.45 }}>
           {t("demoBanner")}
         </div>
