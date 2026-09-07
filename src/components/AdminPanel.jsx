@@ -1,4 +1,5 @@
 import { pick } from "../config/i18n";
+import MenuImage from "./MenuImage";
 
 // Moderation bottom-sheet: lists every pending custom restaurant/menu
 // (visible to the admin device only, via firestore.rules) with per-item
@@ -26,7 +27,11 @@ export default function AdminPanel({
             <div style={{ fontSize: 13, color: th.muted, padding: "8px 2px" }}>{t("adminEmptyRestaurants")}</div>
           ) : pendingRestaurants.map(r => (
             <div key={r.id} style={rowStyle}>
-              <div style={{ fontSize: 28, flexShrink: 0 }}>{r.emoji}</div>
+              {r.menus && r.menus[0] && r.menus[0].photo ? (
+                <MenuImage src={r.menus[0].photo} alt="" width={56} height={56} borderRadius={12} />
+              ) : (
+                <div style={{ fontSize: 28, flexShrink: 0 }}>{r.emoji}</div>
+              )}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 800, fontSize: 14 }}>{pick(r.name, lang)}</div>
                 <div style={{ fontSize: 12, color: th.muted, marginTop: 2 }}>{pick(r.category, lang)}</div>
@@ -48,6 +53,7 @@ export default function AdminPanel({
             <div style={{ fontSize: 13, color: th.muted, padding: "8px 2px" }}>{t("adminEmptyMenus")}</div>
           ) : pendingMenus.map(m => (
             <div key={m.id} style={rowStyle}>
+              {m.photo && <MenuImage src={m.photo} alt="" width={56} height={56} borderRadius={12} />}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 800, fontSize: 14 }}>{pick(m.name, lang)}</div>
                 <div style={{ fontSize: 12, color: th.muted, marginTop: 2 }}>{restaurantNameById[m.restaurantId] || m.restaurantId}</div>
