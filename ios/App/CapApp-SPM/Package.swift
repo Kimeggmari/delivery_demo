@@ -14,8 +14,8 @@ let package = Package(
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.4.0"),
         .package(name: "CapacitorCommunityAdmob", path: "..\..\..\node_modules\@capacitor-community\admob"),
         .package(name: "CapacitorCommunityMedia", path: "..\..\..\node_modules\@capacitor-community\media"),
+        .package(name: "CapacitorFirebaseAnalytics", path: "..\..\..\node_modules\@capacitor-firebase\analytics"),
         .package(name: "CapacitorFirebaseAppCheck", path: "..\..\..\node_modules\@capacitor-firebase\app-check"),
-        .package(name: "CapacitorGoogleMaps", path: "..\..\..\node_modules\@capacitor\google-maps"),
         .package(name: "CapacitorLocalNotifications", path: "..\..\..\node_modules\@capacitor\local-notifications")
     ],
     targets: [
@@ -26,8 +26,8 @@ let package = Package(
                 .product(name: "Cordova", package: "capacitor-swift-pm"),
                 .product(name: "CapacitorCommunityAdmob", package: "CapacitorCommunityAdmob"),
                 .product(name: "CapacitorCommunityMedia", package: "CapacitorCommunityMedia"),
+                .product(name: "CapacitorFirebaseAnalytics", package: "CapacitorFirebaseAnalytics"),
                 .product(name: "CapacitorFirebaseAppCheck", package: "CapacitorFirebaseAppCheck"),
-                .product(name: "CapacitorGoogleMaps", package: "CapacitorGoogleMaps"),
                 .product(name: "CapacitorLocalNotifications", package: "CapacitorLocalNotifications")
             ]
         )

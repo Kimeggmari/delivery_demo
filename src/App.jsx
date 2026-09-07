@@ -11,7 +11,6 @@ import AddRestaurantModal from "./components/AddRestaurantModal";
 import AddMenuModal from "./components/AddMenuModal";
 import AddContentPage from "./components/AddContentPage";
 import AdminPanel from "./components/AdminPanel";
-import TrackingMap from "./components/TrackingMap";
 import rabbitRider from "./assets/riders/rabbit-rider.png";
 import turtleRider from "./assets/riders/turtle-rider.png";
 import { getMenuImageSrc } from "./config/menuImages";
@@ -1027,7 +1026,6 @@ export default function App() {
   }]);
 
   const td = trackData[trackState] || trackData[0];
-  const trackProgress = td.finalDone ? 1 : trackState / mode.etaStart;
   const isNativeApp = Capacitor.isNativePlatform();
 
   const handleDeleteRestaurant = (id) => {
@@ -1261,11 +1259,11 @@ export default function App() {
 
   if (page === "tracking") {
     return (
-      <div style={isNativeApp ? { ...css.wrap, background: "transparent" } : css.wrap}>
+      <div style={css.wrap}>
         <style>{globalStyle}</style>
         <div style={css.header}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, maxWidth: 540, margin: "0 auto" }}>
-            <button onClick={() => { clearTimers(); setPage("order"); }} style={{ ...css.backBtn, background: th.iconBtnBg, color: th.iconBtnColor }}>←</button>
+            <button onClick={() => setPage("order")} style={{ ...css.backBtn, background: th.iconBtnBg, color: th.iconBtnColor }}>←</button>
             <div style={{ flex: 1, textAlign: "center" }}><h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>{pick(mode.label, lang)} {t("trackingTitlePrefix")} {mode.emoji}</h2></div>
             {LangButton}
           </div>
@@ -1274,31 +1272,21 @@ export default function App() {
           <div style={{ background: "linear-gradient(135deg,#fff7ed,#ffedd5)", border: "1px solid #fdba74", color: "#9a3412", padding: "12px 14px", borderRadius: 16, fontSize: 12, fontWeight: 800, lineHeight: 1.45 }}>
             {t("demoTrackBanner")}
           </div>
-          <div style={{ background: isNativeApp ? "transparent" : "linear-gradient(180deg,#dff7ea 0%,#ecfeff 100%)", borderRadius: 20, padding: isNativeApp ? 0 : 18, height: 220, minHeight: 220, position: "relative", overflow: "hidden", border: "1px solid #d1fae5" }}>
-            {isNativeApp ? (
-              <TrackingMap progress={trackProgress} mode={deliveryMode} storeLabel={t("storeReady")} />
-            ) : (
-              <>
-                <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.45) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.45) 1px,transparent 1px)", backgroundSize: "34px 34px", opacity: .8 }} />
-                {[{ w: 240, h: 14, t: 56, l: 40, rot: "8deg" }, { w: 16, h: 180, t: 24, r: 76 }, { w: 190, h: 12, b: 54, l: 56, rot: "-18deg" }].map((rd, i) => (
-                  <div key={i} style={{ position: "absolute", background: "rgba(148,163,184,0.35)", borderRadius: 999, width: rd.w, height: rd.h, top: rd.t, left: rd.l, right: rd.r, bottom: rd.b, transform: rd.rot ? "rotate(" + rd.rot + ")" : undefined }} />
-                ))}
-                <div style={{ position: "absolute", zIndex: 2, width: 46, height: 46, borderRadius: "50%", background: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", top: 24, left: 34 }}>🏪</div>
-                <div style={{ position: "absolute", zIndex: 2, width: 46, height: 46, borderRadius: "50%", background: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", right: 30, bottom: 30 }}>🏠</div>
-                <img
-                  src={RIDER_IMAGE[mode.key] || RIDER_IMAGE.rabbit}
-                  alt=""
-                  style={{ position: "absolute", zIndex: 2, width: 60, height: 60, filter: "drop-shadow(0 6px 10px rgba(15,23,42,0.25))", left: td.bp[0], top: td.bp[1], transform: "translate(-50%,-50%)", transition: "left .8s ease,top .8s ease", animation: "floatBike 2.2s ease-in-out infinite" }}
-                />
-              </>
-            )}
-            {!isNativeApp && (
-              <>
-                <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, top: 76, left: 22 }}>{t("storeReady")}</div>
-                <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, right: 18, bottom: 82 }}>{(orderInfo?.customerName || t("address")) + (t("customerSuffix") ? " " + t("customerSuffix") : "")}</div>
-                <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, left: "50%", top: "68%", transform: "translateX(-50%)" }}>{td.riderLabel}</div>
-              </>
-            )}
+          <div style={{ background: "linear-gradient(180deg,#dff7ea 0%,#ecfeff 100%)", borderRadius: 20, padding: 18, height: 220, minHeight: 220, position: "relative", overflow: "hidden", border: "1px solid #d1fae5" }}>
+            <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.45) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.45) 1px,transparent 1px)", backgroundSize: "34px 34px", opacity: .8 }} />
+            {[{ w: 240, h: 14, t: 56, l: 40, rot: "8deg" }, { w: 16, h: 180, t: 24, r: 76 }, { w: 190, h: 12, b: 54, l: 56, rot: "-18deg" }].map((rd, i) => (
+              <div key={i} style={{ position: "absolute", background: "rgba(148,163,184,0.35)", borderRadius: 999, width: rd.w, height: rd.h, top: rd.t, left: rd.l, right: rd.r, bottom: rd.b, transform: rd.rot ? "rotate(" + rd.rot + ")" : undefined }} />
+            ))}
+            <div style={{ position: "absolute", zIndex: 2, width: 46, height: 46, borderRadius: "50%", background: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", top: 24, left: 34 }}>🏪</div>
+            <div style={{ position: "absolute", zIndex: 2, width: 46, height: 46, borderRadius: "50%", background: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", right: 30, bottom: 30 }}>🏠</div>
+            <img
+              src={RIDER_IMAGE[mode.key] || RIDER_IMAGE.rabbit}
+              alt=""
+              style={{ position: "absolute", zIndex: 2, width: 60, height: 60, filter: "drop-shadow(0 6px 10px rgba(15,23,42,0.25))", left: td.bp[0], top: td.bp[1], transform: "translate(-50%,-50%)", transition: "left .8s ease,top .8s ease", animation: "floatBike 2.2s ease-in-out infinite" }}
+            />
+            <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, top: 76, left: 22 }}>{t("storeReady")}</div>
+            <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, right: 18, bottom: 82 }}>{(orderInfo?.customerName || t("address")) + (t("customerSuffix") ? " " + t("customerSuffix") : "")}</div>
+            <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, left: "50%", top: "68%", transform: "translateX(-50%)" }}>{td.riderLabel}</div>
           </div>
           <div style={{ background: "linear-gradient(135deg," + mode.heroStart + "," + mode.heroEnd + ")", color: "#fff", borderRadius: 20, padding: 18 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
@@ -1357,7 +1345,7 @@ export default function App() {
               ))}
             </div>
           )}
-          <Footer th={th} t={t} onInfo={() => { clearTimers(); setPage("order"); setShowInfoModal(true); }} onPrivacy={() => setPage("privacy")} />
+          <Footer th={th} t={t} onInfo={() => { setPage("order"); setShowInfoModal(true); }} onPrivacy={() => setPage("privacy")} />
         </div>
         <div style={css.bottomBar}>
           <div style={css.bottomInner}>
@@ -1416,7 +1404,7 @@ export default function App() {
               );})}
             </div>
             <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid " + th.line, display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 5 }}>
-              {[[t("productPrice"), fmt(totals.sub, lang)], [t("deliveryFee"), fmt(totals.del, lang)], [t("serviceFee"), fmt(totals.svc, lang)]].map(([k, v]) => (
+              {[[t("productPrice"), fmt(totals.sub, lang)], [t("deliveryFee"), fmt(totals.del, lang)]].map(([k, v]) => (
                 <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 10, fontSize: 13, color: th.muted }}><span style={{ flexShrink: 0 }}>{k}</span><strong style={{ color: th.text, display: "block", minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{v}</strong></div>
               ))}
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10, fontSize: 17, fontWeight: 900, marginTop: 4, paddingTop: 8, borderTop: "1px solid " + th.line }}><span style={{ flexShrink: 0 }}>{t("totalLabel")}</span><strong style={{ color: th.brand, display: "block", minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{fmt(totals.total, lang)}</strong></div>

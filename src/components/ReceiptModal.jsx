@@ -284,7 +284,6 @@ function drawReceipt(canvas, { record, lang, brand, t }) {
   const totalRows = [
     [t("productPrice"), fmt(record.subtotal, lang)],
     [t("deliveryFee"), fmt(record.deliveryFee, lang)],
-    [t("serviceFee"), fmt(record.serviceFee, lang)],
     [t("totalLabel"), fmt(record.total, lang)],
   ];
   totalRows.forEach(([k, v], i) => {

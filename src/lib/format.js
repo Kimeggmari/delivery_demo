@@ -19,6 +19,5 @@ export function calcTotals(cart, deliveryMode = "turtle") {
   const sub = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const baseDel = cart.length ? Math.max(...cart.map(i => i.fee)) : 0;
   const del = baseDel > 0 && deliveryMode === "rabbit" ? baseDel + RABBIT_SURCHARGE : baseDel;
-  const svc = sub > 0 ? Math.round((sub * 0.03) / 100) * 100 : 0;
-  return { sub, del, svc, total: sub + del + svc };
+  return { sub, del, total: sub + del };
 }

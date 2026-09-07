@@ -85,6 +85,7 @@ export default function AddMenuModal({ restaurant, onClose, onCreate, brand, t, 
               <span style={{ fontSize: 12, color: "#6b7280", fontWeight: 700 }}>{photoPreview ? t("menuPhotoChange") : t("menuPhotoHint")}</span>
               <input type="file" accept="image/*" onChange={pickPhoto} style={{ display: "none" }} />
             </label>
+            <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 6 }}>{t("menuPhotoCopyrightNote")}</div>
           </div>
         </div>
 

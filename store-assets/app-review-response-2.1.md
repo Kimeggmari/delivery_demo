@@ -13,7 +13,6 @@ App Store Connect → 해당 버전 → **Reply**(Resolution Center)에 아래 �
 
 - [ ] 앱 실행 → 홈/메뉴 화면
 - [ ] 장바구니 담기 → 옵션(맵기/사이즈/토핑) 선택 → 체크아웃
-- [ ] 배달 추적 화면 진입 시 **위치 권한 프롬프트**가 뜨는 장면 (반드시 포함 — "sensitive data" 프롬프트 요구사항)
 - [ ] 앱 시작 시 전면 광고가 뜨면(뜰 때까지 몇 번 재실행) 그 장면, + **ATT(트래킹 허용) 프롬프트**도 같이 (안 뜨면 앱 삭제 후 재설치해서 재현)
 - [ ] "내 식당 추가" 기능: 사진 첨부해서 등록하는 화면 (User-Generated Content)
 - [ ] 다른 사용자가 올린 항목을 **신고(report)하는 버튼/흐름** (신고 3회 누적 시 자동 숨김되는 그 기능 — "content reporting and blocking mechanisms" 요구사항에 정확히 대응)
@@ -63,9 +62,6 @@ are needed; the app is fully usable immediately after install.
 - Firebase (Firestore + Anonymous Authentication) — stores per-device demo order
   history/achievements, and shared user-submitted restaurant/menu content
   (name, description, photo).
-- Google Maps SDK for iOS — renders the fake courier-tracking map using the
-  device's real GPS location (for display only; location is never sent to a
-  server or stored).
 - Google AdMob — occasional full-screen interstitial ad on cold start (~30%
   probability).
 - No payment processor is used or needed — no real purchases occur anywhere

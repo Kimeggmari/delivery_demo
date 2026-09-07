@@ -13,7 +13,6 @@ dependencies {
     implementation project(':capacitor-community-media')
     implementation project(':capacitor-firebase-analytics')
     implementation project(':capacitor-firebase-app-check')
-    implementation project(':capacitor-google-maps')
     implementation project(':capacitor-local-notifications')
 
 }

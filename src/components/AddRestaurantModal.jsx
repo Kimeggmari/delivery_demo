@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { pick } from "../config/i18n";
 import { compressImageFile } from "../lib/imageCompress";
 
@@ -51,6 +51,17 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t, lang }
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const categoryBoxRef = useRef(null);
+
+  useEffect(() => {
+    if (!categoryOpen) return;
+    const onDocMouseDown = (e) => {
+      if (categoryBoxRef.current && !categoryBoxRef.current.contains(e.target)) setCategoryOpen(false);
+    };
+    document.addEventListener("mousedown", onDocMouseDown);
+    return () => document.removeEventListener("mousedown", onDocMouseDown);
+  }, [categoryOpen]);
 
   const pickPhoto = (e) => {
     const file = e.target.files && e.target.files[0];
@@ -120,13 +131,41 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t, lang }
 
           <div>
             <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("restaurantCategoryLabel")}</label>
-            <select value={category} onChange={e => setCategory(e.target.value)} style={fieldStyle}>
-              <option value="" disabled>{t("restaurantCategoryPh")}</option>
-              {CATEGORY_OPTIONS.map(c => (
-                <option key={c.ko} value={c.ko}>{pick(c, lang)}</option>
-              ))}
-              <option value={OTHER_CATEGORY}>{t("restaurantCategoryOther")}</option>
-            </select>
+            <div ref={categoryBoxRef} style={{ position: "relative" }}>
+              <button
+                type="button"
+                onClick={() => setCategoryOpen(o => !o)}
+                style={{ ...fieldStyle, display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", background: "#fff", textAlign: "left" }}
+              >
+                <span style={{ color: category ? "#111827" : "#9ca3af" }}>
+                  {category === OTHER_CATEGORY
+                    ? t("restaurantCategoryOther")
+                    : category
+                      ? pick(CATEGORY_OPTIONS.find(c => c.ko === category), lang)
+                      : t("restaurantCategoryPh")}
+                </span>
+                <span style={{ fontSize: 11, color: "#9ca3af" }}>{categoryOpen ? "▲" : "▼"}</span>
+              </button>
+              {categoryOpen && (
+                <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, zIndex: 20, background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.14)", maxHeight: 200, overflowY: "auto" }}>
+                  {CATEGORY_OPTIONS.map(c => (
+                    <div
+                      key={c.ko}
+                      onClick={() => { setCategory(c.ko); setCategoryOpen(false); }}
+                      style={{ padding: "10px 14px", fontSize: 14, fontWeight: category === c.ko ? 800 : 500, cursor: "pointer", background: category === c.ko ? "#f3f4f6" : "#fff" }}
+                    >
+                      {pick(c, lang)}
+                    </div>
+                  ))}
+                  <div
+                    onClick={() => { setCategory(OTHER_CATEGORY); setCategoryOpen(false); }}
+                    style={{ padding: "10px 14px", fontSize: 14, fontWeight: category === OTHER_CATEGORY ? 800 : 500, color: "#6b7280", cursor: "pointer", borderTop: "1px solid #f3f4f6", background: category === OTHER_CATEGORY ? "#f3f4f6" : "#fff" }}
+                  >
+                    {t("restaurantCategoryOther")}
+                  </div>
+                </div>
+              )}
+            </div>
             {category === OTHER_CATEGORY && (
               <input
                 value={customCategory}
@@ -176,6 +215,7 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t, lang }
                   <span style={{ fontSize: 12, color: "#6b7280", fontWeight: 700 }}>{photoPreview ? t("menuPhotoChange") : t("menuPhotoHint")}</span>
                   <input type="file" accept="image/*" onChange={pickPhoto} style={{ display: "none" }} />
                 </label>
+                <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 6 }}>{t("menuPhotoCopyrightNote")}</div>
               </div>
             </div>
           </div>
