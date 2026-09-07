@@ -5,6 +5,7 @@
 
 import { Capacitor } from "@capacitor/core";
 import { FirebaseAppCheck } from "@capacitor-firebase/app-check";
+import { FirebaseAnalytics } from "@capacitor-firebase/analytics";
 import { initializeApp } from "firebase/app";
 import { initializeAppCheck, CustomProvider } from "firebase/app-check";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
@@ -44,6 +45,15 @@ if (Capacitor.getPlatform() === "android") {
       isTokenAutoRefreshEnabled: true,
     }))
     .catch(err => console.warn("App Check init failed", err));
+}
+
+// Native Google Analytics (Firebase Analytics SDK), Android only for now —
+// iOS needs its own GoogleService-Info.plist added during the Mac/Xcode
+// session first, same prerequisite as App Check above. The web build gets
+// GA4 via the gtag.js snippet in index.html instead.
+if (Capacitor.getPlatform() === "android") {
+  FirebaseAnalytics.setCollectionEnabled({ enabled: true })
+    .catch(err => console.warn("Analytics init failed", err));
 }
 
 export const auth = getAuth(app);
