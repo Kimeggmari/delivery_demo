@@ -32,8 +32,10 @@ export const deliveryModes = {
     key: "rabbit",
     label: { ko: "토끼배달", en: "Rabbit Delivery" },
     emoji: "🐇",
-    etaStart: 8,
-    intervalMs: 6000,
+    // Settings-adjustable delivery time, in real seconds (see SettingsModal) —
+    // stepSeconds is both the slider increment and the tick granularity, so
+    // the on-screen countdown genuinely runs in real time, not compressed.
+    stepSeconds: 30, minSeconds: 30, maxSeconds: 900, defaultSeconds: 480,
     completeDelayMs: 1500,
     badge: { ko: "급행", en: "Express" },
     heroStart: "#f97316",
@@ -48,8 +50,7 @@ export const deliveryModes = {
     key: "turtle",
     label: { ko: "거북이배달", en: "Turtle Delivery" },
     emoji: "🐢",
-    etaStart: 30,
-    intervalMs: 30000,
+    stepSeconds: 300, minSeconds: 300, maxSeconds: 3600, defaultSeconds: 1800,
     completeDelayMs: 2500,
     badge: { ko: "여유", en: "Easy" },
     heroStart: "#16a34a",

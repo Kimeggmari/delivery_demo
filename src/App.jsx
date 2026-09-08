@@ -75,6 +75,10 @@ const thumbGradients = [
 
 const RIDER_IMAGE = { rabbit: rabbitRider, turtle: turtleRider };
 
+// Every order spends this long "cooking" (real time) before the courier
+// timers start, regardless of delivery mode or the configured delivery time.
+const COOK_TIME_MS = 15000;
+
 const badgeColors = {
   "인기": { bg: "#fee2e2", color: "#dc2626", border: "#fecaca" },
   "추천": { bg: "#dbeafe", color: "#2563eb", border: "#bfdbfe" },
@@ -747,6 +751,7 @@ export default function App() {
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
   const [trackState, setTrackState] = useState(0);
+  const [cooking, setCooking] = useState(false);
   const [orderInfo, setOrderInfo] = useState(null);
   const [reviewTarget, setReviewTarget] = useState(null);
   const [optionTarget, setOptionTarget] = useState(null);
@@ -804,18 +809,20 @@ export default function App() {
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [deliveryNotif, setDeliveryNotif] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
+  // Values are real seconds — the tracking screen genuinely takes this long
+  // to complete (see mode/trackData below), not a compressed simulation.
   const [deliveryTimeOverrides, setDeliveryTimeOverrides] = useState(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem("deliveryTimeOverrides"));
+      const saved = JSON.parse(localStorage.getItem("deliveryTimeSeconds"));
       if (saved && typeof saved.rabbit === "number" && typeof saved.turtle === "number") return saved;
     } catch { /* ignore */ }
-    return { rabbit: deliveryModes.rabbit.etaStart, turtle: deliveryModes.turtle.etaStart };
+    return { rabbit: deliveryModes.rabbit.defaultSeconds, turtle: deliveryModes.turtle.defaultSeconds };
   });
 
-  const handleChangeDeliveryTime = (key, value) => {
+  const handleChangeDeliveryTime = (key, seconds) => {
     setDeliveryTimeOverrides(prev => {
-      const next = { ...prev, [key]: value };
-      try { localStorage.setItem("deliveryTimeOverrides", JSON.stringify(next)); } catch { /* ignore */ }
+      const next = { ...prev, [key]: seconds };
+      try { localStorage.setItem("deliveryTimeSeconds", JSON.stringify(next)); } catch { /* ignore */ }
       return next;
     });
   };
@@ -843,7 +850,13 @@ export default function App() {
   const timersRef = useRef([]);
 
   const th = theme;
-  const mode = { ...deliveryModes[deliveryMode], etaStart: deliveryTimeOverrides[deliveryMode] };
+  const modeConfig = deliveryModes[deliveryMode];
+  const modeTotalSeconds = deliveryTimeOverrides[deliveryMode];
+  const mode = {
+    ...modeConfig,
+    etaStart: Math.max(1, Math.round(modeTotalSeconds / modeConfig.stepSeconds)),
+    intervalMs: modeConfig.stepSeconds * 1000,
+  };
   const totals = calcTotals(cart, deliveryMode);
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
@@ -1015,18 +1028,24 @@ export default function App() {
       timersRef.current.push(setTimeout(() => {
         setOrderInfo(info);
         setTrackState(0);
+        setCooking(true);
         setPage("tracking");
-        Array.from({ length: mode.etaStart }, (_, i) =>
-          timersRef.current.push(setTimeout(() => setTrackState(i + 1), (i + 1) * mode.intervalMs))
-        );
+        // Cooking always takes COOK_TIME_MS in real time, regardless of
+        // delivery mode/time — the courier timers only start once it ends.
         timersRef.current.push(setTimeout(() => {
-          const rec = persistOrder(info, cartSnapshot, totalsSnapshot);
-          setReceiptData({ ...info, _record: rec });
-          setPage("complete");
-          const notif = { title: t("notifDeliveryTitle"), body: t("notifDeliveryBody") };
-          notifyDeliveryComplete(notif);
-          setDeliveryNotif(notif);
-        }, mode.etaStart * mode.intervalMs + mode.completeDelayMs));
+          setCooking(false);
+          Array.from({ length: mode.etaStart }, (_, i) =>
+            timersRef.current.push(setTimeout(() => setTrackState(i + 1), (i + 1) * mode.intervalMs))
+          );
+          timersRef.current.push(setTimeout(() => {
+            const rec = persistOrder(info, cartSnapshot, totalsSnapshot);
+            setReceiptData({ ...info, _record: rec });
+            setPage("complete");
+            const notif = { title: t("notifDeliveryTitle"), body: t("notifDeliveryBody") };
+            notifyDeliveryComplete(notif);
+            setDeliveryNotif(notif);
+          }, mode.etaStart * mode.intervalMs + mode.completeDelayMs));
+        }, COOK_TIME_MS));
       }, 1500));
     }, 900));
   };
@@ -1040,7 +1059,7 @@ export default function App() {
   };
 
   const trackData = Array.from({ length: mode.etaStart }, (_, i) => {
-    const min = Math.max(1, mode.etaStart - i);
+    const min = Math.max(1, Math.ceil((mode.etaStart - i) * mode.intervalMs / 60000));
     const startPct = deliveryMode === "rabbit" ? 42 : 24;
     const stepPct = deliveryMode === "rabbit" ? 3.6 : 1.9;
     const startTop = deliveryMode === "rabbit" ? 40 : 30;
@@ -1070,6 +1089,11 @@ export default function App() {
   }]);
 
   const td = trackData[trackState] || trackData[0];
+  // While cooking, the courier hasn't left the restaurant yet — park them at
+  // the store marker instead of showing the first tick's en-route position.
+  const displayTd = cooking
+    ? { ...td, bp: ["12%", "20%"], riderLabel: t("cookingBottom"), eta: t("cookingBottom"), text: t("cookingDesc"), badge: t("cookingBottom") }
+    : td;
   const isNativeApp = Capacitor.isNativePlatform();
 
   const handleDeleteRestaurant = (id) => {
@@ -1338,19 +1362,21 @@ export default function App() {
             <img
               src={RIDER_IMAGE[mode.key] || RIDER_IMAGE.rabbit}
               alt=""
-              style={{ position: "absolute", zIndex: 2, width: 60, height: 60, filter: "drop-shadow(0 6px 10px rgba(15,23,42,0.25))", left: td.bp[0], top: td.bp[1], transform: "translate(-50%,-50%)", transition: "left .8s ease,top .8s ease", animation: "floatBike 2.2s ease-in-out infinite" }}
+              style={{ position: "absolute", zIndex: 2, width: 60, height: 60, filter: "drop-shadow(0 6px 10px rgba(15,23,42,0.25))", left: displayTd.bp[0], top: displayTd.bp[1], transform: "translate(-50%,-50%)", transition: "left .8s ease,top .8s ease", animation: "floatBike 2.2s ease-in-out infinite" }}
             />
             <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, top: 76, left: 22 }}>{t("storeReady")}</div>
             <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, right: 18, bottom: 82 }}>{(orderInfo?.customerName || t("address")) + (t("customerSuffix") ? " " + t("customerSuffix") : "")}</div>
-            <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, left: "50%", top: "68%", transform: "translateX(-50%)" }}>{td.riderLabel}</div>
+            {!cooking && (
+              <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, left: "50%", top: "68%", transform: "translateX(-50%)" }}>{displayTd.riderLabel}</div>
+            )}
           </div>
           <div style={{ background: "linear-gradient(135deg," + mode.heroStart + "," + mode.heroEnd + ")", color: "#fff", borderRadius: 20, padding: 18 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
               <div>
-                <div style={{ fontSize: 30, fontWeight: 900, lineHeight: 1 }}>{td.eta}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.84)", marginTop: 6 }}>{td.text}</div>
+                <div style={{ fontSize: cooking ? 18 : 30, fontWeight: 900, lineHeight: 1 }}>{displayTd.eta}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.84)", marginTop: 6 }}>{displayTd.text}</div>
               </div>
-              <div style={{ background: "rgba(255,255,255,0.16)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 14, padding: "10px 12px", fontSize: 12, fontWeight: 800, whiteSpace: "nowrap" }}>{td.badge}</div>
+              <div style={{ background: "rgba(255,255,255,0.16)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 14, padding: "10px 12px", fontSize: 12, fontWeight: 800, whiteSpace: "nowrap" }}>{displayTd.badge}</div>
             </div>
           </div>
           <div style={css.section}>
@@ -1369,15 +1395,15 @@ export default function App() {
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>{t("progressTitle")}</div>
             <div style={{ display: "grid", gap: 10 }}>
               {(dict[lang]?.progressSteps || dict.ko.progressSteps).map((label, i) => {
-                const done = i < 2 || (td.finalDone && i === 2);
-                const active = (!td.finalDone && i === 2) || (td.finalDone && i === 3);
+                const done = i === 0 || (i === 1 && !cooking) || (i === 2 && !cooking && td.finalDone);
+                const active = (i === 1 && cooking) || (i === 2 && !cooking && !td.finalDone) || (i === 3 && !cooking && td.finalDone);
                 return (
                   <div key={i} style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 12, alignItems: "start" }}>
                     <div style={{ width: 16, height: 16, borderRadius: "50%", marginTop: 2, background: done || active ? th.primaryBtn : "#d1d5db", boxShadow: active ? "0 0 0 6px " + th.primaryBtn + "28" : "none", transition: ".3s" }} />
                     <div>
                       <strong style={{ display: "block", fontSize: 14, marginBottom: 4 }}>{label}</strong>
                       <span style={{ color: th.muted, fontSize: 12 }}>
-                        {i === 2 ? td.activeText : i === 3 ? (td.finalDone ? t("progressArrived") : t("progressArriving")) : i === 0 ? t("progressStep0Desc") : t("progressStep1Desc")}
+                        {i === 2 ? (cooking ? "" : td.activeText) : i === 3 ? (td.finalDone ? t("progressArrived") : t("progressArriving")) : i === 0 ? t("progressStep0Desc") : (cooking ? t("cookingDesc") : t("progressStep1Desc"))}
                       </span>
                     </div>
                   </div>
@@ -1405,7 +1431,7 @@ export default function App() {
         </div>
         <div style={css.bottomBar}>
           <div style={css.bottomInner}>
-            <div><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>{t("currentStatus")}</span><br /><strong style={{ fontSize: 18, fontWeight: 900 }}>{td.bottom}</strong></div>
+            <div><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>{t("currentStatus")}</span><br /><strong style={{ fontSize: 18, fontWeight: 900 }}>{cooking ? t("cookingBottom") : td.bottom}</strong></div>
             <button onClick={resetAll} style={{ ...css.orderBtn, minWidth: "auto", padding: "12px 18px", boxShadow: "none" }}>{t("goHome")}</button>
           </div>
         </div>

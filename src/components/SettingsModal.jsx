@@ -2,6 +2,12 @@ import { nicknameFor } from "../lib/nickname";
 import { deliveryModes } from "../config/ordering";
 import { pick } from "../config/i18n";
 
+function formatDuration(totalSeconds, t) {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return s === 0 ? `${m}${t("minutes")}` : `${m}${t("minutes")} ${s}${t("seconds")}`;
+}
+
 const rowStyle = {
   width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
   padding: "14px 16px", background: "#f9fafb", border: "1px solid #f3f4f6", borderRadius: 14,
@@ -51,12 +57,13 @@ export default function SettingsModal({
             <div key={key} style={{ marginBottom: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 800, marginBottom: 6 }}>
                 <span>{deliveryModes[key].emoji} {pick(deliveryModes[key].label, lang)}</span>
-                <span>{deliveryTimeOverrides[key]}{t("minutes")}</span>
+                <span>{formatDuration(deliveryTimeOverrides[key], t)}</span>
               </div>
               <input
                 type="range"
-                min={1}
-                max={30}
+                min={deliveryModes[key].minSeconds}
+                max={deliveryModes[key].maxSeconds}
+                step={deliveryModes[key].stepSeconds}
                 value={deliveryTimeOverrides[key]}
                 onChange={e => onChangeDeliveryTime(key, Number(e.target.value))}
                 style={{ width: "100%" }}
