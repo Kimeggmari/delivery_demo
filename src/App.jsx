@@ -12,6 +12,7 @@ import AddMenuModal from "./components/AddMenuModal";
 import AddContentPage from "./components/AddContentPage";
 import AddContentNoticeModal from "./components/AddContentNoticeModal";
 import AdminPanel from "./components/AdminPanel";
+import SettingsModal from "./components/SettingsModal";
 import rabbitRider from "./assets/riders/rabbit-rider.png";
 import turtleRider from "./assets/riders/turtle-rider.png";
 import { getMenuImageSrc } from "./config/menuImages";
@@ -802,6 +803,22 @@ export default function App() {
   const [pendingAddAction, setPendingAddAction] = useState(null);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [deliveryNotif, setDeliveryNotif] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [deliveryTimeOverrides, setDeliveryTimeOverrides] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("deliveryTimeOverrides"));
+      if (saved && typeof saved.rabbit === "number" && typeof saved.turtle === "number") return saved;
+    } catch { /* ignore */ }
+    return { rabbit: deliveryModes.rabbit.etaStart, turtle: deliveryModes.turtle.etaStart };
+  });
+
+  const handleChangeDeliveryTime = (key, value) => {
+    setDeliveryTimeOverrides(prev => {
+      const next = { ...prev, [key]: value };
+      try { localStorage.setItem("deliveryTimeOverrides", JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  };
 
   useEffect(() => {
     const unsubR = subscribeCustomRestaurants(setCustomRestaurants);
@@ -826,7 +843,7 @@ export default function App() {
   const timersRef = useRef([]);
 
   const th = theme;
-  const mode = deliveryModes[deliveryMode];
+  const mode = { ...deliveryModes[deliveryMode], etaStart: deliveryTimeOverrides[deliveryMode] };
   const totals = calcTotals(cart, deliveryMode);
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
@@ -1558,6 +1575,19 @@ export default function App() {
           lang={lang}
         />
       )}
+      {showSettings && (
+        <SettingsModal
+          onClose={() => setShowSettings(false)}
+          t={t}
+          lang={lang}
+          uid={uid}
+          onToggleLang={toggleLang}
+          onShowInfo={() => { setShowSettings(false); setShowInfoModal(true); }}
+          onPrivacy={() => { setShowSettings(false); setPage("privacy"); }}
+          deliveryTimeOverrides={deliveryTimeOverrides}
+          onChangeDeliveryTime={handleChangeDeliveryTime}
+        />
+      )}
       {showSponsorModal && !showInfoModal && !isNativeApp && (
         <SponsorModal onClose={() => setShowSponsorModal(false)} t={t} th={th} />
       )}
@@ -1620,8 +1650,7 @@ export default function App() {
                 )}
               </button>
             )}
-            <button onClick={() => setShowInfoModal(true)} style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 13, fontWeight: 900 }} aria-label={t("appInfoAria")} title={t("appInfoTitle")}>?</button>
-            {LangButton}
+            <button onClick={() => setShowSettings(true)} style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 14 }} aria-label={t("settingsAria")} title={t("settingsTitle")}>⚙️</button>
           </div>
         </div>
         <div style={{ maxWidth: 540, margin: "8px auto 0" }}>
