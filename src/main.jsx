@@ -5,6 +5,7 @@ import App from './App.jsx'
 import InstallAppModal from './components/InstallAppModal.jsx'
 import DevGate from './components/DevGate.jsx'
 import ServiceEndedPage from './components/ServiceEndedPage.jsx'
+import SplashScreen from './components/SplashScreen.jsx'
 
 // Change this before sharing the dev site link with anyone.
 const DEV_PASSCODE = "fna_0911";
@@ -18,6 +19,10 @@ const isDevSite = import.meta.env.VITE_SITE_MODE === "dev";
 
 function FullApp() {
   const [showInstall, setShowInstall] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
+
+  if (showSplash) return <SplashScreen onDone={() => setShowSplash(false)} />;
+
   return (
     <>
       <App />
