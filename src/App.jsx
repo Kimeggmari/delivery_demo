@@ -750,7 +750,17 @@ export default function App() {
   const [reviewTarget, setReviewTarget] = useState(null);
   const [optionTarget, setOptionTarget] = useState(null);
   const [addedAnim, setAddedAnim] = useState(null);
-  const [showInfoModal, setShowInfoModal] = useState(false);
+  // Doubles as the first-launch onboarding screen — same content as the "?"
+  // info button, just auto-opened once per device via the localStorage flag.
+  const [showInfoModal, setShowInfoModal] = useState(() => {
+    try {
+      if (localStorage.getItem("hasSeenIntro")) return false;
+      localStorage.setItem("hasSeenIntro", "1");
+      return true;
+    } catch {
+      return false;
+    }
+  });
   const [showSponsorModal, setShowSponsorModal] = useState(true);
   const [history, setHistory] = useState([]);
   const [unlocked, setUnlocked] = useState({});
