@@ -29,7 +29,7 @@ export default function SplashScreen({ onDone }) {
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-        background: "linear-gradient(160deg,#fb923c,#f97316)",
+        background: "linear-gradient(160deg,#fff7ed,#fed7aa)",
         opacity: leaving ? 0 : 1,
         transition: `opacity ${FADE_MS}ms ease`,
         pointerEvents: leaving ? "none" : "auto",
@@ -40,8 +40,8 @@ export default function SplashScreen({ onDone }) {
         alt=""
         style={{ width: 96, height: 96, borderRadius: 24, boxShadow: "0 12px 32px rgba(0,0,0,0.2)", marginBottom: 18 }}
       />
-      <div style={{ fontSize: 22, fontWeight: 900, color: "#fff", marginBottom: 6 }}>음식만안와요</div>
-      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", fontWeight: 700 }}>{c.tagline}</div>
+      <div style={{ fontSize: 22, fontWeight: 900, color: "#431407", marginBottom: 6 }}>음식만안와요</div>
+      <div style={{ fontSize: 13, color: "#c2410c", fontWeight: 700 }}>{c.tagline}</div>
     </div>
   );
 }
