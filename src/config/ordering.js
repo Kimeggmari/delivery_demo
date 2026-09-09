@@ -35,7 +35,11 @@ export const deliveryModes = {
     // Settings-adjustable delivery time, in real seconds (see SettingsModal) —
     // stepSeconds is both the slider increment and the tick granularity, so
     // the on-screen countdown genuinely runs in real time, not compressed.
-    stepSeconds: 30, minSeconds: 30, maxSeconds: 900, defaultSeconds: 480,
+    // Default kept short (close to the old compressed-simulation length) so a
+    // fresh install completes an order quickly — Play Store review tests a
+    // fresh install and won't wait minutes for the flow to finish. Users can
+    // still slide it up to maxSeconds themselves.
+    stepSeconds: 30, minSeconds: 30, maxSeconds: 900, defaultSeconds: 60,
     completeDelayMs: 1500,
     badge: { ko: "급행", en: "Express" },
     heroStart: "#f97316",
@@ -50,7 +54,7 @@ export const deliveryModes = {
     key: "turtle",
     label: { ko: "거북이배달", en: "Turtle Delivery" },
     emoji: "🐢",
-    stepSeconds: 300, minSeconds: 300, maxSeconds: 3600, defaultSeconds: 1800,
+    stepSeconds: 300, minSeconds: 300, maxSeconds: 3600, defaultSeconds: 900,
     completeDelayMs: 2500,
     badge: { ko: "여유", en: "Easy" },
     heroStart: "#16a34a",
