@@ -1698,7 +1698,7 @@ export default function App() {
             <div style={{ fontSize: 22, flexShrink: 0 }}>{mode.emoji}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 13, fontWeight: 900 }}>{t("activeOrderBannerTitle")}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", marginTop: 2 }}>{t("activeOrderBannerSub", td.eta)}</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", marginTop: 2 }}>{t("activeOrderBannerSub", displayTd.eta)}</div>
             </div>
             <div style={{ fontSize: 18, flexShrink: 0 }}>→</div>
           </div>

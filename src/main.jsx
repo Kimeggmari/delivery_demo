@@ -1,11 +1,17 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, Suspense, lazy } from 'react'
 import ReactDOM from 'react-dom/client'
 import { Capacitor } from '@capacitor/core'
-import App from './App.jsx'
 import InstallAppModal from './components/InstallAppModal.jsx'
 import DevGate from './components/DevGate.jsx'
 import ServiceEndedPage from './components/ServiceEndedPage.jsx'
 import SplashScreen from './components/SplashScreen.jsx'
+
+// Loaded lazily (not statically imported) because App.jsx pulls in
+// lib/firebase.js, which initializes Firebase and signs in an anonymous
+// auth user as a module-level side effect. A static import would run that
+// for every visitor to the public site too, including the "service ended"
+// page below, which is supposed to have no backend interaction at all.
+const App = lazy(() => import('./App.jsx'))
 
 // Change this before sharing the dev site link with anyone.
 const DEV_PASSCODE = "fna_0911";
@@ -21,13 +27,18 @@ function FullApp() {
   const [showInstall, setShowInstall] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
 
+  // Start fetching the App.jsx chunk as soon as we know we need it, in
+  // parallel with the splash screen, so the lazy-load doesn't add a visible
+  // blank gap once the splash finishes.
+  useEffect(() => { import('./App.jsx'); }, []);
+
   if (showSplash) return <SplashScreen onDone={() => setShowSplash(false)} />;
 
   return (
-    <>
+    <Suspense fallback={null}>
       <App />
       {showInstall && <InstallAppModal onClose={() => setShowInstall(false)} />}
-    </>
+    </Suspense>
   );
 }
 
