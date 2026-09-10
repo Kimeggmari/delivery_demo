@@ -97,6 +97,22 @@ const paymentLabel = (val, t) => {
   return found ? t(found.labelKey) : val;
 };
 
+const SORT_OPTIONS = [
+  { val: "default", labelKey: "sortDefault" },
+  { val: "rating", labelKey: "sortRating" },
+  { val: "reviews", labelKey: "sortReviews" },
+  { val: "feeAsc", labelKey: "sortFeeAsc" },
+  { val: "timeAsc", labelKey: "sortTimeAsc" },
+];
+
+const sortLabel = (val, t) => {
+  const found = SORT_OPTIONS.find(o => o.val === val);
+  return found ? t(found.labelKey) : val;
+};
+
+// r.time is a "25~35"-style range string — sort by its lower bound.
+const parseTimeMinutes = (time) => parseInt(time, 10) || 0;
+
 // Strip trailing "+1500원" markers from topping labels
 function toppingDisplay(topping, lang) {
   if (!topping) return "";
@@ -738,12 +754,46 @@ function OptionSheet({ menu, onClose, onConfirm, brand, t, lang }) {
   );
 }
 
+function CategorySheet({ categories, active, onSelect, onClose, th, t }) {
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "20px 20px 32px", width: "100%", maxWidth: 540, maxHeight: "70vh", overflowY: "auto", animation: "slideUp .25s ease" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <div style={{ fontWeight: 900, fontSize: 16 }}>{t("categorySheetTitle")}</div>
+          <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: 12, border: "none", background: "#f3f4f6", fontSize: 16, cursor: "pointer" }}>✕</button>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
+          {categories.map(c => {
+            const isActive = active === c.key;
+            return (
+              <div
+                key={c.key}
+                onClick={() => onSelect(c.key)}
+                style={{
+                  padding: "12px 8px", borderRadius: 14, border: "2px solid " + (isActive ? th.brand : "#e5e7eb"),
+                  background: isActive ? th.brand + "18" : "#fff", textAlign: "center", cursor: "pointer",
+                  fontWeight: 800, fontSize: 13, color: isActive ? th.brand : "#374151", transition: ".15s",
+                }}
+              >{c.label}</div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [deliveryMode, setDeliveryMode] = useState("rabbit");
   const [page, setPage] = useState("order");
   const [cart, setCart] = useState([]);
   const [payment, setPayment] = useState("카드");
   const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("default");
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const [showCategorySheet, setShowCategorySheet] = useState(false);
+  const sortBoxRef = useRef(null);
   const [nm, setNm] = useState("");
   const [ph, setPh] = useState("");
   const [ad, setAd] = useState("");
@@ -834,6 +884,15 @@ export default function App() {
     return () => { unsubR(); unsubM(); unsubRev(); };
   }, []);
 
+  useEffect(() => {
+    if (!showSortMenu) return;
+    const onDocMouseDown = (e) => {
+      if (sortBoxRef.current && !sortBoxRef.current.contains(e.target)) setShowSortMenu(false);
+    };
+    document.addEventListener("mousedown", onDocMouseDown);
+    return () => document.removeEventListener("mousedown", onDocMouseDown);
+  }, [showSortMenu]);
+
   // Real, non-hidden review count per restaurant — replaces the static
   // seed `reviews` field on restaurant cards (see reviewCountSuffix usages).
   const reviewCountByRestaurant = useMemo(() => {
@@ -886,6 +945,23 @@ export default function App() {
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customRestaurants, customMenus, uid]);
+
+  // Categories actually present in the current catalog, most common first.
+  const categoryCounts = useMemo(() => {
+    const map = new Map();
+    allRestaurants.forEach(r => {
+      const key = r.category?.ko;
+      if (!key) return;
+      if (!map.has(key)) map.set(key, { key, ko: r.category.ko, en: r.category.en, count: 0 });
+      map.get(key).count += 1;
+    });
+    return [...map.values()].sort((a, b) => b.count - a.count);
+  }, [allRestaurants]);
+
+  const categoryTabs = useMemo(() => [
+    { key: "all", label: t("categoryAll") },
+    ...categoryCounts.map(c => ({ key: c.key, label: pick({ ko: c.ko, en: c.en }, lang) })),
+  ], [categoryCounts, lang, t]);
 
   // Pending queues for the admin moderation panel. For the admin device,
   // firestore.rules already includes everyone's pending docs in the
@@ -1134,22 +1210,33 @@ export default function App() {
     deleteCustomMenu(id).catch(err => console.warn("Failed to reject menu", err));
   };
 
-  const filtered = allRestaurants.filter(r => {
-    const q = search.trim().toLowerCase();
-    if (!q) return true;
-    const haystack = [
-      pick(r.name, "ko"), pick(r.name, "en"),
-      pick(r.category, "ko"), pick(r.category, "en"),
-      ...r.menus.map(m => pick(m.name, "ko") + " " + pick(m.name, "en") + " " + pick(m.desc, "ko") + " " + pick(m.desc, "en")),
-    ].join(" ").toLowerCase();
-    return haystack.includes(q);
-  });
+  const filtered = allRestaurants
+    .filter(r => {
+      if (categoryFilter !== "all" && r.category?.ko !== categoryFilter) return false;
+      const q = search.trim().toLowerCase();
+      if (!q) return true;
+      const haystack = [
+        pick(r.name, "ko"), pick(r.name, "en"),
+        pick(r.category, "ko"), pick(r.category, "en"),
+        ...r.menus.map(m => pick(m.name, "ko") + " " + pick(m.name, "en") + " " + pick(m.desc, "ko") + " " + pick(m.desc, "en")),
+      ].join(" ").toLowerCase();
+      return haystack.includes(q);
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "rating": return b.rating - a.rating;
+        case "reviews": return (reviewCountByRestaurant[String(b.id)] || 0) - (reviewCountByRestaurant[String(a.id)] || 0);
+        case "feeAsc": return a.fee - b.fee;
+        case "timeAsc": return parseTimeMinutes(a.time) - parseTimeMinutes(b.time);
+        default: return 0;
+      }
+    });
 
   const css = {
     wrap: { minHeight: "100vh", background: th.phone, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif', color: th.text, display: "flex", flexDirection: "column" },
     header: { position: "sticky", top: 0, zIndex: 10, background: "linear-gradient(180deg," + th.headerStart + "," + th.headerEnd + ")", color: th.headerColor, padding: "14px 20px", borderBottom: th.headerBorderBottom, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" },
     content: { flex: 1, padding: "16px 16px 100px", display: "grid", gap: 16, alignContent: "start", maxWidth: 540, width: "100%", margin: "0 auto", boxSizing: "border-box" },
-    section: { background: "#fff", borderRadius: 20, padding: 16, boxShadow: th.sectionShadow },
+    section: { background: "#fff", borderRadius: 20, padding: 16, boxShadow: th.sectionShadow, minWidth: 0 },
     input: { width: "100%", padding: "14px 16px", border: "none", outline: "none", borderRadius: 14, background: "#fff", color: th.text, boxShadow: th.inputShadow, fontFamily: "inherit", fontSize: 14, boxSizing: "border-box" },
     bottomBar: { position: "fixed", left: 0, right: 0, bottom: 0, background: th.bottomBarBg, borderTop: "1px solid " + th.bottomBarBorder, backdropFilter: "blur(14px)", boxShadow: "0 -4px 20px rgba(17,24,39,0.06)", padding: "12px 20px", display: "flex", justifyContent: "center", zIndex: 20 },
     bottomInner: { display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", maxWidth: 540, width: "100%" },
@@ -1644,6 +1731,16 @@ export default function App() {
           lang={lang}
         />
       )}
+      {showCategorySheet && (
+        <CategorySheet
+          categories={categoryTabs}
+          active={categoryFilter}
+          onSelect={(key) => { setCategoryFilter(key); setShowCategorySheet(false); }}
+          onClose={() => setShowCategorySheet(false)}
+          th={th}
+          t={t}
+        />
+      )}
       <div style={css.header}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, maxWidth: 540, margin: "0 auto", minHeight: 32 }}>
           <div style={{ flex: 1, textAlign: "left", minWidth: 0, padding: "0 4px" }}>
@@ -1719,6 +1816,54 @@ export default function App() {
               style={{ border: "1px dashed " + th.brand, background: "#fff", color: th.brandDark, borderRadius: 12, padding: "9px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", flexShrink: 0 }}
             >{t("addContentBtn")}</button>
           </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 0, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+              {categoryTabs.map(c => {
+                const isActive = categoryFilter === c.key;
+                return (
+                  <button
+                    key={c.key}
+                    onClick={() => setCategoryFilter(c.key)}
+                    style={{
+                      flexShrink: 0, border: "none", cursor: "pointer", fontFamily: "inherit",
+                      padding: "8px 14px", borderRadius: 999, fontSize: 13,
+                      fontWeight: isActive ? 900 : 700,
+                      background: isActive ? th.brand : "#f3f4f6",
+                      color: isActive ? "#fff" : "#6b7280",
+                    }}
+                  >{c.label}</button>
+                );
+              })}
+              <button
+                onClick={() => setShowCategorySheet(true)}
+                aria-label={t("categoryMoreAria")}
+                title={t("categoryMoreAria")}
+                style={{ flexShrink: 0, width: 34, height: 34, borderRadius: 999, border: "none", background: "#f3f4f6", color: "#6b7280", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}
+              >▾</button>
+            </div>
+            <div ref={sortBoxRef} style={{ position: "relative", flexShrink: 0 }}>
+              <button
+                onClick={() => setShowSortMenu(v => !v)}
+                style={{ display: "inline-flex", alignItems: "center", gap: 5, border: "1px solid " + th.line, background: "#fff", borderRadius: 999, padding: "7px 12px", fontSize: 12, fontWeight: 800, color: th.text, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+              >
+                <span style={{ fontSize: 11 }}>⇅</span>{sortLabel(sortBy, t)}
+              </button>
+              {showSortMenu && (
+                <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 5, background: "#fff", borderRadius: 14, boxShadow: "0 8px 24px rgba(0,0,0,0.14)", overflow: "hidden", minWidth: 160 }}>
+                  {SORT_OPTIONS.map(opt => {
+                    const isActive = sortBy === opt.val;
+                    return (
+                      <div
+                        key={opt.val}
+                        onClick={() => { setSortBy(opt.val); setShowSortMenu(false); }}
+                        style={{ padding: "11px 16px", fontSize: 13, fontWeight: isActive ? 800 : 500, color: isActive ? th.brand : th.text, background: isActive ? "#fff7ed" : "#fff", cursor: "pointer", whiteSpace: "nowrap" }}
+                      >{t(opt.labelKey)}</div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
           <div style={{ display: "grid", gap: 12 }}>
             {filtered.length === 0 ? (
               <div style={{ padding: 24, border: "1px dashed #d1d5db", borderRadius: 16, textAlign: "center", color: th.muted, background: "#fafafa", fontSize: 13, lineHeight: 1.6 }}>{t("noResults")}<br />{t("noResultsHint")}</div>
@@ -1786,10 +1931,10 @@ export default function App() {
                             />
                             <div style={{ minWidth: 0 }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3, minWidth: 0 }}>
-                                <div style={{ fontWeight: 800, fontSize: 14, minWidth: 0 }}>{pick(m.name, lang)}</div>
+                                <div style={{ fontWeight: 800, fontSize: 14, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pick(m.name, lang)}</div>
                                 {m.status === "pending" && <span style={{ fontSize: 9, fontWeight: 800, color: "#d97706", background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 999, padding: "1px 6px", whiteSpace: "nowrap", flexShrink: 0 }}>{t("pendingBadge")}</span>}
                               </div>
-                              <div style={{ color: th.muted, fontSize: 12 }}>{pick(m.desc, lang)}</div>
+                              <div style={{ color: th.muted, fontSize: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pick(m.desc, lang)}</div>
                               <div style={{ color: "#10b981", fontSize: 11, fontWeight: 700, marginTop: 2 }}>🔥 {(m.calories || menuCalories[m.id] || 600).toLocaleString()}{t("kcal")}</div>
                               {hasOpts && <div style={{ fontSize: 10, color: th.brand, fontWeight: 700, marginTop: 3 }}>{t("optionAvail")}</div>}
                             </div>
