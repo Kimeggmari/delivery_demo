@@ -27,7 +27,7 @@ const copy = {
 export default function ServiceEndedPage() {
   const lang = (navigator.language || "ko").toLowerCase().startsWith("en") ? "en" : "ko";
   const c = copy[lang];
-  const [showInstall, setShowInstall] = useState(true);
+  const [showInstall, setShowInstall] = useState(false);
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f9fafb", fontFamily: 'Inter,"Noto Sans KR",system-ui,-apple-system,sans-serif', padding: 20 }}>
