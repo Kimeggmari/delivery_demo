@@ -12,6 +12,7 @@ import AddMenuModal from "./components/AddMenuModal";
 import AddContentPage from "./components/AddContentPage";
 import AddContentNoticeModal from "./components/AddContentNoticeModal";
 import AdminPanel from "./components/AdminPanel";
+import SettingsModal from "./components/SettingsModal";
 import rabbitRider from "./assets/riders/rabbit-rider.png";
 import turtleRider from "./assets/riders/turtle-rider.png";
 import { getMenuImageSrc } from "./config/menuImages";
@@ -78,6 +79,10 @@ const thumbGradients = [
 
 const RIDER_IMAGE = { rabbit: rabbitRider, turtle: turtleRider };
 
+// Every order spends this long "cooking" (real time) before the courier
+// timers start, regardless of delivery mode or the configured delivery time.
+const COOK_TIME_MS = 15000;
+
 const badgeColors = {
   "인기": { bg: "#fee2e2", color: "#dc2626", border: "#fecaca" },
   "추천": { bg: "#dbeafe", color: "#2563eb", border: "#bfdbfe" },
@@ -95,6 +100,22 @@ const paymentLabel = (val, t) => {
   const found = PAYMENT_OPTIONS.find(o => o.val === val);
   return found ? t(found.labelKey) : val;
 };
+
+const SORT_OPTIONS = [
+  { val: "default", labelKey: "sortDefault" },
+  { val: "rating", labelKey: "sortRating" },
+  { val: "reviews", labelKey: "sortReviews" },
+  { val: "feeAsc", labelKey: "sortFeeAsc" },
+  { val: "timeAsc", labelKey: "sortTimeAsc" },
+];
+
+const sortLabel = (val, t) => {
+  const found = SORT_OPTIONS.find(o => o.val === val);
+  return found ? t(found.labelKey) : val;
+};
+
+// r.time is a "25~35"-style range string — sort by its lower bound.
+const parseTimeMinutes = (time) => parseInt(time, 10) || 0;
 
 // Strip trailing "+1500원" markers from topping labels
 function toppingDisplay(topping, lang) {
@@ -737,12 +758,46 @@ function OptionSheet({ menu, onClose, onConfirm, brand, t, lang }) {
   );
 }
 
+function CategorySheet({ categories, active, onSelect, onClose, th, t }) {
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "20px 20px 32px", width: "100%", maxWidth: 540, maxHeight: "70vh", overflowY: "auto", animation: "slideUp .25s ease" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <div style={{ fontWeight: 900, fontSize: 16 }}>{t("categorySheetTitle")}</div>
+          <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: 12, border: "none", background: "#f3f4f6", fontSize: 16, cursor: "pointer" }}>✕</button>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
+          {categories.map(c => {
+            const isActive = active === c.key;
+            return (
+              <div
+                key={c.key}
+                onClick={() => onSelect(c.key)}
+                style={{
+                  padding: "12px 8px", borderRadius: 14, border: "2px solid " + (isActive ? th.brand : "#e5e7eb"),
+                  background: isActive ? th.brand + "18" : "#fff", textAlign: "center", cursor: "pointer",
+                  fontWeight: 800, fontSize: 13, color: isActive ? th.brand : "#374151", transition: ".15s",
+                }}
+              >{c.label}</div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [deliveryMode, setDeliveryMode] = useState("rabbit");
   const [page, setPage] = useState("order");
   const [cart, setCart] = useState([]);
   const [payment, setPayment] = useState("카드");
   const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("default");
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const [showCategorySheet, setShowCategorySheet] = useState(false);
+  const sortBoxRef = useRef(null);
   const [nm, setNm] = useState("");
   const [ph, setPh] = useState("");
   const [ad, setAd] = useState("");
@@ -750,11 +805,22 @@ export default function App() {
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
   const [trackState, setTrackState] = useState(0);
+  const [cooking, setCooking] = useState(false);
   const [orderInfo, setOrderInfo] = useState(null);
   const [reviewTarget, setReviewTarget] = useState(null);
   const [optionTarget, setOptionTarget] = useState(null);
   const [addedAnim, setAddedAnim] = useState(null);
-  const [showInfoModal, setShowInfoModal] = useState(false);
+  // Doubles as the first-launch onboarding screen — same content as the "?"
+  // info button, just auto-opened once per device via the localStorage flag.
+  const [showInfoModal, setShowInfoModal] = useState(() => {
+    try {
+      if (localStorage.getItem("hasSeenIntro")) return false;
+      localStorage.setItem("hasSeenIntro", "1");
+      return true;
+    } catch {
+      return false;
+    }
+  });
   const [showSponsorModal, setShowSponsorModal] = useState(true);
   const [history, setHistory] = useState([]);
   const [unlocked, setUnlocked] = useState({});
@@ -798,6 +864,24 @@ export default function App() {
   const [publishTarget, setPublishTarget] = useState(null); // { type: "restaurant" | "menu", item }
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [deliveryNotif, setDeliveryNotif] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
+  // Values are real seconds — the tracking screen genuinely takes this long
+  // to complete (see mode/trackData below), not a compressed simulation.
+  const [deliveryTimeOverrides, setDeliveryTimeOverrides] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("deliveryTimeSeconds"));
+      if (saved && typeof saved.rabbit === "number" && typeof saved.turtle === "number") return saved;
+    } catch { /* ignore */ }
+    return { rabbit: deliveryModes.rabbit.defaultSeconds, turtle: deliveryModes.turtle.defaultSeconds };
+  });
+
+  const handleChangeDeliveryTime = (key, seconds) => {
+    setDeliveryTimeOverrides(prev => {
+      const next = { ...prev, [key]: seconds };
+      try { localStorage.setItem("deliveryTimeSeconds", JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  };
 
   useEffect(() => {
     const unsubR = subscribeCustomRestaurants(setCustomRestaurants);
@@ -805,6 +889,15 @@ export default function App() {
     const unsubRev = subscribeAllReviews(setAllReviews);
     return () => { unsubR(); unsubM(); unsubRev(); };
   }, []);
+
+  useEffect(() => {
+    if (!showSortMenu) return;
+    const onDocMouseDown = (e) => {
+      if (sortBoxRef.current && !sortBoxRef.current.contains(e.target)) setShowSortMenu(false);
+    };
+    document.addEventListener("mousedown", onDocMouseDown);
+    return () => document.removeEventListener("mousedown", onDocMouseDown);
+  }, [showSortMenu]);
 
   // Real, non-hidden review count per restaurant — replaces the static
   // seed `reviews` field on restaurant cards (see reviewCountSuffix usages).
@@ -822,7 +915,13 @@ export default function App() {
   const timersRef = useRef([]);
 
   const th = theme;
-  const mode = deliveryModes[deliveryMode];
+  const modeConfig = deliveryModes[deliveryMode];
+  const modeTotalSeconds = deliveryTimeOverrides[deliveryMode];
+  const mode = {
+    ...modeConfig,
+    etaStart: Math.max(1, Math.round(modeTotalSeconds / modeConfig.stepSeconds)),
+    intervalMs: modeConfig.stepSeconds * 1000,
+  };
   const totals = calcTotals(cart, deliveryMode);
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
@@ -852,6 +951,23 @@ export default function App() {
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customRestaurants, customMenus, uid]);
+
+  // Categories actually present in the current catalog, most common first.
+  const categoryCounts = useMemo(() => {
+    const map = new Map();
+    allRestaurants.forEach(r => {
+      const key = r.category?.ko;
+      if (!key) return;
+      if (!map.has(key)) map.set(key, { key, ko: r.category.ko, en: r.category.en, count: 0 });
+      map.get(key).count += 1;
+    });
+    return [...map.values()].sort((a, b) => b.count - a.count);
+  }, [allRestaurants]);
+
+  const categoryTabs = useMemo(() => [
+    { key: "all", label: t("categoryAll") },
+    ...categoryCounts.map(c => ({ key: c.key, label: pick({ ko: c.ko, en: c.en }, lang) })),
+  ], [categoryCounts, lang, t]);
 
   // Pending queues for the admin moderation panel. For the admin device,
   // firestore.rules already includes everyone's pending docs in the
@@ -994,18 +1110,24 @@ export default function App() {
       timersRef.current.push(setTimeout(() => {
         setOrderInfo(info);
         setTrackState(0);
+        setCooking(true);
         setPage("tracking");
-        Array.from({ length: mode.etaStart }, (_, i) =>
-          timersRef.current.push(setTimeout(() => setTrackState(i + 1), (i + 1) * mode.intervalMs))
-        );
+        // Cooking always takes COOK_TIME_MS in real time, regardless of
+        // delivery mode/time — the courier timers only start once it ends.
         timersRef.current.push(setTimeout(() => {
-          const rec = persistOrder(info, cartSnapshot, totalsSnapshot);
-          setReceiptData({ ...info, _record: rec });
-          setPage("complete");
-          const notif = { title: t("notifDeliveryTitle"), body: t("notifDeliveryBody") };
-          notifyDeliveryComplete(notif);
-          setDeliveryNotif(notif);
-        }, mode.etaStart * mode.intervalMs + mode.completeDelayMs));
+          setCooking(false);
+          Array.from({ length: mode.etaStart }, (_, i) =>
+            timersRef.current.push(setTimeout(() => setTrackState(i + 1), (i + 1) * mode.intervalMs))
+          );
+          timersRef.current.push(setTimeout(() => {
+            const rec = persistOrder(info, cartSnapshot, totalsSnapshot);
+            setReceiptData({ ...info, _record: rec });
+            setPage("complete");
+            const notif = { title: t("notifDeliveryTitle"), body: t("notifDeliveryBody") };
+            notifyDeliveryComplete(notif);
+            setDeliveryNotif(notif);
+          }, mode.etaStart * mode.intervalMs + mode.completeDelayMs));
+        }, COOK_TIME_MS));
       }, 1500));
     }, 900));
   };
@@ -1019,7 +1141,7 @@ export default function App() {
   };
 
   const trackData = Array.from({ length: mode.etaStart }, (_, i) => {
-    const min = Math.max(1, mode.etaStart - i);
+    const min = Math.max(1, Math.ceil((mode.etaStart - i) * mode.intervalMs / 60000));
     const startPct = deliveryMode === "rabbit" ? 42 : 24;
     const stepPct = deliveryMode === "rabbit" ? 3.6 : 1.9;
     const startTop = deliveryMode === "rabbit" ? 40 : 30;
@@ -1049,6 +1171,11 @@ export default function App() {
   }]);
 
   const td = trackData[trackState] || trackData[0];
+  // While cooking, the courier hasn't left the restaurant yet — park them at
+  // the store marker instead of showing the first tick's en-route position.
+  const displayTd = cooking
+    ? { ...td, bp: ["12%", "20%"], riderLabel: t("cookingBottom"), eta: t("cookingBottom"), text: t("cookingDesc"), badge: t("cookingBottom") }
+    : td;
   const isNativeApp = Capacitor.isNativePlatform();
 
   const handleDeleteRestaurant = (id) => {
@@ -1089,22 +1216,33 @@ export default function App() {
     deleteCustomMenu(id).catch(err => console.warn("Failed to reject menu", err));
   };
 
-  const filtered = allRestaurants.filter(r => {
-    const q = search.trim().toLowerCase();
-    if (!q) return true;
-    const haystack = [
-      pick(r.name, "ko"), pick(r.name, "en"),
-      pick(r.category, "ko"), pick(r.category, "en"),
-      ...r.menus.map(m => pick(m.name, "ko") + " " + pick(m.name, "en") + " " + pick(m.desc, "ko") + " " + pick(m.desc, "en")),
-    ].join(" ").toLowerCase();
-    return haystack.includes(q);
-  });
+  const filtered = allRestaurants
+    .filter(r => {
+      if (categoryFilter !== "all" && r.category?.ko !== categoryFilter) return false;
+      const q = search.trim().toLowerCase();
+      if (!q) return true;
+      const haystack = [
+        pick(r.name, "ko"), pick(r.name, "en"),
+        pick(r.category, "ko"), pick(r.category, "en"),
+        ...r.menus.map(m => pick(m.name, "ko") + " " + pick(m.name, "en") + " " + pick(m.desc, "ko") + " " + pick(m.desc, "en")),
+      ].join(" ").toLowerCase();
+      return haystack.includes(q);
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "rating": return b.rating - a.rating;
+        case "reviews": return (reviewCountByRestaurant[String(b.id)] || 0) - (reviewCountByRestaurant[String(a.id)] || 0);
+        case "feeAsc": return a.fee - b.fee;
+        case "timeAsc": return parseTimeMinutes(a.time) - parseTimeMinutes(b.time);
+        default: return 0;
+      }
+    });
 
   const css = {
     wrap: { minHeight: "100vh", background: th.phone, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif', color: th.text, display: "flex", flexDirection: "column" },
     header: { position: "sticky", top: 0, zIndex: 10, background: "linear-gradient(180deg," + th.headerStart + "," + th.headerEnd + ")", color: th.headerColor, padding: "14px 20px", borderBottom: th.headerBorderBottom, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" },
     content: { flex: 1, padding: "16px 16px 100px", display: "grid", gap: 16, alignContent: "start", maxWidth: 540, width: "100%", margin: "0 auto", boxSizing: "border-box" },
-    section: { background: "#fff", borderRadius: 20, padding: 16, boxShadow: th.sectionShadow },
+    section: { background: "#fff", borderRadius: 20, padding: 16, boxShadow: th.sectionShadow, minWidth: 0 },
     input: { width: "100%", padding: "14px 16px", border: "none", outline: "none", borderRadius: 14, background: "#fff", color: th.text, boxShadow: th.inputShadow, fontFamily: "inherit", fontSize: 14, boxSizing: "border-box" },
     bottomBar: { position: "fixed", left: 0, right: 0, bottom: 0, background: th.bottomBarBg, borderTop: "1px solid " + th.bottomBarBorder, backdropFilter: "blur(14px)", boxShadow: "0 -4px 20px rgba(17,24,39,0.06)", padding: "12px 20px", display: "flex", justifyContent: "center", zIndex: 20 },
     bottomInner: { display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", maxWidth: 540, width: "100%" },
@@ -1327,19 +1465,21 @@ export default function App() {
             <img
               src={RIDER_IMAGE[mode.key] || RIDER_IMAGE.rabbit}
               alt=""
-              style={{ position: "absolute", zIndex: 2, width: 60, height: 60, filter: "drop-shadow(0 6px 10px rgba(15,23,42,0.25))", left: td.bp[0], top: td.bp[1], transform: "translate(-50%,-50%)", transition: "left .8s ease,top .8s ease", animation: "floatBike 2.2s ease-in-out infinite" }}
+              style={{ position: "absolute", zIndex: 2, width: 60, height: 60, filter: "drop-shadow(0 6px 10px rgba(15,23,42,0.25))", left: displayTd.bp[0], top: displayTd.bp[1], transform: "translate(-50%,-50%)", transition: "left .8s ease,top .8s ease", animation: "floatBike 2.2s ease-in-out infinite" }}
             />
             <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, top: 76, left: 22 }}>{t("storeReady")}</div>
             <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, right: 18, bottom: 82 }}>{(orderInfo?.customerName || t("address")) + (t("customerSuffix") ? " " + t("customerSuffix") : "")}</div>
-            <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, left: "50%", top: "68%", transform: "translateX(-50%)" }}>{td.riderLabel}</div>
+            {!cooking && (
+              <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, left: "50%", top: "68%", transform: "translateX(-50%)" }}>{displayTd.riderLabel}</div>
+            )}
           </div>
           <div style={{ background: "linear-gradient(135deg," + mode.heroStart + "," + mode.heroEnd + ")", color: "#fff", borderRadius: 20, padding: 18 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
               <div>
-                <div style={{ fontSize: 30, fontWeight: 900, lineHeight: 1 }}>{td.eta}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.84)", marginTop: 6 }}>{td.text}</div>
+                <div style={{ fontSize: cooking ? 18 : 30, fontWeight: 900, lineHeight: 1 }}>{displayTd.eta}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.84)", marginTop: 6 }}>{displayTd.text}</div>
               </div>
-              <div style={{ background: "rgba(255,255,255,0.16)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 14, padding: "10px 12px", fontSize: 12, fontWeight: 800, whiteSpace: "nowrap" }}>{td.badge}</div>
+              <div style={{ background: "rgba(255,255,255,0.16)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 14, padding: "10px 12px", fontSize: 12, fontWeight: 800, whiteSpace: "nowrap" }}>{displayTd.badge}</div>
             </div>
           </div>
           <div style={css.section}>
@@ -1358,15 +1498,15 @@ export default function App() {
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>{t("progressTitle")}</div>
             <div style={{ display: "grid", gap: 10 }}>
               {(dict[lang]?.progressSteps || dict.ko.progressSteps).map((label, i) => {
-                const done = i < 2 || (td.finalDone && i === 2);
-                const active = (!td.finalDone && i === 2) || (td.finalDone && i === 3);
+                const done = i === 0 || (i === 1 && !cooking) || (i === 2 && !cooking && td.finalDone);
+                const active = (i === 1 && cooking) || (i === 2 && !cooking && !td.finalDone) || (i === 3 && !cooking && td.finalDone);
                 return (
                   <div key={i} style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 12, alignItems: "start" }}>
                     <div style={{ width: 16, height: 16, borderRadius: "50%", marginTop: 2, background: done || active ? th.primaryBtn : "#d1d5db", boxShadow: active ? "0 0 0 6px " + th.primaryBtn + "28" : "none", transition: ".3s" }} />
                     <div>
                       <strong style={{ display: "block", fontSize: 14, marginBottom: 4 }}>{label}</strong>
                       <span style={{ color: th.muted, fontSize: 12 }}>
-                        {i === 2 ? td.activeText : i === 3 ? (td.finalDone ? t("progressArrived") : t("progressArriving")) : i === 0 ? t("progressStep0Desc") : t("progressStep1Desc")}
+                        {i === 2 ? (cooking ? "" : td.activeText) : i === 3 ? (td.finalDone ? t("progressArrived") : t("progressArriving")) : i === 0 ? t("progressStep0Desc") : (cooking ? t("cookingDesc") : t("progressStep1Desc"))}
                       </span>
                     </div>
                   </div>
@@ -1394,7 +1534,7 @@ export default function App() {
         </div>
         <div style={css.bottomBar}>
           <div style={css.bottomInner}>
-            <div><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>{t("currentStatus")}</span><br /><strong style={{ fontSize: 18, fontWeight: 900 }}>{td.bottom}</strong></div>
+            <div><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>{t("currentStatus")}</span><br /><strong style={{ fontSize: 18, fontWeight: 900 }}>{cooking ? t("cookingBottom") : td.bottom}</strong></div>
             <button onClick={resetAll} style={{ ...css.orderBtn, minWidth: "auto", padding: "12px 18px", boxShadow: "none" }}>{t("goHome")}</button>
           </div>
         </div>
@@ -1564,6 +1704,19 @@ export default function App() {
           lang={lang}
         />
       )}
+      {showSettings && (
+        <SettingsModal
+          onClose={() => setShowSettings(false)}
+          t={t}
+          lang={lang}
+          uid={uid}
+          onToggleLang={toggleLang}
+          onShowInfo={() => { setShowSettings(false); setShowInfoModal(true); }}
+          onPrivacy={() => { setShowSettings(false); setPage("privacy"); }}
+          deliveryTimeOverrides={deliveryTimeOverrides}
+          onChangeDeliveryTime={handleChangeDeliveryTime}
+        />
+      )}
       {showSponsorModal && !showInfoModal && !isNativeApp && (
         <SponsorModal onClose={() => setShowSponsorModal(false)} t={t} th={th} />
       )}
@@ -1592,6 +1745,16 @@ export default function App() {
           }
           t={t}
           lang={lang}
+        />
+      )}
+      {showCategorySheet && (
+        <CategorySheet
+          categories={categoryTabs}
+          active={categoryFilter}
+          onSelect={(key) => { setCategoryFilter(key); setShowCategorySheet(false); }}
+          onClose={() => setShowCategorySheet(false)}
+          th={th}
+          t={t}
         />
       )}
       <div style={css.header}>
@@ -1626,8 +1789,7 @@ export default function App() {
                 )}
               </button>
             )}
-            <button onClick={() => setShowInfoModal(true)} style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 13, fontWeight: 900 }} aria-label={t("appInfoAria")} title={t("appInfoTitle")}>?</button>
-            {LangButton}
+            <button onClick={() => setShowSettings(true)} style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 14 }} aria-label={t("settingsAria")} title={t("settingsTitle")}>⚙️</button>
           </div>
         </div>
         <div style={{ maxWidth: 540, margin: "8px auto 0" }}>
@@ -1649,7 +1811,7 @@ export default function App() {
             <div style={{ fontSize: 22, flexShrink: 0 }}>{mode.emoji}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 13, fontWeight: 900 }}>{t("activeOrderBannerTitle")}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", marginTop: 2 }}>{t("activeOrderBannerSub", td.eta)}</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", marginTop: 2 }}>{t("activeOrderBannerSub", displayTd.eta)}</div>
             </div>
             <div style={{ fontSize: 18, flexShrink: 0 }}>→</div>
           </div>
@@ -1669,6 +1831,54 @@ export default function App() {
               onClick={() => setPage("addContent")}
               style={{ border: "1px dashed " + th.brand, background: "#fff", color: th.brandDark, borderRadius: 12, padding: "9px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", flexShrink: 0 }}
             >{t("addContentBtn")}</button>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 0, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+              {categoryTabs.map(c => {
+                const isActive = categoryFilter === c.key;
+                return (
+                  <button
+                    key={c.key}
+                    onClick={() => setCategoryFilter(c.key)}
+                    style={{
+                      flexShrink: 0, border: "none", cursor: "pointer", fontFamily: "inherit",
+                      padding: "8px 14px", borderRadius: 999, fontSize: 13,
+                      fontWeight: isActive ? 900 : 700,
+                      background: isActive ? th.brand : "#f3f4f6",
+                      color: isActive ? "#fff" : "#6b7280",
+                    }}
+                  >{c.label}</button>
+                );
+              })}
+              <button
+                onClick={() => setShowCategorySheet(true)}
+                aria-label={t("categoryMoreAria")}
+                title={t("categoryMoreAria")}
+                style={{ flexShrink: 0, width: 34, height: 34, borderRadius: 999, border: "none", background: "#f3f4f6", color: "#6b7280", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}
+              >▾</button>
+            </div>
+            <div ref={sortBoxRef} style={{ position: "relative", flexShrink: 0 }}>
+              <button
+                onClick={() => setShowSortMenu(v => !v)}
+                style={{ display: "inline-flex", alignItems: "center", gap: 5, border: "1px solid " + th.line, background: "#fff", borderRadius: 999, padding: "7px 12px", fontSize: 12, fontWeight: 800, color: th.text, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+              >
+                <span style={{ fontSize: 11 }}>⇅</span>{sortLabel(sortBy, t)}
+              </button>
+              {showSortMenu && (
+                <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 5, background: "#fff", borderRadius: 14, boxShadow: "0 8px 24px rgba(0,0,0,0.14)", overflow: "hidden", minWidth: 160 }}>
+                  {SORT_OPTIONS.map(opt => {
+                    const isActive = sortBy === opt.val;
+                    return (
+                      <div
+                        key={opt.val}
+                        onClick={() => { setSortBy(opt.val); setShowSortMenu(false); }}
+                        style={{ padding: "11px 16px", fontSize: 13, fontWeight: isActive ? 800 : 500, color: isActive ? th.brand : th.text, background: isActive ? "#fff7ed" : "#fff", cursor: "pointer", whiteSpace: "nowrap" }}
+                      >{t(opt.labelKey)}</div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
           <div style={{ display: "grid", gap: 12 }}>
             {filtered.length === 0 ? (
@@ -1737,10 +1947,10 @@ export default function App() {
                             />
                             <div style={{ minWidth: 0 }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3, minWidth: 0 }}>
-                                <div style={{ fontWeight: 800, fontSize: 14, minWidth: 0 }}>{pick(m.name, lang)}</div>
+                                <div style={{ fontWeight: 800, fontSize: 14, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pick(m.name, lang)}</div>
                                 {m.status === "pending" && <span style={{ fontSize: 9, fontWeight: 800, color: "#d97706", background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 999, padding: "1px 6px", whiteSpace: "nowrap", flexShrink: 0 }}>{t("pendingBadge")}</span>}
                               </div>
-                              <div style={{ color: th.muted, fontSize: 12 }}>{pick(m.desc, lang)}</div>
+                              <div style={{ color: th.muted, fontSize: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pick(m.desc, lang)}</div>
                               <div style={{ color: "#10b981", fontSize: 11, fontWeight: 700, marginTop: 2 }}>🔥 {(m.calories || menuCalories[m.id] || 600).toLocaleString()}{t("kcal")}</div>
                               {hasOpts && <div style={{ fontSize: 10, color: th.brand, fontWeight: 700, marginTop: 3 }}>{t("optionAvail")}</div>}
                             </div>
