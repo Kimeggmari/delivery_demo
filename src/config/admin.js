@@ -10,7 +10,7 @@ const ADMIN_UIDS = [
   "G0Jb4L7NFccBCXDsBAbO7jYCGum1", // notebook
   "1UjHah0eKahNm0scYAuzDM1C0883", // notebook (Whale browser)
   "gQQRfrG5soRz0rRjab49IBAe7x12", // dev site browser
-  "0qYO3EBMdKh6f6ywWRGOSbmWhlE3", // phone (Android app, sideloaded debug build)
+  "gPT3NP2TN7QfFvzwx0o2H0Hr90j1", // phone (Android app, sideloaded debug build)
 ];
 
 export function isAdminUid(uid) {
