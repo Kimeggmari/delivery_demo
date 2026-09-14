@@ -134,6 +134,26 @@ function AchievementsTab({ history, unlocked, lang, t, th }) {
 
 export default function HistoryPage({ onBack, th, t, lang, uid, history, unlocked, allRestaurants, onWriteReview, onClear, onInfo, onPrivacy }) {
   const [tab, setTab] = useState("history");
+  const [uidCopied, setUidCopied] = useState(false);
+
+  const handleCopyUid = async () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(uid);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = uid;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      setUidCopied(true);
+      setTimeout(() => setUidCopied(false), 1500);
+    } catch {}
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: th.phone, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif', color: th.text }}>
@@ -152,7 +172,13 @@ export default function HistoryPage({ onBack, th, t, lang, uid, history, unlocke
             <div style={{ fontSize: 16, fontWeight: 900, color: th.text, marginTop: 1 }}>{nicknameFor(uid, lang)}</div>
           </div>
         </div>
-        <div style={{ fontSize: 11, color: th.muted, lineHeight: 1.5, marginTop: -8, marginBottom: 14, padding: "0 4px" }}>{t("myNicknameDesc")}</div>
+        <div style={{ fontSize: 11, color: th.muted, lineHeight: 1.5, marginTop: -8, marginBottom: 8, padding: "0 4px" }}>{t("myNicknameDesc")}</div>
+        <div
+          onClick={handleCopyUid}
+          style={{ fontSize: 10, color: th.muted, fontFamily: "monospace", marginTop: -6, marginBottom: 14, padding: "0 4px", cursor: "pointer", userSelect: "all", wordBreak: "break-all" }}
+        >
+          {uidCopied ? t("myUidCopied") : `ID: ${uid}`}
+        </div>
 
         <div style={{
           display: "grid", gridTemplateColumns: "1fr 1fr",
