@@ -37,7 +37,6 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t, lang }
   const [category, setCategory] = useState("");
   const [customCategory, setCustomCategory] = useState("");
   const [fee, setFee] = useState("3000");
-  const [minOrder, setMinOrder] = useState("12000");
   const [menuName, setMenuName] = useState("");
   const [menuDesc, setMenuDesc] = useState("");
   const [menuPrice, setMenuPrice] = useState("");
@@ -88,7 +87,6 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t, lang }
       rating: 5.0,
       reviews: 1,
       fee: Math.max(0, parseInt(fee, 10) || 0),
-      minOrder: Math.max(0, parseInt(minOrder, 10) || 0),
       category: categoryField,
       isCustom: true,
       menus: [{
@@ -172,15 +170,9 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t, lang }
             )}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div>
-              <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("restaurantFeeLabel")}</label>
-              <input value={fee} onChange={e => setFee(e.target.value)} placeholder={t("restaurantFeePh")} type="number" inputMode="numeric" style={fieldStyle} />
-            </div>
-            <div>
-              <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("restaurantMinOrderLabel")}</label>
-              <input value={minOrder} onChange={e => setMinOrder(e.target.value)} placeholder={t("restaurantMinOrderPh")} type="number" inputMode="numeric" style={fieldStyle} />
-            </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("restaurantFeeLabel")}</label>
+            <input value={fee} onChange={e => setFee(e.target.value)} placeholder={t("restaurantFeePh")} type="number" inputMode="numeric" style={fieldStyle} />
           </div>
 
           <div style={{ borderTop: "1px solid #f3f4f6", paddingTop: 14, marginTop: 4 }}>

@@ -271,11 +271,6 @@ export const dict = {
     // Complete screen extras
     completeShareBtn: "📤 영수증 공유하기",
     completeHistoryBtn: "🏆 내 기록 보기",
-    // Minimum order amount
-    minOrderPrefix: "최소주문",
-    minOrderBannerTitle: "최소주문금액을 채워주세요",
-    minOrderShortfallLine: (name, current, needed) => `${name} · ${current} / ${needed}`,
-    minOrderBlockedAlert: "최소주문금액을 채워야 주문할 수 있어요.",
     // Add restaurant/menu (separate page)
     addContentBtn: "🏪+ 내 식당/메뉴 추가",
     addContentPageTitle: "내 식당/메뉴 추가",
@@ -308,8 +303,6 @@ export const dict = {
     restaurantCategoryCustomPh: "예: 디저트",
     restaurantFeeLabel: "배달비 (원)",
     restaurantFeePh: "예: 3000",
-    restaurantMinOrderLabel: "최소주문금액 (원)",
-    restaurantMinOrderPh: "예: 12000",
     firstMenuTitle: "첫 메뉴 등록",
     menuNameLabel: "메뉴 이름",
     menuNamePh: "예: 특제 김치찌개",
@@ -619,11 +612,6 @@ export const dict = {
     // Complete screen extras
     completeShareBtn: "📤 Share receipt",
     completeHistoryBtn: "🏆 See my activity",
-    // Minimum order amount
-    minOrderPrefix: "Min. order",
-    minOrderBannerTitle: "Add more to meet the minimum order",
-    minOrderShortfallLine: (name, current, needed) => `${name} · ${current} / ${needed}`,
-    minOrderBlockedAlert: "You need to meet the minimum order amount to check out.",
     // Add restaurant/menu (separate page)
     addContentBtn: "🏪+ Add restaurant/dish",
     addContentPageTitle: "Add restaurant/dish",
@@ -656,8 +644,6 @@ export const dict = {
     restaurantCategoryCustomPh: "e.g. Dessert",
     restaurantFeeLabel: "Delivery fee",
     restaurantFeePh: "e.g. 3000",
-    restaurantMinOrderLabel: "Minimum order amount",
-    restaurantMinOrderPh: "e.g. 12000",
     firstMenuTitle: "First menu item",
     menuNameLabel: "Dish name",
     menuNamePh: "e.g. Signature Kimchi Stew",

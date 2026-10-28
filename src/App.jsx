@@ -988,23 +988,6 @@ export default function App() {
     return map;
   }, [customRestaurants, lang]);
 
-  const restaurantSubtotals = useMemo(() => {
-    const map = {};
-    cart.forEach(i => { map[i.restaurantId] = (map[i.restaurantId] || 0) + i.price * i.qty; });
-    return map;
-  }, [cart]);
-
-  const unmetMinOrders = useMemo(() => {
-    return Object.entries(restaurantSubtotals)
-      .map(([ridStr, subtotal]) => {
-        const r = allRestaurants.find(x => String(x.id) === ridStr);
-        return r && r.minOrder && subtotal < r.minOrder
-          ? { id: r.id, name: pick(r.name, lang), subtotal, minOrder: r.minOrder }
-          : null;
-      })
-      .filter(Boolean);
-  }, [restaurantSubtotals, allRestaurants, lang]);
-
   const clearTimers = useCallback(() => { timersRef.current.forEach(clearTimeout); timersRef.current = []; }, []);
   useEffect(() => () => clearTimers(), [clearTimers]);
 
@@ -1097,7 +1080,6 @@ export default function App() {
   }, [lang, unlocked, allRestaurants, history]);
 
   const simulateOrder = () => {
-    if (unmetMinOrders.length > 0) { alert(t("minOrderBlockedAlert")); return; }
     clearTimers();
     setShowReceipt(false);
     const info = { customerName: nm || (lang === "en" ? "Customer" : "주문자"), address: ad || (lang === "en" ? "No address provided" : "입력된 주소 없음"), phone: ph || (lang === "en" ? "No phone" : "연락처 없음"), request: rq || (lang === "en" ? "None" : "없음"), payment, total: totals.total, deliveryMode };
@@ -1555,18 +1537,6 @@ export default function App() {
           </div>
         </div>
         <div style={css.content}>
-          {unmetMinOrders.length > 0 && (
-            <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 16, padding: "14px 16px" }}>
-              <div style={{ fontWeight: 900, color: "#dc2626", marginBottom: 8, fontSize: 13 }}>⚠️ {t("minOrderBannerTitle")}</div>
-              <div style={{ display: "grid", gap: 4 }}>
-                {unmetMinOrders.map(u => (
-                  <div key={u.id} style={{ fontSize: 12, color: "#7f1d1d", fontWeight: 700 }}>
-                    {t("minOrderShortfallLine", u.name, fmt(u.subtotal, lang), fmt(u.minOrder, lang))}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
           <div style={css.section}>
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>{t("orderItemsTitle", cartCount)}</div>
             <div style={{ display: "grid", gap: 8 }}>
@@ -1683,7 +1653,7 @@ export default function App() {
         <div style={css.bottomBar}>
           <div style={css.bottomInner}>
             <div style={{ minWidth: 0 }}><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>{t("totalLabel")}</span><br /><strong style={{ fontSize: 18, fontWeight: 900, color: th.brand, display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{fmt(totals.total, lang)}</strong></div>
-            <button onClick={simulateOrder} style={{ ...css.orderBtn, opacity: unmetMinOrders.length > 0 ? .5 : 1 }}>{t("placeOrder")}</button>
+            <button onClick={simulateOrder} style={css.orderBtn}>{t("placeOrder")}</button>
           </div>
         </div>
       </div>
@@ -1930,7 +1900,6 @@ export default function App() {
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8, color: th.muted, fontSize: 12, marginBottom: 10 }}>
                     <span>⏱ {r.time}{t("minutes")}</span><span>🚚 {fmt(r.fee, lang)}</span>
-                    {r.minOrder > 0 && <span>🧾 {t("minOrderPrefix")} {fmt(r.minOrder, lang)}</span>}
                   </div>
                   <div style={{ display: "grid", gap: 8 }}>
                     {r.menus.map(m => {
