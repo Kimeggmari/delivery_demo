@@ -9,6 +9,9 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "com.eggmari.foodneverarrives"
     compileSdk = rootProject.ext.compileSdkVersion
+    buildFeatures {
+        buildConfig true
+    }
     defaultConfig {
         applicationId "com.eggmari.foodneverarrives"
         minSdkVersion rootProject.ext.minSdkVersion
