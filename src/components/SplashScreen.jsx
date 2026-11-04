@@ -38,7 +38,7 @@ export default function SplashScreen({ onDone }) {
       <img
         src="/icon_600x600.png"
         alt=""
-        style={{ width: 96, height: 96, borderRadius: 24, boxShadow: "0 12px 32px rgba(0,0,0,0.2)", marginBottom: 18 }}
+        style={{ width: 96, height: 96, borderRadius: 24, marginBottom: 18 }}
       />
       <div style={{ fontSize: 22, fontWeight: 900, color: "#431407", marginBottom: 6 }}>음식만안와요</div>
       <div style={{ fontSize: 13, color: "#c2410c", fontWeight: 700 }}>{c.tagline}</div>

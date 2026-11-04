@@ -17,6 +17,7 @@ import rabbitRider from "./assets/riders/rabbit-rider.png";
 import turtleRider from "./assets/riders/turtle-rider.png";
 import { getMenuImageSrc } from "./config/menuImages";
 import { nicknameFor } from "./lib/nickname";
+import { trackScreen } from "./lib/analytics";
 import { deliveryModes, RABBIT_SURCHARGE, SIZE_OPTIONS, SPICY_OPTIONS, SPICY_LABELS, theme } from "./config/ordering";
 import { calcTotals, fmt } from "./lib/format";
 import { dict, makeT, pick } from "./config/i18n";
@@ -786,6 +787,7 @@ function CategorySheet({ categories, active, onSelect, onClose, th, t }) {
 export default function App() {
   const [deliveryMode, setDeliveryMode] = useState("rabbit");
   const [page, setPage] = useState("order");
+  useEffect(() => { trackScreen(page); }, [page]);
   const [cart, setCart] = useState([]);
   const [payment, setPayment] = useState("카드");
   const [search, setSearch] = useState("");
