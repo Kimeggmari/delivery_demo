@@ -1,0 +1,5 @@
+{
+  "redirects": [
+    { "source": "/app-ads.txt", "destination": "https://adrop.io/app-ads.txt", "permanent": true }
+  ]
+}
