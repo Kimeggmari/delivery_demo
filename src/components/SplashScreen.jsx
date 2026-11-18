@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AdSlot from "./AdSlot";
 
 const copy = {
   ko: { tagline: "배달비와 칼로리를 아끼는 가짜배달앱" },
@@ -35,13 +36,19 @@ export default function SplashScreen({ onDone }) {
         pointerEvents: leaving ? "none" : "auto",
       }}
     >
-      <img
-        src="/icon_600x600.png"
-        alt=""
-        style={{ width: 96, height: 96, borderRadius: 24, marginBottom: 18 }}
-      />
-      <div style={{ fontSize: 22, fontWeight: 900, color: "#431407", marginBottom: 6 }}>음식만안와요</div>
-      <div style={{ fontSize: 13, color: "#c2410c", fontWeight: 700 }}>{c.tagline}</div>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        <img
+          src="/icon_600x600.png"
+          alt=""
+          style={{ width: 96, height: 96, borderRadius: 24, marginBottom: 18 }}
+        />
+        <div style={{ fontSize: 22, fontWeight: 900, color: "#431407", marginBottom: 6 }}>음식만안와요</div>
+        <div style={{ fontSize: 13, color: "#c2410c", fontWeight: 700 }}>{c.tagline}</div>
+      </div>
+      <div style={{ paddingBottom: "max(16px, env(safe-area-inset-bottom))" }}>
+        {/* Adrop splash ad area (360x270dp); AdSlot keeps the ratio and caps the width */}
+        <AdSlot slot="splash" style={{ width: "100vw" }} />
+      </div>
     </div>
   );
 }

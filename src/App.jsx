@@ -7,6 +7,7 @@ import HistoryPage from "./components/HistoryPage";
 import ReceiptModal from "./components/ReceiptModal";
 import AchievementToast from "./components/AchievementToast";
 import NotificationBanner from "./components/NotificationBanner";
+import AdSlot, { PopupBottomAd } from "./components/AdSlot";
 import AddRestaurantModal from "./components/AddRestaurantModal";
 import AddMenuModal from "./components/AddMenuModal";
 import AddContentPage from "./components/AddContentPage";
@@ -34,7 +35,6 @@ import {
 } from "./lib/storage";
 import { authReady } from "./lib/firebase";
 import { computeNewUnlocks } from "./config/achievements";
-import { maybeShowColdStartInterstitial } from "./lib/ads";
 import { ensureNotificationPermission, notifyDeliveryComplete } from "./lib/notifications";
 
 const menuCalories = {
@@ -518,7 +518,7 @@ function PrivacyPage({ onBack, th, t, lang }) {
       content: (
         <>
           <p>The web version may show ads via <strong>Google AdSense</strong>, which can use cookies or similar technologies to personalize them.</p>
-          <p><strong>The Android and iOS apps may show interstitial ads via Google AdMob.</strong> A full-screen ad may appear with some probability when the app launches. AdMob may use an advertising identifier (Android Advertising ID / iOS IDFA) to personalize these ads.</p>
+          <p><strong>The Android and iOS apps may show banner, popup, splash, and native ads via the Adrop ad platform.</strong> Adrop and its partner ad networks may use an advertising identifier (Android Advertising ID / iOS IDFA) to measure and personalize these ads.</p>
           <p>On iOS, the app requests App Tracking Transparency (ATT) permission before using this identifier. The app works the same whether or not you grant this permission.</p>
           <p>See <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb" }}>Google's advertising policies</a> for details.</p>
         </>
@@ -529,7 +529,7 @@ function PrivacyPage({ onBack, th, t, lang }) {
       content: (
         <>
           <p>The web version is hosted on <strong>Vercel</strong>, which automatically captures basic server logs (IP, timestamps, browser info) per its own policy. The operator does not collect these directly.</p>
-          <p>The order history, achievements, and user-submitted content described in Section 1 are stored using <strong>Google Firebase</strong> (Firestore, Authentication). The apps also communicate with Google AdMob to display ads. See <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb" }}>Firebase's privacy policy</a> for details.</p>
+          <p>The order history, achievements, and user-submitted content described in Section 1 are stored using <strong>Google Firebase</strong> (Firestore, Authentication). The apps also communicate with Adrop and its partner ad networks to display ads. See <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb" }}>Firebase's privacy policy</a> for details.</p>
         </>
       ),
     },
@@ -577,7 +577,7 @@ function PrivacyPage({ onBack, th, t, lang }) {
       content: (
         <>
           <p>웹 버전(음식만안와요.com)은 <strong>Google AdSense</strong>를 통해 광고를 제공할 수 있습니다. Google AdSense는 쿠키 또는 유사 기술을 사용하여 광고를 맞춤화할 수 있습니다.</p>
-          <p><strong>Android / iOS 앱 버전은 Google AdMob을 통해 전면 광고(interstitial ad)를 표시할 수 있습니다.</strong> 앱 실행 시 일정 확률로 광고가 노출되며, AdMob은 광고 개인화를 위해 광고 식별자(Android Advertising ID, iOS IDFA 등)를 사용할 수 있습니다.</p>
+          <p><strong>Android / iOS 앱 버전은 광고 플랫폼 Adrop(에이드랍)을 통해 배너·팝업·스플래시·네이티브 광고를 표시할 수 있습니다.</strong> Adrop 및 제휴 광고 네트워크는 광고 노출·성과 측정과 광고 개인화를 위해 광고 식별자(Android Advertising ID, iOS IDFA 등)를 사용할 수 있습니다.</p>
           <p>iOS에서는 앱이 광고 식별자를 사용하기 전에 iOS의 App Tracking Transparency(ATT) 권한 요청을 통해 동의를 구하며, 동의하지 않아도 앱의 다른 기능은 동일하게 이용할 수 있습니다.</p>
           <p>Google의 광고 데이터 사용에 관한 자세한 내용은 <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb" }}>Google 광고 정책</a>을 참고하세요.</p>
         </>
@@ -588,7 +588,7 @@ function PrivacyPage({ onBack, th, t, lang }) {
       content: (
         <>
           <p>웹 버전은 <strong>Vercel</strong>을 통해 호스팅됩니다. Vercel은 서비스 운영을 위해 서버 접속 로그(IP 주소, 접속 시간, 브라우저 정보 등)를 자동으로 수집할 수 있습니다. 이는 서비스 운영자가 직접 수집하는 것이 아니며, Vercel의 개인정보처리방침에 따라 관리됩니다.</p>
-          <p>1번 항목에 안내된 주문 기록·업적·이용자 등록 콘텐츠는 <strong>Google Firebase</strong>(Firestore, Authentication)에 저장됩니다. 광고 표시를 위해서는 Google AdMob과 통신합니다. Firebase의 개인정보 처리에 대한 자세한 내용은 <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb" }}>Firebase 개인정보처리방침</a>을 참고하세요.</p>
+          <p>1번 항목에 안내된 주문 기록·업적·이용자 등록 콘텐츠는 <strong>Google Firebase</strong>(Firestore, Authentication)에 저장됩니다. 광고 표시를 위해서는 Adrop 및 제휴 광고 네트워크와 통신합니다. Firebase의 개인정보 처리에 대한 자세한 내용은 <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb" }}>Firebase 개인정보처리방침</a>을 참고하세요.</p>
         </>
       ),
     },
@@ -820,6 +820,7 @@ export default function App() {
     }
   });
   const [showSponsorModal, setShowSponsorModal] = useState(true);
+  const [showPopupAd, setShowPopupAd] = useState(true);
   const [history, setHistory] = useState([]);
   const [unlocked, setUnlocked] = useState({});
   const [uid, setUid] = useState(null);
@@ -1005,7 +1006,6 @@ export default function App() {
   useEffect(() => () => clearTimers(), [clearTimers]);
 
   useEffect(() => {
-    maybeShowColdStartInterstitial();
     ensureNotificationPermission();
   }, []);
 
@@ -1421,6 +1421,10 @@ export default function App() {
           </button>
         </div>
 
+        <div style={{ width: "100%", maxWidth: 320, marginTop: 24 }}>
+          <AdSlot slot="completeNative" />
+        </div>
+
         <Footer th={th} t={t} onInfo={() => { resetAll(); setShowInfoModal(true); }} onPrivacy={() => setPage("privacy")} />
       </div>
     );
@@ -1480,6 +1484,7 @@ export default function App() {
               <button style={{ border: "none", borderRadius: 12, background: "#eef2ff", color: "#3730a3", padding: "10px 12px", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>{t("riderCall")}</button>
             </div>
           </div>
+          <AdSlot slot="trackingBanner" />
           <div style={css.section}>
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>{t("progressTitle")}</div>
             <div style={{ display: "grid", gap: 10 }}>
@@ -1807,6 +1812,8 @@ export default function App() {
           {t("demoBanner")}
         </div>
 
+        <AdSlot slot="homeBanner" />
+
         <div style={css.section}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 10, marginBottom: 14 }}>
             <div>
@@ -1976,6 +1983,8 @@ export default function App() {
 
         <Footer th={th} t={t} onInfo={() => setShowInfoModal(true)} onPrivacy={() => setPage("privacy")} />
       </div>
+
+      {showPopupAd && <PopupBottomAd onClose={() => setShowPopupAd(false)} />}
 
       <div style={css.bottomBar}>
         <div style={css.bottomInner}>

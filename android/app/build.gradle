@@ -59,6 +59,12 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+
+    // Adrop ads (popupBottom now; splash later). Needs android/app/src/main/assets/adrop_service.json.
+    implementation "io.adrop:adrop-ads:1.17.0"
+    // TODO(backfill): add "io.adrop:adrop-ads-backfill:1.17.0" ONLY together with the
+    // Adrop-issued com.google.android.gms.ads.APPLICATION_ID manifest meta-data --
+    // it pulls in Google Mobile Ads, which crashes at launch without that ID.
 }
 
 apply from: 'capacitor.build.gradle'

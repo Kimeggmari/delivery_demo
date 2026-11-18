@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@capacitor-community/admob": "^8.0.0",
+    "@adrop/ads-web-sdk": "^1.4.0",
     "@capacitor-community/media": "^9.1.0",
     "@capacitor-firebase/analytics": "^8.5.1",
     "@capacitor-firebase/app-check": "^8.4.0",
