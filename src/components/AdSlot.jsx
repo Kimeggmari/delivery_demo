@@ -6,8 +6,8 @@ import { showNativePopupOnce } from "../lib/adropNative";
 
 // Reserves a fixed-ratio space for an ad unit (see config/adUnits.js).
 // Banner/native slots render real ads via the Adrop web SDK once the App ID and
-// the slot's unit id are set; until then (and on the public web build) they show
-// a placeholder box. Web has no ad SDK of its own, so it previews as Android.
+// the slot's unit id are set; until then they show a placeholder box in dev
+// builds only and render nothing in production. Web previews as Android.
 export default function AdSlot({ slot, style }) {
   const unit = AD_UNITS[slot];
   if (!AD_SLOTS_ENABLED || !unit) return null;
@@ -29,9 +29,9 @@ export default function AdSlot({ slot, style }) {
     ...style,
   };
 
-  return live
-    ? <LiveAd unit={unit} appId={appId} unitId={unitId} box={box} />
-    : <PlaceholderAd unit={unit} name={unit.names[os]} box={box} />;
+  if (live) return <LiveAd unit={unit} appId={appId} unitId={unitId} box={box} />;
+  // Placeholder boxes are a dev-only layout aid; production shows nothing until the slot is wired.
+  return import.meta.env.DEV ? <PlaceholderAd unit={unit} name={unit.names[os]} box={box} /> : null;
 }
 
 function PlaceholderAd({ unit, name, box }) {
@@ -101,7 +101,7 @@ export function PopupBottomAd({ onClose, bottom = 84 }) {
     if (native) showNativePopupOnce(unitId);
   }, [native, unitId]);
 
-  if (!AD_SLOTS_ENABLED || native) return null;
+  if (!AD_SLOTS_ENABLED || native || !import.meta.env.DEV) return null;
   return (
     <div style={{ position: "fixed", left: 0, right: 0, bottom, zIndex: 15, display: "flex", justifyContent: "center", padding: "0 16px", pointerEvents: "none" }}>
       <div style={{ position: "relative", width: "100%", maxWidth: 320, background: "#fff", borderRadius: 14, boxShadow: "0 8px 24px rgba(0,0,0,0.18)", padding: 4, pointerEvents: "auto" }}>
