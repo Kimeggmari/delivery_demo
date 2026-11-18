@@ -1437,7 +1437,7 @@ export default function App() {
           </button>
         </div>
 
-        <div style={{ width: "100%", maxWidth: 320, marginTop: 24 }}>
+        <div style={{ width: "100%", maxWidth: 360, marginTop: 24 }}>
           <AdSlot slot="completeNative" />
         </div>
 

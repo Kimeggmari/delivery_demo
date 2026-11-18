@@ -22,12 +22,13 @@ const TEST_UNIT_ID = {
 };
 
 // Real unit ids per OS, from the console's Ad Unit tab. Leave "" until issued.
+// Android units issued 2026-11-18 (console shows them as 처리중 for backfill until Adrop finishes setup).
 const UNIT_ID = {
-  splash:         { ios: "", android: "" },
-  homePopup:      { ios: "", android: "" },
-  homeBanner:     { ios: "", android: "" },
-  trackingBanner: { ios: "", android: "" },
-  completeNative: { ios: "", android: "" },
+  splash:         { ios: "", android: "01M7PX64ASWYR7RGTXEQSF0YTB" },
+  homePopup:      { ios: "", android: "01M7PX8F4CS6VB1M15HSWKJYTC" },
+  homeBanner:     { ios: "", android: "01M7PX9HQFSQ1JFRPQEHB9N2MV" },
+  trackingBanner: { ios: "", android: "01M7PXA8MT4NYQA8FZT3QTRTRN" },
+  completeNative: { ios: "", android: "01M7PXBDDDZQ5P6FE0931QA00C" },
 };
 
 const unit = (key, format, page, position, width, height, backfill) => ({
@@ -41,10 +42,11 @@ const unit = (key, format, page, position, width, height, backfill) => ({
 export const AD_UNITS = {
   // Sheet says 320x480, but Adrop's splash ad area is 360x270dp (docs), so follow the SDK.
   splash:         unit("splash",         "splash",      "시작",     "하단",         360, 270, false),
-  homePopup:      unit("homePopup",      "popupBottom", "홈",       "하단",         320, 100, false),
+  // Console registered these with Adrop's fixed sizes: popup 360x240, native 600x314.
+  homePopup:      unit("homePopup",      "popupBottom", "홈",       "하단",         360, 240, false),
   homeBanner:     unit("homeBanner",     "banner",      "홈",       "안내문구하단", 320, 100, true),
   trackingBanner: unit("trackingBanner", "banner",      "주문대기", "라이더정보하단", 320, 50,  true),
-  completeNative: unit("completeNative", "native",      "주문완료", "최하단",       320, 50,  true),
+  completeNative: unit("completeNative", "native",      "주문완료", "최하단",       600, 314, true),
 };
 
 // Unit id to request for a slot on this OS, or "" when the slot isn't wired yet.
