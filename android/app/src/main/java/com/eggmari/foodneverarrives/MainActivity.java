@@ -8,6 +8,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         // Local plugins must be registered before super.onCreate builds the bridge.
+        // Adrop.initialize lives in FnaApplication (guarded against a missing json).
         registerPlugin(AdropNativePlugin.class);
         super.onCreate(savedInstanceState);
     }

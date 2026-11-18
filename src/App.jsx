@@ -36,6 +36,10 @@ import {
 import { authReady } from "./lib/firebase";
 import { computeNewUnlocks } from "./config/achievements";
 import { ensureNotificationPermission, notifyDeliveryComplete } from "./lib/notifications";
+import {
+  getLocalRestaurants, saveLocalRestaurant, removeLocalRestaurant,
+  getLocalMenus, saveLocalMenu, removeLocalMenu,
+} from "./lib/localDrafts";
 
 const menuCalories = {
   c1: 1800, c2: 1650, c3: 320,
@@ -858,7 +862,9 @@ export default function App() {
   const [allReviews, setAllReviews] = useState([]);
   const [showAddRestaurant, setShowAddRestaurant] = useState(false);
   const [addMenuTarget, setAddMenuTarget] = useState(null);
-  const [pendingAddAction, setPendingAddAction] = useState(null);
+  const [localRestaurants, setLocalRestaurants] = useState(() => getLocalRestaurants());
+  const [localMenus, setLocalMenus] = useState(() => getLocalMenus());
+  const [publishTarget, setPublishTarget] = useState(null); // { type: "restaurant" | "menu", item }
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [deliveryNotif, setDeliveryNotif] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
@@ -1285,17 +1291,29 @@ export default function App() {
           lang={lang}
           t={t}
           th={th}
-          onOpenAddRestaurant={() => setPendingAddAction({ type: "restaurant" })}
-          onOpenAddMenu={(r) => setPendingAddAction({ type: "menu", restaurant: r })}
+          onOpenAddRestaurant={() => setShowAddRestaurant(true)}
+          onOpenAddMenu={(r) => setAddMenuTarget(r)}
+          localRestaurants={localRestaurants}
+          localMenus={localMenus}
+          onPublishRestaurant={(r) => setPublishTarget({ type: "restaurant", item: r })}
+          onPublishMenu={(m) => setPublishTarget({ type: "menu", item: m })}
+          onDeleteLocalRestaurant={(id) => setLocalRestaurants(removeLocalRestaurant(id))}
+          onDeleteLocalMenu={(id) => setLocalMenus(removeLocalMenu(id))}
         />
-        {pendingAddAction && (
+        {publishTarget && (
           <AddContentNoticeModal
-            onClose={() => setPendingAddAction(null)}
+            onClose={() => setPublishTarget(null)}
             onConfirm={() => {
-              if (pendingAddAction.type === "restaurant") setShowAddRestaurant(true);
-              else setAddMenuTarget(pendingAddAction.restaurant);
-              setPendingAddAction(null);
+              if (publishTarget.type === "restaurant") {
+                addCustomRestaurant(publishTarget.item).catch(err => console.warn("Failed to add restaurant", err));
+                setLocalRestaurants(removeLocalRestaurant(publishTarget.item.id));
+              } else {
+                addCustomMenu(publishTarget.item).catch(err => console.warn("Failed to add menu", err));
+                setLocalMenus(removeLocalMenu(publishTarget.item.id));
+              }
+              setPublishTarget(null);
             }}
+            confirmLabel={publishTarget.type === "restaurant" ? t("shareRestaurantBtn") : t("publishMenuBtn")}
             t={t}
             th={th}
           />
@@ -1304,9 +1322,8 @@ export default function App() {
           <AddRestaurantModal
             onClose={() => setShowAddRestaurant(false)}
             onCreate={(r) => {
-              addCustomRestaurant(r).catch(err => console.warn("Failed to add restaurant", err));
+              setLocalRestaurants(saveLocalRestaurant(r));
               setShowAddRestaurant(false);
-              setPage("order");
             }}
             brand={th.primaryBtn}
             lang={lang}
@@ -1318,9 +1335,8 @@ export default function App() {
             restaurant={addMenuTarget}
             onClose={() => setAddMenuTarget(null)}
             onCreate={(m) => {
-              addCustomMenu(m).catch(err => console.warn("Failed to add menu", err));
+              setLocalMenus(saveLocalMenu(m));
               setAddMenuTarget(null);
-              setPage("order");
             }}
             brand={th.primaryBtn}
             t={t}
