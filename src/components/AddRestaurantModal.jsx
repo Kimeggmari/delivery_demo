@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { compressImageFile } from "../lib/imageCompress";
+import { useEffect, useRef, useState } from "react";
 import { pick } from "../config/i18n";
+import { compressImageFile } from "../lib/imageCompress";
 
 // Bottom-sheet form for the "add your own restaurant" feature. Creates a
 // restaurant object shaped exactly like the built-in catalog entries
@@ -11,29 +11,21 @@ const fieldStyle = {
   borderRadius: 12, fontFamily: "inherit", fontSize: 16, boxSizing: "border-box",
 };
 
-// Curated from the built-in catalog's own categories (config/restaurants.js)
-// so custom restaurants stay consistent with the existing filter/badge set
-// instead of accumulating one-off free-text spellings.
+// A simplified set of broad categories (narrower built-in catalog categories
+// like 초밥/타코야끼, 마라탕, 곱창, 아이스크림/빙수/와플 fold into the closest
+// one here) — pick "기타" for anything that doesn't fit.
 const CATEGORY_OPTIONS = [
-  { ko: "치킨", en: "Chicken" },
-  { ko: "일식", en: "Japanese" },
-  { ko: "양식", en: "Italian" },
-  { ko: "샐러드", en: "Salad" },
   { ko: "한식", en: "Korean" },
   { ko: "중식", en: "Chinese" },
+  { ko: "일식", en: "Japanese" },
+  { ko: "양식", en: "Western" },
   { ko: "분식", en: "Street Food" },
-  { ko: "카페", en: "Cafe" },
-  { ko: "마라탕", en: "Mala" },
-  { ko: "아이스크림", en: "Ice Cream" },
-  { ko: "곱창", en: "Tripe" },
-  { ko: "초밥", en: "Sushi" },
-  { ko: "햄버거", en: "Burger" },
+  { ko: "치킨", en: "Chicken" },
   { ko: "피자", en: "Pizza" },
-  { ko: "타코야끼", en: "Takoyaki" },
-  { ko: "빙수", en: "Bingsu" },
-  { ko: "와플", en: "Waffle" },
-  { ko: "기타", en: "Other" },
+  { ko: "햄버거", en: "Burger" },
+  { ko: "카페·디저트", en: "Cafe & Dessert" },
 ];
+const OTHER_CATEGORY = "__other__";
 
 function makeCustomId(prefix) {
   return prefix + "_" + Date.now().toString(36) + "_" + Math.floor(Math.random() * 1e6).toString(36);
@@ -43,17 +35,27 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t, lang }
   const [name, setName] = useState("");
   const [emoji, setEmoji] = useState("🍴");
   const [category, setCategory] = useState("");
-  const [categoryOpen, setCategoryOpen] = useState(false);
   const [customCategory, setCustomCategory] = useState("");
   const [fee, setFee] = useState("3000");
   const [minOrder, setMinOrder] = useState("12000");
   const [menuName, setMenuName] = useState("");
   const [menuDesc, setMenuDesc] = useState("");
   const [menuPrice, setMenuPrice] = useState("");
-  const [menuCalorie, setMenuCalorie] = useState("");
+  const [menuCalories, setMenuCalories] = useState("");
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const categoryBoxRef = useRef(null);
+
+  useEffect(() => {
+    if (!categoryOpen) return;
+    const onDocMouseDown = (e) => {
+      if (categoryBoxRef.current && !categoryBoxRef.current.contains(e.target)) setCategoryOpen(false);
+    };
+    document.addEventListener("mousedown", onDocMouseDown);
+    return () => document.removeEventListener("mousedown", onDocMouseDown);
+  }, [categoryOpen]);
 
   const pickPhoto = (e) => {
     const file = e.target.files && e.target.files[0];
@@ -72,15 +74,12 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t, lang }
     }
     setSubmitting(true);
     const photo = photoFile ? await compressImageFile(photoFile).catch(() => null) : null;
+    const cal = parseInt(menuCalories, 10);
     const restaurantId = makeCustomId("custom_r");
-    const isOtherCategory = category === "기타";
-    const finalCategory = isOtherCategory && customCategory.trim()
-      ? { ko: customCategory.trim(), en: customCategory.trim() }
-      : (() => {
-          const opt = CATEGORY_OPTIONS.find(o => o.ko === category) || CATEGORY_OPTIONS[CATEGORY_OPTIONS.length - 1];
-          return { ko: opt.ko, en: opt.en };
-        })();
-    const calorie = parseInt(menuCalorie, 10);
+    const preset = CATEGORY_OPTIONS.find(c => c.ko === category);
+    const categoryField = category === OTHER_CATEGORY
+      ? { ko: customCategory.trim() || "기타", en: customCategory.trim() || "Other" }
+      : preset || { ko: "기타", en: "Other" };
     onCreate({
       id: restaurantId,
       name: { ko: nm, en: nm },
@@ -90,7 +89,7 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t, lang }
       reviews: 1,
       fee: Math.max(0, parseInt(fee, 10) || 0),
       minOrder: Math.max(0, parseInt(minOrder, 10) || 0),
-      category: finalCategory,
+      category: categoryField,
       isCustom: true,
       menus: [{
         id: makeCustomId("custom_m"),
@@ -100,8 +99,8 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t, lang }
         price: mPrice,
         options: {},
         isCustom: true,
-        ...(calorie > 0 ? { calories: calorie } : {}),
         ...(photo ? { photo } : {}),
+        ...(Number.isFinite(cal) && cal > 0 ? { calories: cal } : {}),
       }],
     });
   };
@@ -128,48 +127,46 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t, lang }
 
           <div>
             <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("restaurantCategoryLabel")}</label>
-            <button
-              type="button"
-              onClick={() => setCategoryOpen(o => !o)}
-              style={{
-                ...fieldStyle, display: "flex", alignItems: "center", justifyContent: "space-between",
-                cursor: "pointer", background: "#fff", textAlign: "left",
-              }}
-            >
-              <span style={{ color: category ? "#111827" : "#9ca3af", fontWeight: category ? 700 : 400 }}>
-                {category === "기타" ? t("restaurantCategoryOtherLabel") : (category || t("restaurantCategoryPh"))}
-              </span>
-              <span style={{ color: "#9ca3af", fontSize: 12, flexShrink: 0, marginLeft: 8 }}>{categoryOpen ? "▲" : "▼"}</span>
-            </button>
-            {categoryOpen && (
-              <div style={{ maxHeight: 206, overflowY: "auto", border: "1px solid #e5e7eb", borderRadius: 12, background: "#fff", marginTop: 6 }}>
-                {CATEGORY_OPTIONS.map((opt, i) => {
-                  const active = category === opt.ko;
-                  const isOther = opt.ko === "기타";
-                  return (
-                    <button
-                      key={opt.ko}
-                      type="button"
-                      onClick={() => { setCategory(opt.ko); setCategoryOpen(false); }}
-                      style={{
-                        display: "block", width: "100%", textAlign: "left",
-                        padding: "10px 14px", border: "none",
-                        borderBottom: i === CATEGORY_OPTIONS.length - 1 ? "none" : "1px solid #f3f4f6",
-                        background: active ? "#fff7ed" : "#fff",
-                        color: active ? "#c2410c" : "#111827",
-                        fontWeight: active ? 900 : 600, fontSize: 14,
-                        cursor: "pointer", fontFamily: "inherit",
-                      }}
-                    >{active ? "✓ " : ""}{isOther ? t("restaurantCategoryOtherLabel") : pick(opt, lang)}</button>
-                  );
-                })}
-              </div>
-            )}
-            {category === "기타" && (
+            <div ref={categoryBoxRef} style={{ position: "relative" }}>
+              <button
+                type="button"
+                onClick={() => setCategoryOpen(o => !o)}
+                style={{ ...fieldStyle, display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", background: "#fff", textAlign: "left" }}
+              >
+                <span style={{ color: category ? "#111827" : "#9ca3af" }}>
+                  {category === OTHER_CATEGORY
+                    ? t("restaurantCategoryOther")
+                    : category
+                      ? pick(CATEGORY_OPTIONS.find(c => c.ko === category), lang)
+                      : t("restaurantCategoryPh")}
+                </span>
+                <span style={{ fontSize: 11, color: "#9ca3af" }}>{categoryOpen ? "▲" : "▼"}</span>
+              </button>
+              {categoryOpen && (
+                <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, zIndex: 20, background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.14)", maxHeight: 200, overflowY: "auto" }}>
+                  {CATEGORY_OPTIONS.map(c => (
+                    <div
+                      key={c.ko}
+                      onClick={() => { setCategory(c.ko); setCategoryOpen(false); }}
+                      style={{ padding: "10px 14px", fontSize: 14, fontWeight: category === c.ko ? 800 : 500, cursor: "pointer", background: category === c.ko ? "#f3f4f6" : "#fff" }}
+                    >
+                      {pick(c, lang)}
+                    </div>
+                  ))}
+                  <div
+                    onClick={() => { setCategory(OTHER_CATEGORY); setCategoryOpen(false); }}
+                    style={{ padding: "10px 14px", fontSize: 14, fontWeight: category === OTHER_CATEGORY ? 800 : 500, color: "#6b7280", cursor: "pointer", borderTop: "1px solid #f3f4f6", background: category === OTHER_CATEGORY ? "#f3f4f6" : "#fff" }}
+                  >
+                    {t("restaurantCategoryOther")}
+                  </div>
+                </div>
+              )}
+            </div>
+            {category === OTHER_CATEGORY && (
               <input
                 value={customCategory}
                 onChange={e => setCustomCategory(e.target.value)}
-                placeholder={t("restaurantCategoryOtherPh")}
+                placeholder={t("restaurantCategoryCustomPh")}
                 style={{ ...fieldStyle, marginTop: 8 }}
               />
             )}
@@ -197,13 +194,15 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t, lang }
                 <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuDescLabel")}</label>
                 <input value={menuDesc} onChange={e => setMenuDesc(e.target.value)} placeholder={t("menuDescPh")} style={fieldStyle} />
               </div>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuPriceLabel")}</label>
-                <input value={menuPrice} onChange={e => setMenuPrice(e.target.value)} placeholder={t("menuPricePh")} type="number" inputMode="numeric" style={fieldStyle} />
-              </div>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuCalorieLabel")}</label>
-                <input value={menuCalorie} onChange={e => setMenuCalorie(e.target.value)} placeholder={t("menuCaloriePh")} type="number" inputMode="numeric" style={fieldStyle} />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuPriceLabel")}</label>
+                  <input value={menuPrice} onChange={e => setMenuPrice(e.target.value)} placeholder={t("menuPricePh")} type="number" inputMode="numeric" style={fieldStyle} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuCaloriesLabel")}</label>
+                  <input value={menuCalories} onChange={e => setMenuCalories(e.target.value)} placeholder={t("menuCaloriesPh")} type="number" inputMode="numeric" style={fieldStyle} />
+                </div>
               </div>
               <div>
                 <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuPhotoLabel")}</label>
@@ -218,7 +217,7 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t, lang }
                   <span style={{ fontSize: 12, color: "#6b7280", fontWeight: 700 }}>{photoPreview ? t("menuPhotoChange") : t("menuPhotoHint")}</span>
                   <input type="file" accept="image/*" onChange={pickPhoto} style={{ display: "none" }} />
                 </label>
-                <div style={{ fontSize: 11, color: "#b45309", background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 10, padding: "8px 10px", marginTop: 8, lineHeight: 1.5 }}>{t("menuPhotoCopyrightWarning")}</div>
+                <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 6 }}>{t("menuPhotoCopyrightNote")}</div>
               </div>
             </div>
           </div>

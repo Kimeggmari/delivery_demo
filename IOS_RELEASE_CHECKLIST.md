@@ -23,13 +23,6 @@ Developer 계정이 있어야만 할 수 있는 작업입니다.
       [src/lib/ads.js](src/lib/ads.js)의 `INTERSTITIAL_AD_UNIT_ID.ios`에 반영 완료. 앱은 새로 등록된
       상태라 "검토 필요(승인 대기)" 상태이며, 앱스토어 심사 제출 후 며칠 내로 AdMob 쪽 검토도
       자동으로 진행됩니다.
-- [ ] **Google Cloud 콘솔(console.cloud.google.com)에서 "Maps SDK for iOS" 활성화 + API 키 발급**
-      (배달 추적 화면의 실제 지도는 앱에서만 표시되고, 웹 빌드에는 적용되지 않음).
-      - 키를 [ios/App/App/AppDelegate.swift](ios/App/App/AppDelegate.swift)의
-        `GMSServices.provideAPIKey("REPLACE_WITH_GOOGLE_MAPS_API_KEY")`에 반영
-      - 같은 키를 [src/config/maps.js](src/config/maps.js)의 `GOOGLE_MAPS_API_KEY`에도 반영
-      - Android용 키는 별도로 [android/app/src/main/AndroidManifest.xml](android/app/src/main/AndroidManifest.xml)의
-        `com.google.android.geo.API_KEY`에 반영 (플랫폼마다 별도 등록 필요)
 - [ ] `www.음식만안와요.com`에 최신 `dist/`가 배포되어 있고 `/privacy.html`, `/support.html`이
       실제로 열리는지 확인 (App Store Connect가 URL을 검증합니다).
 

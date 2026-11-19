@@ -1,6 +1,5 @@
 import UIKit
 import Capacitor
-import GoogleMaps
 import AdropAds
 
 @UIApplicationMain
@@ -10,8 +9,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        GMSServices.provideAPIKey("AIzaSyCD1SQFSKxcWoWQnlL_pf-DNACXTbIS0Fs")
-
         // Adrop: Debug 빌드는 테스트 모드(false), Release(App Store 배포) 빌드는 production(true)
         #if DEBUG
         Adrop.initialize(production: false, targetCountries: [])

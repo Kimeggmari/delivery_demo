@@ -19,7 +19,7 @@ export default function AddMenuModal({ restaurant, onClose, onCreate, brand, t, 
   const [menuName, setMenuName] = useState("");
   const [menuDesc, setMenuDesc] = useState("");
   const [menuPrice, setMenuPrice] = useState("");
-  const [menuCalorie, setMenuCalorie] = useState("");
+  const [menuCalories, setMenuCalories] = useState("");
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -40,7 +40,7 @@ export default function AddMenuModal({ restaurant, onClose, onCreate, brand, t, 
     }
     setSubmitting(true);
     const photo = photoFile ? await compressImageFile(photoFile).catch(() => null) : null;
-    const calorie = parseInt(menuCalorie, 10);
+    const cal = parseInt(menuCalories, 10);
     onCreate({
       id: makeCustomId("custom_m"),
       restaurantId: restaurant.id,
@@ -49,8 +49,8 @@ export default function AddMenuModal({ restaurant, onClose, onCreate, brand, t, 
       price: mPrice,
       options: {},
       isCustom: true,
-      ...(calorie > 0 ? { calories: calorie } : {}),
       ...(photo ? { photo } : {}),
+      ...(Number.isFinite(cal) && cal > 0 ? { calories: cal } : {}),
     });
   };
 
@@ -71,13 +71,15 @@ export default function AddMenuModal({ restaurant, onClose, onCreate, brand, t, 
             <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuDescLabel")}</label>
             <input value={menuDesc} onChange={e => setMenuDesc(e.target.value)} placeholder={t("menuDescPh")} style={fieldStyle} />
           </div>
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuPriceLabel")}</label>
-            <input value={menuPrice} onChange={e => setMenuPrice(e.target.value)} placeholder={t("menuPricePh")} type="number" inputMode="numeric" style={fieldStyle} />
-          </div>
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuCalorieLabel")}</label>
-            <input value={menuCalorie} onChange={e => setMenuCalorie(e.target.value)} placeholder={t("menuCaloriePh")} type="number" inputMode="numeric" style={fieldStyle} />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuPriceLabel")}</label>
+              <input value={menuPrice} onChange={e => setMenuPrice(e.target.value)} placeholder={t("menuPricePh")} type="number" inputMode="numeric" style={fieldStyle} />
+            </div>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuCaloriesLabel")}</label>
+              <input value={menuCalories} onChange={e => setMenuCalories(e.target.value)} placeholder={t("menuCaloriesPh")} type="number" inputMode="numeric" style={fieldStyle} />
+            </div>
           </div>
           <div>
             <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuPhotoLabel")}</label>
@@ -92,7 +94,7 @@ export default function AddMenuModal({ restaurant, onClose, onCreate, brand, t, 
               <span style={{ fontSize: 12, color: "#6b7280", fontWeight: 700 }}>{photoPreview ? t("menuPhotoChange") : t("menuPhotoHint")}</span>
               <input type="file" accept="image/*" onChange={pickPhoto} style={{ display: "none" }} />
             </label>
-            <div style={{ fontSize: 11, color: "#b45309", background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 10, padding: "8px 10px", marginTop: 8, lineHeight: 1.5 }}>{t("menuPhotoCopyrightWarning")}</div>
+            <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 6 }}>{t("menuPhotoCopyrightNote")}</div>
           </div>
         </div>
 

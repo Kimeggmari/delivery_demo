@@ -10,13 +10,14 @@ import NotificationBanner from "./components/NotificationBanner";
 import AddRestaurantModal from "./components/AddRestaurantModal";
 import AddMenuModal from "./components/AddMenuModal";
 import AddContentPage from "./components/AddContentPage";
+import AddContentNoticeModal from "./components/AddContentNoticeModal";
 import AdminPanel from "./components/AdminPanel";
-import TrackingMap from "./components/TrackingMap";
+import SettingsModal from "./components/SettingsModal";
 import rabbitRider from "./assets/riders/rabbit-rider.png";
 import turtleRider from "./assets/riders/turtle-rider.png";
 import { getMenuImageSrc } from "./config/menuImages";
 import { nicknameFor } from "./lib/nickname";
-import { deliveryModes, SIZE_OPTIONS, SPICY_OPTIONS, SPICY_LABELS, theme } from "./config/ordering";
+import { deliveryModes, RABBIT_SURCHARGE, SIZE_OPTIONS, SPICY_OPTIONS, SPICY_LABELS, theme } from "./config/ordering";
 import { calcTotals, fmt } from "./lib/format";
 import { dict, makeT, pick } from "./config/i18n";
 import { restaurants } from "./config/restaurants";
@@ -27,7 +28,7 @@ import {
   computeStats, buildOrderRecord,
   subscribeCustomRestaurants, addCustomRestaurant, deleteCustomRestaurant, reportCustomRestaurant, approveCustomRestaurant,
   subscribeCustomMenus, addCustomMenu, deleteCustomMenu, reportCustomMenu, approveCustomMenu,
-  subscribeReviews, submitReview, deleteReview, reportReview,
+  subscribeReviews, subscribeAllReviews, submitReview, deleteReview, reportReview,
   REPORT_HIDE_THRESHOLD, REVIEW_TEXT_MAX,
 } from "./lib/storage";
 import { authReady } from "./lib/firebase";
@@ -36,6 +37,10 @@ import { showLaunchAds } from "./lib/ads";
 import { ADROP_UNITS } from "./lib/adrop";
 import AdropSlot from "./components/AdropSlot";
 import { ensureNotificationPermission, notifyDeliveryComplete } from "./lib/notifications";
+import {
+  getLocalRestaurants, saveLocalRestaurant, removeLocalRestaurant,
+  getLocalMenus, saveLocalMenu, removeLocalMenu,
+} from "./lib/localDrafts";
 
 const menuCalories = {
   c1: 1800, c2: 1650, c3: 320,
@@ -76,6 +81,10 @@ const thumbGradients = [
 
 const RIDER_IMAGE = { rabbit: rabbitRider, turtle: turtleRider };
 
+// Every order spends this long "cooking" (real time) before the courier
+// timers start, regardless of delivery mode or the configured delivery time.
+const COOK_TIME_MS = 15000;
+
 const badgeColors = {
   "인기": { bg: "#fee2e2", color: "#dc2626", border: "#fecaca" },
   "추천": { bg: "#dbeafe", color: "#2563eb", border: "#bfdbfe" },
@@ -94,50 +103,21 @@ const paymentLabel = (val, t) => {
   return found ? t(found.labelKey) : val;
 };
 
-const RESTAURANT_SORTS = [
-  { key: "recommended", labelKey: "sortRecommended" },
-  { key: "ratingDesc", labelKey: "sortRatingDesc" },
-  { key: "timeAsc", labelKey: "sortTimeAsc" },
-  { key: "feeAsc", labelKey: "sortFeeAsc" },
+const SORT_OPTIONS = [
+  { val: "default", labelKey: "sortDefault" },
+  { val: "rating", labelKey: "sortRating" },
+  { val: "reviews", labelKey: "sortReviews" },
+  { val: "feeAsc", labelKey: "sortFeeAsc" },
+  { val: "timeAsc", labelKey: "sortTimeAsc" },
 ];
 
-// iOS only: the catalog's ~17 categories collapse into these broader groups
-// so the filter row stays short. Keyed by the catalog category's ko label;
-// anything not listed here (e.g. a custom restaurant's free-text category)
-// falls through to its own original category untouched. Most dishes collapse
-// into a single group, but a few straddle two genuinely — those list every
-// group they should appear under, so picking either chip surfaces them.
-const CATEGORY_GROUP_MAP = {
-  "한식": [{ ko: "한식", en: "Korean" }],
-  "곱창": [{ ko: "한식", en: "Korean" }],
-  "일식": [{ ko: "일식", en: "Japanese" }],
-  "초밥": [{ ko: "일식", en: "Japanese" }],
-  "중식": [{ ko: "중식", en: "Chinese" }],
-  "마라탕": [{ ko: "중식", en: "Chinese" }, { ko: "분식", en: "Street Food" }],
-  "양식": [{ ko: "양식", en: "Western" }],
-  "피자": [{ ko: "양식", en: "Western" }],
-  "햄버거": [{ ko: "양식", en: "Western" }],
-  "분식": [{ ko: "분식", en: "Street Food" }],
-  "타코야끼": [{ ko: "일식", en: "Japanese" }, { ko: "분식", en: "Street Food" }],
-  "카페": [{ ko: "카페·디저트", en: "Cafe & Dessert" }],
-  "아이스크림": [{ ko: "카페·디저트", en: "Cafe & Dessert" }],
-  "빙수": [{ ko: "카페·디저트", en: "Cafe & Dessert" }],
-  "와플": [{ ko: "카페·디저트", en: "Cafe & Dessert" }],
+const sortLabel = (val, t) => {
+  const found = SORT_OPTIONS.find(o => o.val === val);
+  return found ? t(found.labelKey) : val;
 };
 
-function groupCategoriesFor(category) {
-  if (!category?.ko) return category ? [category] : [];
-  return CATEGORY_GROUP_MAP[category.ko] || [category];
-}
-
-// "recommended" keeps the catalog's own curated order; the rest sort a copy
-// so the original restaurants/customRestaurants arrays are never mutated.
-function sortRestaurants(list, sortKey) {
-  if (sortKey === "ratingDesc") return [...list].sort((a, b) => b.rating - a.rating);
-  if (sortKey === "timeAsc") return [...list].sort((a, b) => parseInt(a.time, 10) - parseInt(b.time, 10));
-  if (sortKey === "feeAsc") return [...list].sort((a, b) => a.fee - b.fee);
-  return list;
-}
+// r.time is a "25~35"-style range string — sort by its lower bound.
+const parseTimeMinutes = (time) => parseInt(time, 10) || 0;
 
 // Strip trailing "+1500원" markers from topping labels
 function toppingDisplay(topping, lang) {
@@ -181,9 +161,10 @@ function ReviewModal({ restaurant, onClose, t, lang, uid, th }) {
   }, [myReview?.rating, myReview?.text]);
 
   const visibleReviews = realReviews.filter(r => (r.reportedBy || []).length < REPORT_HIDE_THRESHOLD);
+  const canSubmit = rating >= 1 && text.trim().length > 0;
 
   const handleSubmit = () => {
-    if (rating < 1 || submitting) return;
+    if (!canSubmit || submitting) return;
     setSubmitting(true);
     submitReview(restaurant.id, rating, text)
       .catch(err => console.warn("Failed to submit review", err))
@@ -202,14 +183,14 @@ function ReviewModal({ restaurant, onClose, t, lang, uid, th }) {
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "20px 20px calc(32px + env(safe-area-inset-bottom))", width: "100%", maxWidth: 540, maxHeight: "70vh", overflowY: "auto", animation: "slideUp .3s ease" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "20px 20px calc(32px + env(safe-area-inset-bottom))", width: "100%", maxWidth: 540, maxHeight: "80vh", overflowY: "auto", animation: "slideUp .3s ease" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <div>
             <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>{restaurant.emoji} {pick(restaurant.name, lang)}</h3>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
               <span style={{ color: "#f59e0b" }}><Stars rating={restaurant.rating} size={14} /></span>
               <span style={{ fontWeight: 900, fontSize: 15 }}>{restaurant.rating}</span>
-              <span style={{ color: "#9ca3af", fontSize: 12 }}>{t("reviewCountSuffix", restaurant.reviews)}</span>
+              <span style={{ color: "#9ca3af", fontSize: 12 }}>{t("reviewCountSuffix", visibleReviews.length)}</span>
             </div>
           </div>
           <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: 12, border: "none", background: "#f3f4f6", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
@@ -232,7 +213,7 @@ function ReviewModal({ restaurant, onClose, t, lang, uid, th }) {
             onChange={e => setText(e.target.value.slice(0, REVIEW_TEXT_MAX))}
             placeholder={t("reviewPlaceholder")}
             rows={2}
-            style={{ width: "100%", boxSizing: "border-box", border: "1px solid #e5e7eb", borderRadius: 10, padding: "8px 10px", fontSize: 16, fontFamily: "inherit", resize: "vertical" }}
+            style={{ width: "100%", boxSizing: "border-box", border: "1px solid #e5e7eb", borderRadius: 10, padding: "8px 10px", fontSize: 13, fontFamily: "inherit", resize: "vertical" }}
           />
           <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12, marginTop: 8 }}>
             {myReview && (
@@ -240,8 +221,8 @@ function ReviewModal({ restaurant, onClose, t, lang, uid, th }) {
             )}
             <button
               onClick={handleSubmit}
-              disabled={rating < 1 || submitting}
-              style={{ border: "none", borderRadius: 10, padding: "8px 16px", background: rating < 1 ? "#d1d5db" : th.brand, color: "#fff", fontWeight: 800, fontSize: 12, cursor: rating < 1 || submitting ? "default" : "pointer", fontFamily: "inherit" }}
+              disabled={!canSubmit || submitting}
+              style={{ border: "none", borderRadius: 10, padding: "8px 16px", background: !canSubmit ? "#d1d5db" : th.brand, color: "#fff", fontWeight: 800, fontSize: 12, cursor: !canSubmit || submitting ? "default" : "pointer", fontFamily: "inherit" }}
             >{myReview ? t("updateReviewBtn") : t("reviewSubmit")}</button>
           </div>
         </div>
@@ -522,103 +503,6 @@ function SponsorModal({ onClose, t, th }) {
   );
 }
 
-function SettingsModal({
-  onClose, uid, lang, t, th,
-  onToggleLang, onOpenAppInfo, onOpenPrivacy,
-  rabbitEtaMin, onRabbitEtaChange, turtleEtaMin, onTurtleEtaChange,
-}) {
-  const rowStyle = {
-    display: "flex", alignItems: "center", justifyContent: "space-between",
-    gap: 10, background: "#f9fafb", border: "1px solid #f3f4f6", borderRadius: 16,
-    padding: "14px 16px", cursor: "pointer", fontFamily: "inherit", width: "100%",
-    textAlign: "left", fontSize: 14, fontWeight: 800, color: "#111827",
-  };
-
-  return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed", inset: 0, zIndex: 140,
-        background: "rgba(0,0,0,0.5)",
-        display: "flex", alignItems: "flex-end", justifyContent: "center",
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          width: "100%", maxWidth: 540,
-          background: "#fff",
-          borderRadius: "24px 24px 0 0",
-          padding: "20px 20px calc(32px + env(safe-area-inset-bottom))",
-          maxHeight: "88vh",
-          overflowY: "auto",
-          animation: "slideUp .25s ease",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-          <h3 style={{ margin: 0, fontSize: 20, fontWeight: 900 }}>{t("settingsTitle")}</h3>
-          <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: 12, border: "none", background: "#f3f4f6", fontSize: 18, cursor: "pointer" }}>✕</button>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 12, background: "#fff", borderRadius: 16, padding: "14px 16px", marginBottom: 14, boxShadow: th.sectionShadow, border: "1px solid " + th.line }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: th.activeBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>🙂</div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>{t("myNicknameLabel")}</div>
-            <div style={{ fontSize: 16, fontWeight: 900, color: th.text, marginTop: 1 }}>{nicknameFor(uid, lang)}</div>
-          </div>
-        </div>
-
-        <div style={{ display: "grid", gap: 10, marginBottom: 24 }}>
-          <button onClick={onToggleLang} style={rowStyle}>
-            <span>{t("settingsLanguageLabel")}</span>
-            <span style={{ color: th.muted, fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
-              {lang === "ko" ? t("languageKoName") : t("languageEnName")} <span style={{ color: "#c1c7d0" }}>›</span>
-            </span>
-          </button>
-          <button onClick={onOpenAppInfo} style={rowStyle}>
-            <span>{t("settingsAppInfoLabel")}</span>
-            <span style={{ color: "#c1c7d0" }}>›</span>
-          </button>
-          <button onClick={onOpenPrivacy} style={rowStyle}>
-            <span>{t("privacyTitle")}</span>
-            <span style={{ color: "#c1c7d0" }}>›</span>
-          </button>
-        </div>
-
-        <div style={{ fontSize: 16, fontWeight: 900, marginBottom: 4 }}>{t("settingsDeliveryTimeTitle")}</div>
-        <div style={{ fontSize: 12, color: th.muted, lineHeight: 1.5, marginBottom: 16 }}>{t("settingsDeliveryTimeDesc")}</div>
-
-        <div style={{ display: "grid", gap: 18, marginBottom: 8 }}>
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, fontSize: 14, fontWeight: 800 }}>
-              <span>🐇 {pick(deliveryModes.rabbit.label, lang)}</span>
-              <span>{rabbitEtaMin}{t("minUnit")}</span>
-            </div>
-            <input
-              type="range" min={2} max={14} step={1}
-              value={rabbitEtaMin}
-              onChange={e => onRabbitEtaChange(parseInt(e.target.value, 10))}
-              style={{ width: "100%" }}
-            />
-          </div>
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, fontSize: 14, fontWeight: 800 }}>
-              <span>🐢 {pick(deliveryModes.turtle.label, lang)}</span>
-              <span>{turtleEtaMin}{t("minUnit")}</span>
-            </div>
-            <input
-              type="range" min={10} max={50} step={1}
-              value={turtleEtaMin}
-              onChange={e => onTurtleEtaChange(parseInt(e.target.value, 10))}
-              style={{ width: "100%" }}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function PrivacyPage({ onBack, th, t, lang }) {
   const sections = lang === "en" ? [
     {
@@ -635,7 +519,7 @@ function PrivacyPage({ onBack, th, t, lang }) {
       ),
     },
     {
-      title: "2. Ads",
+      title: "2. Cookies & ads",
       content: (
         <>
           <p>The web version may show ads via <strong>Google AdSense</strong>, which can use cookies or similar technologies to personalize them.</p>
@@ -694,7 +578,7 @@ function PrivacyPage({ onBack, th, t, lang }) {
       ),
     },
     {
-      title: "2. 광고",
+      title: "2. 쿠키 및 광고",
       content: (
         <>
           <p>웹 버전(음식만안와요.com)은 <strong>Google AdSense</strong>를 통해 광고를 제공할 수 있습니다. Google AdSense는 쿠키 또는 유사 기술을 사용하여 광고를 맞춤화할 수 있습니다.</p>
@@ -876,80 +760,76 @@ function OptionSheet({ menu, onClose, onConfirm, brand, t, lang }) {
   );
 }
 
+function CategorySheet({ categories, active, onSelect, onClose, th, t }) {
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "20px 20px calc(32px + env(safe-area-inset-bottom))", width: "100%", maxWidth: 540, maxHeight: "70vh", overflowY: "auto", animation: "slideUp .25s ease" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <div style={{ fontWeight: 900, fontSize: 16 }}>{t("categorySheetTitle")}</div>
+          <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: 12, border: "none", background: "#f3f4f6", fontSize: 16, cursor: "pointer" }}>✕</button>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
+          {categories.map(c => {
+            const isActive = active === c.key;
+            return (
+              <div
+                key={c.key}
+                onClick={() => onSelect(c.key)}
+                style={{
+                  padding: "12px 8px", borderRadius: 14, border: "2px solid " + (isActive ? th.brand : "#e5e7eb"),
+                  background: isActive ? th.brand + "18" : "#fff", textAlign: "center", cursor: "pointer",
+                  fontWeight: 800, fontSize: 13, color: isActive ? th.brand : "#374151", transition: ".15s",
+                }}
+              >{c.label}</div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
-  // iOS gets a couple of intentionally simplified behaviors (merged category
-  // filter, a history badge that clears once viewed) that web/Android don't.
-  const isIOS = Capacitor.getPlatform() === "ios";
   const [deliveryMode, setDeliveryMode] = useState("rabbit");
   const [page, setPage] = useState("order");
-  const pageRef = useRef(page);
-  useEffect(() => { pageRef.current = page; }, [page]);
   const [cart, setCart] = useState([]);
   const [payment, setPayment] = useState("카드");
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("recommended");
-  const [showSortSheet, setShowSortSheet] = useState(false);
-  // iOS only: how many history entries the user has already seen, so the
-  // trophy icon's badge clears once they open the history page instead of
-  // always showing the total order count.
-  const [seenHistoryCount, setSeenHistoryCount] = useState(0);
+  const [sortBy, setSortBy] = useState("default");
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const [showCategorySheet, setShowCategorySheet] = useState(false);
+  const sortBoxRef = useRef(null);
   const [nm, setNm] = useState("");
   const [ph, setPh] = useState("");
   const [ad, setAd] = useState("");
   const [rq, setRq] = useState("");
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
-  // Every order still being tracked, independent of navigation and of each
-  // other — placing a new order while an earlier one is still out for
-  // delivery must not cancel or corrupt that earlier one. Each entry is
-  // { id, info, modeSnapshot, trackState }, with modeSnapshot a frozen copy
-  // of that order's delivery-mode config (etaStart/intervalMs/etc, as they
-  // were when the order was placed) so a later Settings change can't retro-
-  // actively alter an order that's already in flight.
-  const [activeOrders, setActiveOrders] = useState([]);
-  // Which active order the tracking/complete screen is currently showing.
-  const [viewingOrderId, setViewingOrderId] = useState(null);
-  // Per-order timer buckets, keyed by order id — kept out of React state
-  // since timer ids themselves are never rendered. clearTimers()/resetAll()
-  // only ever touch the *current* checkout attempt's bucket (timersRef);
-  // once an order starts actual tracking its timers move here, where only
-  // that order's own completion (or a full resetAll) can clear them.
-  const activeOrderTimersRef = useRef({});
-  const viewingOrderIdRef = useRef(null);
-  useEffect(() => { viewingOrderIdRef.current = viewingOrderId; }, [viewingOrderId]);
+  const [trackState, setTrackState] = useState(0);
+  const [cooking, setCooking] = useState(false);
+  const [orderInfo, setOrderInfo] = useState(null);
   const [reviewTarget, setReviewTarget] = useState(null);
   const [optionTarget, setOptionTarget] = useState(null);
   const [addedAnim, setAddedAnim] = useState(null);
-  const [showInfoModal, setShowInfoModal] = useState(false);
-  const [activeOrdersExpanded, setActiveOrdersExpanded] = useState(false);
-  // iOS doesn't show the donation popup — it displays a real bank account
-  // number, which reads oddly (and invites App Review scrutiny) in a native
-  // app context. Android/web keep it unchanged.
-  const [showSponsorModal, setShowSponsorModal] = useState(Capacitor.getPlatform() !== "ios");
+  // Doubles as the first-launch onboarding screen — same content as the "?"
+  // info button, just auto-opened once per device via the localStorage flag.
+  const [showInfoModal, setShowInfoModal] = useState(() => {
+    try {
+      if (localStorage.getItem("hasSeenIntro")) return false;
+      localStorage.setItem("hasSeenIntro", "1");
+      return true;
+    } catch {
+      return false;
+    }
+  });
+  const [showSponsorModal, setShowSponsorModal] = useState(true);
   const [history, setHistory] = useState([]);
   const [unlocked, setUnlocked] = useState({});
   const [uid, setUid] = useState(null);
 
   useEffect(() => {
     authReady.then(setUid);
-  }, []);
-
-  // Hides the address/search header while scrolling down (more room for the
-  // restaurant list) and brings it back on scroll-up or near the top.
-  const [headerCollapsed, setHeaderCollapsed] = useState(false);
-  const lastScrollYRef = useRef(0);
-  useEffect(() => {
-    const onScroll = () => {
-      const y = window.scrollY;
-      const last = lastScrollYRef.current;
-      if (y < 24) setHeaderCollapsed(false);
-      else if (y > last + 6) setHeaderCollapsed(true);
-      else if (y < last - 6) setHeaderCollapsed(false);
-      lastScrollYRef.current = y;
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
@@ -978,37 +858,72 @@ export default function App() {
 
   const [customRestaurants, setCustomRestaurants] = useState([]);
   const [customMenus, setCustomMenus] = useState([]);
+  const [allReviews, setAllReviews] = useState([]);
   const [showAddRestaurant, setShowAddRestaurant] = useState(false);
   const [addMenuTarget, setAddMenuTarget] = useState(null);
-  // Gate shown before either add-form opens: "restaurant", or a restaurant
-  // object for "add a dish to this restaurant".
-  const [pendingAdd, setPendingAdd] = useState(null);
+  const [localRestaurants, setLocalRestaurants] = useState(() => getLocalRestaurants());
+  const [localMenus, setLocalMenus] = useState(() => getLocalMenus());
+  const [publishTarget, setPublishTarget] = useState(null); // { type: "restaurant" | "menu", item }
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [deliveryNotif, setDeliveryNotif] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
-  // User-adjustable demo speed, in "minutes" (== progress-step count) — lets
-  // people shorten/lengthen the rabbit/turtle tracking demo without touching
-  // deliveryModes' fixed intervalMs.
-  const [rabbitEtaMin, setRabbitEtaMin] = useState(deliveryModes.rabbit.etaStart);
-  const [turtleEtaMin, setTurtleEtaMin] = useState(deliveryModes.turtle.etaStart);
+  // Values are real seconds — the tracking screen genuinely takes this long
+  // to complete (see mode/trackData below), not a compressed simulation.
+  const [deliveryTimeOverrides, setDeliveryTimeOverrides] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("deliveryTimeSeconds"));
+      if (saved && typeof saved.rabbit === "number" && typeof saved.turtle === "number") return saved;
+    } catch { /* ignore */ }
+    return { rabbit: deliveryModes.rabbit.defaultSeconds, turtle: deliveryModes.turtle.defaultSeconds };
+  });
+
+  const handleChangeDeliveryTime = (key, seconds) => {
+    setDeliveryTimeOverrides(prev => {
+      const next = { ...prev, [key]: seconds };
+      try { localStorage.setItem("deliveryTimeSeconds", JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  };
 
   useEffect(() => {
     const unsubR = subscribeCustomRestaurants(setCustomRestaurants);
     const unsubM = subscribeCustomMenus(setCustomMenus);
-    return () => { unsubR(); unsubM(); };
+    const unsubRev = subscribeAllReviews(setAllReviews);
+    return () => { unsubR(); unsubM(); unsubRev(); };
   }, []);
+
+  useEffect(() => {
+    if (!showSortMenu) return;
+    const onDocMouseDown = (e) => {
+      if (sortBoxRef.current && !sortBoxRef.current.contains(e.target)) setShowSortMenu(false);
+    };
+    document.addEventListener("mousedown", onDocMouseDown);
+    return () => document.removeEventListener("mousedown", onDocMouseDown);
+  }, [showSortMenu]);
+
+  // Real, non-hidden review count per restaurant — replaces the static
+  // seed `reviews` field on restaurant cards (see reviewCountSuffix usages).
+  const reviewCountByRestaurant = useMemo(() => {
+    const map = {};
+    allReviews.forEach(r => {
+      if ((r.reportedBy || []).length >= REPORT_HIDE_THRESHOLD) return;
+      map[r.restaurantId] = (map[r.restaurantId] || 0) + 1;
+    });
+    return map;
+  }, [allReviews]);
 
   const t = useMemo(() => makeT(lang), [lang]);
   const inquiryEmail = "eggmari5713@gmail.com";
   const timersRef = useRef([]);
 
   const th = theme;
-  const mode = { ...deliveryModes[deliveryMode], etaStart: deliveryMode === "rabbit" ? rabbitEtaMin : turtleEtaMin };
-  const viewedOrder = activeOrders.find(o => o.id === viewingOrderId) || null;
-  const trackingActive = activeOrders.length > 0;
-  const sortedActiveOrders = [...activeOrders].sort((a, b) =>
-    (a.modeSnapshot.etaStart - a.trackState) - (b.modeSnapshot.etaStart - b.trackState));
-  const soonestActiveOrder = trackingActive ? sortedActiveOrders[0] : null;
+  const modeConfig = deliveryModes[deliveryMode];
+  const modeTotalSeconds = deliveryTimeOverrides[deliveryMode];
+  const mode = {
+    ...modeConfig,
+    etaStart: Math.max(1, Math.round(modeTotalSeconds / modeConfig.stepSeconds)),
+    intervalMs: modeConfig.stepSeconds * 1000,
+  };
   const totals = calcTotals(cart, deliveryMode);
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
@@ -1039,22 +954,22 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customRestaurants, customMenus, uid]);
 
-  // Categories for the filter row, in first-seen catalog order. Keyed by the
-  // ko label (stable regardless of the active language) so custom
-  // restaurants with a free-text "기타" category still get their own chip.
-  const categoryList = useMemo(() => {
-    const seen = new Set();
-    const list = [];
+  // Categories actually present in the current catalog, most common first.
+  const categoryCounts = useMemo(() => {
+    const map = new Map();
     allRestaurants.forEach(r => {
-      const cats = isIOS ? groupCategoriesFor(r.category) : [r.category];
-      cats.forEach(cat => {
-        const key = cat?.ko;
-        if (key && !seen.has(key)) { seen.add(key); list.push(cat); }
-      });
+      const key = r.category?.ko;
+      if (!key) return;
+      if (!map.has(key)) map.set(key, { key, ko: r.category.ko, en: r.category.en, count: 0 });
+      map.get(key).count += 1;
     });
-    return list;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return [...map.values()].sort((a, b) => b.count - a.count);
   }, [allRestaurants]);
+
+  const categoryTabs = useMemo(() => [
+    { key: "all", label: t("categoryAll") },
+    ...categoryCounts.map(c => ({ key: c.key, label: pick({ ko: c.ko, en: c.en }, lang) })),
+  ], [categoryCounts, lang, t]);
 
   // Pending queues for the admin moderation panel. For the admin device,
   // firestore.rules already includes everyone's pending docs in the
@@ -1094,11 +1009,6 @@ export default function App() {
 
   const clearTimers = useCallback(() => { timersRef.current.forEach(clearTimeout); timersRef.current = []; }, []);
   useEffect(() => () => clearTimers(), [clearTimers]);
-  // Navigating away from checkout/tracking mid-flow must also drop the
-  // "payment processing" state, not just the pending timers — otherwise
-  // re-entering checkout later re-shows the stale (and undismissable)
-  // processing modal from the abandoned attempt.
-  const abandonOrderFlow = useCallback(() => { clearTimers(); setShowReceipt(false); }, [clearTimers]);
 
   useEffect(() => {
     showLaunchAds();
@@ -1144,10 +1054,6 @@ export default function App() {
 
   const changeQty = (key, d) => setCart(prev => prev.map(x => x.cartKey === key ? { ...x, qty: x.qty + d } : x).filter(x => x.qty > 0));
 
-  // Clears the current cart/checkout-form/just-viewed-receipt and goes back
-  // to browsing. Deliberately does NOT touch activeOrders — any other order
-  // still out for delivery keeps ticking in the background regardless of
-  // what the user does with this one's cart or receipt screen.
   const resetAll = () => {
     clearTimers();
     setCart([]);
@@ -1156,6 +1062,8 @@ export default function App() {
     setNm(""); setPh(""); setAd(""); setRq("");
     setShowReceipt(false);
     setReceiptData(null);
+    setTrackState(0);
+    setOrderInfo(null);
     setPage("order");
     setDeliveryMode("rabbit");
     setShowInfoModal(false);
@@ -1164,12 +1072,6 @@ export default function App() {
 
   const goToCheckout = () => {
     if (!cart.length) { alert(t("cartEmptyAlert")); return; }
-    // A previous order's "결제 진행중" receipt overlay is keyed only off
-    // showReceipt/receiptData, not page — if a prior checkout was never
-    // properly exited (e.g. abandoned via a nav path that skips
-    // abandonOrderFlow), it would otherwise still be sitting there and
-    // cover this fresh checkout's order-settings form.
-    setShowReceipt(false);
     setPage("checkout");
   };
 
@@ -1201,48 +1103,33 @@ export default function App() {
     clearTimers();
     setShowReceipt(false);
     const info = { customerName: nm || (lang === "en" ? "Customer" : "주문자"), address: ad || (lang === "en" ? "No address provided" : "입력된 주소 없음"), phone: ph || (lang === "en" ? "No phone" : "연락처 없음"), request: rq || (lang === "en" ? "None" : "없음"), payment, total: totals.total, deliveryMode };
-    // Snapshot cart & totals at submit time, then clear the live cart right
-    // away — otherwise it keeps showing this order's items (e.g. via the
-    // tracking page's back button, which doesn't call resetAll) and they'd
-    // get bundled into whatever the user orders next while this one is
-    // still out for delivery.
+    // Snapshot cart & totals at submit time — they're cleared on resetAll later.
     const cartSnapshot = cart;
     const totalsSnapshot = totals;
-    setCart([]);
-    // Freeze this order's delivery-mode config (etaStart/intervalMs/etc) now —
-    // if the user later drags the Settings speed sliders, an order already
-    // out for delivery must keep the timing it was placed with.
-    const modeSnapshot = { ...mode };
-    const orderId = "ord_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
     timersRef.current.push(setTimeout(() => {
       setReceiptData(info);
       setShowReceipt(true);
       timersRef.current.push(setTimeout(() => {
-        setActiveOrders(prev => [...prev, { id: orderId, info, modeSnapshot, trackState: 0, items: cartSnapshot }]);
-        setViewingOrderId(orderId);
+        setOrderInfo(info);
+        setTrackState(0);
+        setCooking(true);
         setPage("tracking");
-        const orderTimers = [];
-        for (let i = 0; i < modeSnapshot.etaStart; i++) {
-          orderTimers.push(setTimeout(() => {
-            setActiveOrders(prev => prev.map(o => o.id === orderId ? { ...o, trackState: i + 1 } : o));
-          }, (i + 1) * modeSnapshot.intervalMs));
-        }
-        orderTimers.push(setTimeout(() => {
-          const rec = persistOrder(info, cartSnapshot, totalsSnapshot);
-          setActiveOrders(prev => prev.filter(o => o.id !== orderId));
-          setReceiptData({ ...info, _record: rec });
-          // Only steal the screen if the user is actually looking at THIS
-          // order's tracking right now, and isn't mid-checkout on another —
-          // an order finishing elsewhere shouldn't yank away unrelated work.
-          if (viewingOrderIdRef.current === orderId && pageRef.current !== "checkout") {
+        // Cooking always takes COOK_TIME_MS in real time, regardless of
+        // delivery mode/time — the courier timers only start once it ends.
+        timersRef.current.push(setTimeout(() => {
+          setCooking(false);
+          Array.from({ length: mode.etaStart }, (_, i) =>
+            timersRef.current.push(setTimeout(() => setTrackState(i + 1), (i + 1) * mode.intervalMs))
+          );
+          timersRef.current.push(setTimeout(() => {
+            const rec = persistOrder(info, cartSnapshot, totalsSnapshot);
+            setReceiptData({ ...info, _record: rec });
             setPage("complete");
-          }
-          const notif = { title: t("notifDeliveryTitle"), body: t("notifDeliveryBody") };
-          notifyDeliveryComplete(notif);
-          setDeliveryNotif(notif);
-          delete activeOrderTimersRef.current[orderId];
-        }, modeSnapshot.etaStart * modeSnapshot.intervalMs + modeSnapshot.completeDelayMs));
-        activeOrderTimersRef.current[orderId] = orderTimers;
+            const notif = { title: t("notifDeliveryTitle"), body: t("notifDeliveryBody") };
+            notifyDeliveryComplete(notif);
+            setDeliveryNotif(notif);
+          }, mode.etaStart * mode.intervalMs + mode.completeDelayMs));
+        }, COOK_TIME_MS));
       }, 1500));
     }, 900));
   };
@@ -1255,21 +1142,14 @@ export default function App() {
     saveUnlocked({}).catch(err => console.warn("Failed to clear achievements", err));
   };
 
-  // Derived for whichever order the tracking screen is currently showing —
-  // falls back to the (unplaced) checkout-config mode so this stays cheap to
-  // compute even when nothing is being tracked yet.
-  const vMode = viewedOrder ? viewedOrder.modeSnapshot : mode;
-  const vTrackState = viewedOrder ? viewedOrder.trackState : 0;
-  const vDeliveryModeKey = vMode.key;
-  const vOrderInfo = viewedOrder ? viewedOrder.info : null;
-  const trackData = Array.from({ length: vMode.etaStart }, (_, i) => {
-    const min = Math.max(1, vMode.etaStart - i);
-    const startPct = vDeliveryModeKey === "rabbit" ? 42 : 24;
-    const stepPct = vDeliveryModeKey === "rabbit" ? 3.6 : 1.9;
-    const startTop = vDeliveryModeKey === "rabbit" ? 40 : 30;
-    const stepTop = vDeliveryModeKey === "rabbit" ? 2.2 : 1.25;
+  const trackData = Array.from({ length: mode.etaStart }, (_, i) => {
+    const min = Math.max(1, Math.ceil((mode.etaStart - i) * mode.intervalMs / 60000));
+    const startPct = deliveryMode === "rabbit" ? 42 : 24;
+    const stepPct = deliveryMode === "rabbit" ? 3.6 : 1.9;
+    const startTop = deliveryMode === "rabbit" ? 40 : 30;
+    const stepTop = deliveryMode === "rabbit" ? 2.2 : 1.25;
     const pct = startPct + i * stepPct;
-    const isRabbit = vDeliveryModeKey === "rabbit";
+    const isRabbit = deliveryMode === "rabbit";
     return {
       eta: min + t("minutes"),
       text: isRabbit
@@ -1286,21 +1166,18 @@ export default function App() {
     };
   }).concat([{
     eta: t("arrived"),
-    text: vDeliveryModeKey === "rabbit" ? t("arrivedDemoRabbit") : t("arrivedDemoTurtle"),
+    text: deliveryMode === "rabbit" ? t("arrivedDemoRabbit") : t("arrivedDemoTurtle"),
     badge: t("deliveryDone"), bottom: t("deliveryDoneFull"), riderLabel: t("deliveredFinal"),
-    activeText: vDeliveryModeKey === "rabbit" ? t("arrivedRabbit") : t("arrivedTurtle"),
+    activeText: deliveryMode === "rabbit" ? t("arrivedRabbit") : t("arrivedTurtle"),
     bp: ["84%", "76%"], finalDone: true,
   }]);
 
-  const td = trackData[vTrackState] || trackData[0];
-  const trackProgress = td.finalDone ? 1 : vTrackState / vMode.etaStart;
-  // The @capacitor/google-maps iOS plugin crashes reliably in this app's
-  // layout (its container-matching logic never finds a target view for a
-  // plain empty div, so the native map view never attaches and the first
-  // camera call dereferences a nil map). Android's native map is verified
-  // working, so only Android gets the real map here — iOS falls back to the
-  // same illustrated map as the web build until that's fixed upstream.
-  const showNativeMap = Capacitor.getPlatform() === "android";
+  const td = trackData[trackState] || trackData[0];
+  // While cooking, the courier hasn't left the restaurant yet — park them at
+  // the store marker instead of showing the first tick's en-route position.
+  const displayTd = cooking
+    ? { ...td, bp: ["12%", "20%"], riderLabel: t("cookingBottom"), eta: t("cookingBottom"), text: t("cookingDesc"), badge: t("cookingBottom") }
+    : td;
   const isNativeApp = Capacitor.isNativePlatform();
 
   const handleDeleteRestaurant = (id) => {
@@ -1341,33 +1218,34 @@ export default function App() {
     deleteCustomMenu(id).catch(err => console.warn("Failed to reject menu", err));
   };
 
-  const filtered = sortRestaurants(allRestaurants.filter(r => {
-    if (categoryFilter !== "all") {
-      const cats = isIOS ? groupCategoriesFor(r.category) : [r.category];
-      if (!cats.some(c => c?.ko === categoryFilter)) return false;
-    }
-    const q = search.trim().toLowerCase();
-    if (!q) return true;
-    const haystack = [
-      pick(r.name, "ko"), pick(r.name, "en"),
-      pick(r.category, "ko"), pick(r.category, "en"),
-      ...r.menus.map(m => pick(m.name, "ko") + " " + pick(m.name, "en") + " " + pick(m.desc, "ko") + " " + pick(m.desc, "en")),
-    ].join(" ").toLowerCase();
-    return haystack.includes(q);
-  }), sortBy);
+  const filtered = allRestaurants
+    .filter(r => {
+      if (categoryFilter !== "all" && r.category?.ko !== categoryFilter) return false;
+      const q = search.trim().toLowerCase();
+      if (!q) return true;
+      const haystack = [
+        pick(r.name, "ko"), pick(r.name, "en"),
+        pick(r.category, "ko"), pick(r.category, "en"),
+        ...r.menus.map(m => pick(m.name, "ko") + " " + pick(m.name, "en") + " " + pick(m.desc, "ko") + " " + pick(m.desc, "en")),
+      ].join(" ").toLowerCase();
+      return haystack.includes(q);
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "rating": return b.rating - a.rating;
+        case "reviews": return (reviewCountByRestaurant[String(b.id)] || 0) - (reviewCountByRestaurant[String(a.id)] || 0);
+        case "feeAsc": return a.fee - b.fee;
+        case "timeAsc": return parseTimeMinutes(a.time) - parseTimeMinutes(b.time);
+        default: return 0;
+      }
+    });
 
   const css = {
     wrap: { minHeight: "100vh", background: th.phone, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif', color: th.text, display: "flex", flexDirection: "column" },
     header: { position: "sticky", top: 0, zIndex: 10, background: "linear-gradient(180deg," + th.headerStart + "," + th.headerEnd + ")", color: th.headerColor, padding: "calc(14px + env(safe-area-inset-top)) 20px 14px", borderBottom: th.headerBorderBottom, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" },
     content: { flex: 1, padding: "16px 16px 100px", display: "grid", gap: 16, alignContent: "start", maxWidth: 540, width: "100%", margin: "0 auto", boxSizing: "border-box" },
-    section: { background: "#fff", borderRadius: 20, padding: 16, boxShadow: th.sectionShadow },
-    // fontSize is 16px (not 14) so iOS Safari/WKWebView doesn't auto-zoom
-    // the page when this input gets focused and the keyboard opens.
+    section: { background: "#fff", borderRadius: 20, padding: 16, boxShadow: th.sectionShadow, minWidth: 0 },
     input: { width: "100%", padding: "14px 16px", border: "none", outline: "none", borderRadius: 14, background: "#fff", color: th.text, boxShadow: th.inputShadow, fontFamily: "inherit", fontSize: 16, boxSizing: "border-box" },
-    filterRow: { display: "flex", gap: 8, marginTop: 10, overflowX: "auto", scrollbarWidth: "none", msOverflowStyle: "none" },
-    sortPill: { flexShrink: 0, border: "1px solid rgba(255,255,255,0.4)", borderRadius: 999, padding: "7px 14px", background: "rgba(255,255,255,0.22)", color: "#fff", fontWeight: 800, fontSize: 12.5, whiteSpace: "nowrap", cursor: "pointer", fontFamily: "inherit" },
-    chip: { flexShrink: 0, border: "none", borderRadius: 999, padding: "7px 14px", background: "rgba(255,255,255,0.2)", color: "#fff", fontWeight: 800, fontSize: 12.5, whiteSpace: "nowrap", cursor: "pointer", fontFamily: "inherit" },
-    chipActive: { flexShrink: 0, border: "none", borderRadius: 999, padding: "7px 14px", background: "#fff", color: th.brandDark, fontWeight: 800, fontSize: 12.5, whiteSpace: "nowrap", cursor: "pointer", fontFamily: "inherit" },
     bottomBar: { position: "fixed", left: 0, right: 0, bottom: 0, background: th.bottomBarBg, borderTop: "1px solid " + th.bottomBarBorder, backdropFilter: "blur(14px)", boxShadow: "0 -4px 20px rgba(17,24,39,0.06)", padding: "12px 20px calc(12px + env(safe-area-inset-bottom))", display: "flex", justifyContent: "center", zIndex: 20 },
     bottomInner: { display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", maxWidth: 540, width: "100%" },
     orderBtn: { border: "none", background: th.primaryBtn, color: "#fff", padding: "14px 20px", borderRadius: 16, fontSize: 14, fontWeight: 900, cursor: "pointer", minWidth: 140, boxShadow: "0 8px 20px " + th.primaryBtn + "44", fontFamily: "inherit" },
@@ -1377,7 +1255,7 @@ export default function App() {
     langBtn: { border: "none", borderRadius: 10, background: "rgba(255,255,255,0.18)", color: th.headerColor, padding: "5px 7px", fontWeight: 800, cursor: "pointer", fontFamily: "inherit", fontSize: 11, letterSpacing: 0.3 },
   };
 
-  const globalStyle = "@keyframes floatBike{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-50%,calc(-50% - 8px))}} @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}} @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}} @keyframes expandDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}} *{box-sizing:border-box} body,html{margin:0;padding:0} .filterRow::-webkit-scrollbar{display:none}";
+  const globalStyle = "@keyframes floatBike{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-50%,calc(-50% - 8px))}} @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}} @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}} *{box-sizing:border-box} body,html{margin:0;padding:0}";
 
   const optRestaurant = optionTarget ? allRestaurants.find(x => x.id === optionTarget.rid) : null;
   const optMenu = optRestaurant ? optRestaurant.menus.find(x => x.id === optionTarget.mid) : null;
@@ -1413,43 +1291,43 @@ export default function App() {
           lang={lang}
           t={t}
           th={th}
-          onOpenAddRestaurant={() => setPendingAdd("restaurant")}
-          onOpenAddMenu={(r) => setPendingAdd(r)}
+          onOpenAddRestaurant={() => setShowAddRestaurant(true)}
+          onOpenAddMenu={(r) => setAddMenuTarget(r)}
+          localRestaurants={localRestaurants}
+          localMenus={localMenus}
+          onPublishRestaurant={(r) => setPublishTarget({ type: "restaurant", item: r })}
+          onPublishMenu={(m) => setPublishTarget({ type: "menu", item: m })}
+          onDeleteLocalRestaurant={(id) => setLocalRestaurants(removeLocalRestaurant(id))}
+          onDeleteLocalMenu={(id) => setLocalMenus(removeLocalMenu(id))}
         />
-        {pendingAdd && (
-          <div onClick={() => setPendingAdd(null)} style={{ position: "fixed", inset: 0, zIndex: 210, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-            <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 380, background: "#fff", borderRadius: 24, padding: "24px 22px 22px", boxShadow: "0 20px 50px rgba(15,23,42,0.25)", animation: "pop .25s ease" }}>
-              <h3 style={{ margin: "0 0 14px", fontSize: 17, fontWeight: 900 }}>{t("addGateTitle")}</h3>
-              <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 10 }}>
-                {[t("addGateBullet1"), t("addGateBullet2"), t("addGateBullet3")].map((line, i) => (
-                  <li key={i} style={{ fontSize: 13, color: th.muted, lineHeight: 1.6 }}>{line}</li>
-                ))}
-              </ul>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 10, marginTop: 20 }}>
-                <button onClick={() => setPendingAdd(null)} style={{ border: "1px solid #e5e7eb", background: "#fff", color: "#374151", borderRadius: 14, padding: "13px 10px", fontWeight: 800, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>{t("cancelBtn")}</button>
-                <button
-                  onClick={() => {
-                    if (pendingAdd === "restaurant") setShowAddRestaurant(true);
-                    else setAddMenuTarget(pendingAdd);
-                    setPendingAdd(null);
-                  }}
-                  style={{ border: "none", background: th.primaryBtn, color: "#fff", borderRadius: 14, padding: "13px 10px", fontWeight: 900, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}
-                >{t("addGateConfirm")}</button>
-              </div>
-            </div>
-          </div>
+        {publishTarget && (
+          <AddContentNoticeModal
+            onClose={() => setPublishTarget(null)}
+            onConfirm={() => {
+              if (publishTarget.type === "restaurant") {
+                addCustomRestaurant(publishTarget.item).catch(err => console.warn("Failed to add restaurant", err));
+                setLocalRestaurants(removeLocalRestaurant(publishTarget.item.id));
+              } else {
+                addCustomMenu(publishTarget.item).catch(err => console.warn("Failed to add menu", err));
+                setLocalMenus(removeLocalMenu(publishTarget.item.id));
+              }
+              setPublishTarget(null);
+            }}
+            confirmLabel={publishTarget.type === "restaurant" ? t("shareRestaurantBtn") : t("publishMenuBtn")}
+            t={t}
+            th={th}
+          />
         )}
         {showAddRestaurant && (
           <AddRestaurantModal
             onClose={() => setShowAddRestaurant(false)}
             onCreate={(r) => {
-              addCustomRestaurant(r).catch(err => console.warn("Failed to add restaurant", err));
+              setLocalRestaurants(saveLocalRestaurant(r));
               setShowAddRestaurant(false);
-              setPage("order");
             }}
             brand={th.primaryBtn}
-            t={t}
             lang={lang}
+            t={t}
           />
         )}
         {addMenuTarget && (
@@ -1457,9 +1335,8 @@ export default function App() {
             restaurant={addMenuTarget}
             onClose={() => setAddMenuTarget(null)}
             onCreate={(m) => {
-              addCustomMenu(m).catch(err => console.warn("Failed to add menu", err));
+              setLocalMenus(saveLocalMenu(m));
               setAddMenuTarget(null);
-              setPage("order");
             }}
             brand={th.primaryBtn}
             t={t}
@@ -1493,10 +1370,6 @@ export default function App() {
   if (page === "complete") {
     const completedRecord = receiptData?._record || history[0] || null;
     const savedKcal = completedRecord?.savedKcal ?? cart.reduce((s, i) => s + (i.calories || menuCalories[i.menuId] || 600) * i.qty, 0);
-    // Use the mode this specific order actually shipped with — not the
-    // shared checkout-config `mode`, which may since reflect a different
-    // order entirely if others are still out for delivery.
-    const completedMode = deliveryModes[completedRecord?.deliveryMode] || mode;
     return (
       <div style={{ ...css.wrap, alignItems: "center", justifyContent: "center", textAlign: "center", padding: "40px 24px" }}>
         <style>{globalStyle}</style>
@@ -1527,12 +1400,12 @@ export default function App() {
           />
         )}
         <div style={{ position: "absolute", top: 16, right: 16 }}>{LangButton}</div>
-        <div style={{ fontSize: 72, marginBottom: 24, animation: "pop .5s ease" }}>{completedMode.emoji}</div>
-        <h1 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 12px", color: th.text }}>{pick(completedMode.completeTitle, lang)}</h1>
+        <div style={{ fontSize: 72, marginBottom: 24, animation: "pop .5s ease" }}>{mode.emoji}</div>
+        <h1 style={{ fontSize: 26, fontWeight: 900, margin: "0 0 12px", color: th.text }}>{pick(mode.completeTitle, lang)}</h1>
         <div style={{ fontSize: 42, fontWeight: 900, color: th.brand, marginBottom: 8 }}>{savedKcal.toLocaleString()}{t("kcal")}</div>
         <div style={{ fontSize: 20, fontWeight: 800, color: th.text, marginBottom: 32 }}>{t("completeSavedSuffix")}</div>
         <div style={{ fontSize: 13, color: th.muted, marginBottom: 28, lineHeight: 1.6 }}>
-          {pick(completedMode.completeDesc, lang)}<br />{t("completeDemoNote")}
+          {pick(mode.completeDesc, lang)}<br />{t("completeDemoNote")}
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%", maxWidth: 320 }}>
@@ -1548,7 +1421,7 @@ export default function App() {
             >{t("completeShareBtn")}</button>
           )}
           <button
-            onClick={() => { resetAll(); setPage("history"); if (isIOS) setSeenHistoryCount(history.length); }}
+            onClick={() => { resetAll(); setPage("history"); }}
             style={{
               border: "1px solid " + th.line, background: "#fff", color: th.text,
               padding: "13px 20px", borderRadius: 16, fontSize: 14, fontWeight: 900,
@@ -1578,20 +1451,12 @@ export default function App() {
 
   if (page === "tracking") {
     return (
-      <div style={showNativeMap ? { ...css.wrap, background: "transparent" } : css.wrap}>
+      <div style={css.wrap}>
         <style>{globalStyle}</style>
-        {deliveryNotif && (
-          <NotificationBanner
-            appName={t("appName")}
-            title={deliveryNotif.title}
-            body={deliveryNotif.body}
-            onDone={() => setDeliveryNotif(null)}
-          />
-        )}
         <div data-ad-clip="top" style={css.header}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, maxWidth: 540, margin: "0 auto" }}>
-            <button onClick={() => { abandonOrderFlow(); setPage("order"); }} style={{ ...css.backBtn, background: th.iconBtnBg, color: th.iconBtnColor }}>←</button>
-            <div style={{ flex: 1, textAlign: "center" }}><h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>{pick(vMode.label, lang)} {t("trackingTitlePrefix")} {vMode.emoji}</h2></div>
+            <button onClick={() => setPage("order")} style={{ ...css.backBtn, background: th.iconBtnBg, color: th.iconBtnColor }}>←</button>
+            <div style={{ flex: 1, textAlign: "center" }}><h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>{pick(mode.label, lang)} {t("trackingTitlePrefix")} {mode.emoji}</h2></div>
             {LangButton}
           </div>
         </div>
@@ -1599,49 +1464,41 @@ export default function App() {
           <div style={{ background: "linear-gradient(135deg,#fff7ed,#ffedd5)", border: "1px solid #fdba74", color: "#9a3412", padding: "12px 14px", borderRadius: 16, fontSize: 12, fontWeight: 800, lineHeight: 1.45 }}>
             {t("demoTrackBanner")}
           </div>
-          <div style={{ background: showNativeMap ? "transparent" : "linear-gradient(180deg,#dff7ea 0%,#ecfeff 100%)", borderRadius: 20, padding: showNativeMap ? 0 : 18, height: 220, minHeight: 220, position: "relative", overflow: "hidden", border: "1px solid #d1fae5" }}>
-            {showNativeMap ? (
-              <TrackingMap progress={trackProgress} mode={vDeliveryModeKey} storeLabel={t("storeReady")} />
-            ) : (
-              <>
-                <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.45) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.45) 1px,transparent 1px)", backgroundSize: "34px 34px", opacity: .8 }} />
-                {[{ w: 240, h: 14, t: 56, l: 40, rot: "8deg" }, { w: 16, h: 180, t: 24, r: 76 }, { w: 190, h: 12, b: 54, l: 56, rot: "-18deg" }].map((rd, i) => (
-                  <div key={i} style={{ position: "absolute", background: "rgba(148,163,184,0.35)", borderRadius: 999, width: rd.w, height: rd.h, top: rd.t, left: rd.l, right: rd.r, bottom: rd.b, transform: rd.rot ? "rotate(" + rd.rot + ")" : undefined }} />
-                ))}
-                <div style={{ position: "absolute", zIndex: 2, width: 46, height: 46, borderRadius: "50%", background: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", top: 24, left: 34 }}>🏪</div>
-                <div style={{ position: "absolute", zIndex: 2, width: 46, height: 46, borderRadius: "50%", background: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", right: 30, bottom: 30 }}>🏠</div>
-                <img
-                  src={RIDER_IMAGE[vMode.key] || RIDER_IMAGE.rabbit}
-                  alt=""
-                  style={{ position: "absolute", zIndex: 2, width: 60, height: 60, filter: "drop-shadow(0 6px 10px rgba(15,23,42,0.25))", left: td.bp[0], top: td.bp[1], transform: "translate(-50%,-50%)", transition: "left .8s ease,top .8s ease", animation: "floatBike 2.2s ease-in-out infinite" }}
-                />
-              </>
-            )}
-            {!showNativeMap && (
-              <>
-                <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, top: 76, left: 22 }}>{t("storeReady")}</div>
-                <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, right: 18, bottom: 82 }}>{(vOrderInfo?.customerName || t("address")) + (t("customerSuffix") ? " " + t("customerSuffix") : "")}</div>
-                <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, left: "50%", top: "68%", transform: "translateX(-50%)" }}>{td.riderLabel}</div>
-              </>
+          <div style={{ background: "linear-gradient(180deg,#dff7ea 0%,#ecfeff 100%)", borderRadius: 20, padding: 18, height: 220, minHeight: 220, position: "relative", overflow: "hidden", border: "1px solid #d1fae5" }}>
+            <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.45) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.45) 1px,transparent 1px)", backgroundSize: "34px 34px", opacity: .8 }} />
+            {[{ w: 240, h: 14, t: 56, l: 40, rot: "8deg" }, { w: 16, h: 180, t: 24, r: 76 }, { w: 190, h: 12, b: 54, l: 56, rot: "-18deg" }].map((rd, i) => (
+              <div key={i} style={{ position: "absolute", background: "rgba(148,163,184,0.35)", borderRadius: 999, width: rd.w, height: rd.h, top: rd.t, left: rd.l, right: rd.r, bottom: rd.b, transform: rd.rot ? "rotate(" + rd.rot + ")" : undefined }} />
+            ))}
+            <div style={{ position: "absolute", zIndex: 2, width: 46, height: 46, borderRadius: "50%", background: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", top: 24, left: 34 }}>🏪</div>
+            <div style={{ position: "absolute", zIndex: 2, width: 46, height: 46, borderRadius: "50%", background: "#fff", fontSize: 22, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(15,23,42,0.12)", right: 30, bottom: 30 }}>🏠</div>
+            <img
+              src={RIDER_IMAGE[mode.key] || RIDER_IMAGE.rabbit}
+              alt=""
+              style={{ position: "absolute", zIndex: 2, width: 60, height: 60, filter: "drop-shadow(0 6px 10px rgba(15,23,42,0.25))", left: displayTd.bp[0], top: displayTd.bp[1], transform: "translate(-50%,-50%)", transition: "left .8s ease,top .8s ease", animation: "floatBike 2.2s ease-in-out infinite" }}
+            />
+            <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, top: 76, left: 22 }}>{t("storeReady")}</div>
+            <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, right: 18, bottom: 82 }}>{(orderInfo?.customerName || t("address")) + (t("customerSuffix") ? " " + t("customerSuffix") : "")}</div>
+            {!cooking && (
+              <div style={{ position: "absolute", zIndex: 2, background: "rgba(255,255,255,0.86)", color: "#0f172a", borderRadius: 999, padding: "7px 10px", fontSize: 11, fontWeight: 800, left: "50%", top: "68%", transform: "translateX(-50%)" }}>{displayTd.riderLabel}</div>
             )}
           </div>
-          <div style={{ background: "linear-gradient(135deg," + vMode.heroStart + "," + vMode.heroEnd + ")", color: "#fff", borderRadius: 20, padding: 18 }}>
+          <div style={{ background: "linear-gradient(135deg," + mode.heroStart + "," + mode.heroEnd + ")", color: "#fff", borderRadius: 20, padding: 18 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
               <div>
-                <div style={{ fontSize: 30, fontWeight: 900, lineHeight: 1 }}>{td.eta}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.84)", marginTop: 6 }}>{td.text}</div>
+                <div style={{ fontSize: cooking ? 18 : 30, fontWeight: 900, lineHeight: 1 }}>{displayTd.eta}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.84)", marginTop: 6 }}>{displayTd.text}</div>
               </div>
-              <div style={{ background: "rgba(255,255,255,0.16)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 14, padding: "10px 12px", fontSize: 12, fontWeight: 800, whiteSpace: "nowrap" }}>{td.badge}</div>
+              <div style={{ background: "rgba(255,255,255,0.16)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 14, padding: "10px 12px", fontSize: 12, fontWeight: 800, whiteSpace: "nowrap" }}>{displayTd.badge}</div>
             </div>
           </div>
           <div style={css.section}>
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 4 }}>{t("riderTitle")}</div>
             <div style={{ fontSize: 12, color: th.muted, marginBottom: 12 }}>{t("riderExample")}</div>
             <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 12, alignItems: "center" }}>
-              <div style={{ width: 52, height: 52, borderRadius: 16, background: "#111827", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>{vDeliveryModeKey === "rabbit" ? "🐇" : "🐢"}</div>
+              <div style={{ width: 52, height: 52, borderRadius: 16, background: "#111827", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>{deliveryMode === "rabbit" ? "🐇" : "🐢"}</div>
               <div>
-                <div style={{ fontWeight: 900, fontSize: 15 }}>{vDeliveryModeKey === "rabbit" ? t("riderRabbit") : t("riderTurtle")}</div>
-                <div style={{ color: th.muted, fontSize: 12 }}>{vDeliveryModeKey === "rabbit" ? t("riderRabbitDesc") : t("riderTurtleDesc")}</div>
+                <div style={{ fontWeight: 900, fontSize: 15 }}>{deliveryMode === "rabbit" ? t("riderRabbit") : t("riderTurtle")}</div>
+                <div style={{ color: th.muted, fontSize: 12 }}>{deliveryMode === "rabbit" ? t("riderRabbitDesc") : t("riderTurtleDesc")}</div>
               </div>
               <button style={{ border: "none", borderRadius: 12, background: "#eef2ff", color: "#3730a3", padding: "10px 12px", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>{t("riderCall")}</button>
             </div>
@@ -1651,15 +1508,15 @@ export default function App() {
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>{t("progressTitle")}</div>
             <div style={{ display: "grid", gap: 10 }}>
               {(dict[lang]?.progressSteps || dict.ko.progressSteps).map((label, i) => {
-                const done = i < 2 || (td.finalDone && i === 2);
-                const active = (!td.finalDone && i === 2) || (td.finalDone && i === 3);
+                const done = i === 0 || (i === 1 && !cooking) || (i === 2 && !cooking && td.finalDone);
+                const active = (i === 1 && cooking) || (i === 2 && !cooking && !td.finalDone) || (i === 3 && !cooking && td.finalDone);
                 return (
                   <div key={i} style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 12, alignItems: "start" }}>
                     <div style={{ width: 16, height: 16, borderRadius: "50%", marginTop: 2, background: done || active ? th.primaryBtn : "#d1d5db", boxShadow: active ? "0 0 0 6px " + th.primaryBtn + "28" : "none", transition: ".3s" }} />
                     <div>
                       <strong style={{ display: "block", fontSize: 14, marginBottom: 4 }}>{label}</strong>
                       <span style={{ color: th.muted, fontSize: 12 }}>
-                        {i === 2 ? td.activeText : i === 3 ? (td.finalDone ? t("progressArrived") : t("progressArriving")) : i === 0 ? t("progressStep0Desc") : t("progressStep1Desc")}
+                        {i === 2 ? (cooking ? "" : td.activeText) : i === 3 ? (td.finalDone ? t("progressArrived") : t("progressArriving")) : i === 0 ? t("progressStep0Desc") : (cooking ? t("cookingDesc") : t("progressStep1Desc"))}
                       </span>
                     </div>
                   </div>
@@ -1667,15 +1524,15 @@ export default function App() {
               })}
             </div>
           </div>
-          {vOrderInfo && (
+          {orderInfo && (
             <div style={css.section}>
               <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>{t("orderSummaryTitle")}</div>
               {[
-                [t("sumOrderer"), vOrderInfo.customerName],
-                [t("sumAddress"), vOrderInfo.address],
-                [t("sumMode"), pick(deliveryModes[vOrderInfo.deliveryMode]?.label || vMode.label, lang)],
-                [t("sumPay"), paymentLabel(vOrderInfo.payment, t)],
-                [t("sumTotal"), fmt(vOrderInfo.total, lang)],
+                [t("sumOrderer"), orderInfo.customerName],
+                [t("sumAddress"), orderInfo.address],
+                [t("sumMode"), pick(deliveryModes[orderInfo.deliveryMode]?.label || mode.label, lang)],
+                [t("sumPay"), paymentLabel(orderInfo.payment, t)],
+                [t("sumTotal"), fmt(orderInfo.total, lang)],
               ].map(([k, v]) => (
                 <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 13, marginBottom: 6 }}>
                   <span style={{ color: th.muted }}>{k}</span><strong>{v}</strong>
@@ -1683,11 +1540,11 @@ export default function App() {
               ))}
             </div>
           )}
-          <Footer th={th} t={t} onInfo={() => { abandonOrderFlow(); setPage("order"); setShowInfoModal(true); }} onPrivacy={() => { abandonOrderFlow(); setPage("privacy"); }} />
+          <Footer th={th} t={t} onInfo={() => { setPage("order"); setShowInfoModal(true); }} onPrivacy={() => setPage("privacy")} />
         </div>
         <div data-ad-clip="bottom" style={css.bottomBar}>
           <div style={css.bottomInner}>
-            <div><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>{t("currentStatus")}</span><br /><strong style={{ fontSize: 18, fontWeight: 900 }}>{td.bottom}</strong></div>
+            <div><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>{t("currentStatus")}</span><br /><strong style={{ fontSize: 18, fontWeight: 900 }}>{cooking ? t("cookingBottom") : td.bottom}</strong></div>
             <button onClick={resetAll} style={{ ...css.orderBtn, minWidth: "auto", padding: "12px 18px", boxShadow: "none" }}>{t("goHome")}</button>
           </div>
         </div>
@@ -1700,9 +1557,9 @@ export default function App() {
       <div style={css.wrap}>
         <style>{globalStyle}</style>
         {reviewTarget && <ReviewModal restaurant={reviewTarget} onClose={() => setReviewTarget(null)} t={t} lang={lang} uid={uid} th={th} />}
-        <div style={css.header}>
+        <div data-ad-clip="top" style={css.header}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, maxWidth: 540, margin: "0 auto" }}>
-            <button onClick={() => { abandonOrderFlow(); setPage("order"); }} style={{ ...css.backBtn, background: th.iconBtnBg, color: th.iconBtnColor }}>←</button>
+            <button onClick={() => setPage("order")} style={{ ...css.backBtn, background: th.iconBtnBg, color: th.iconBtnColor }}>←</button>
             <div style={{ flex: 1, textAlign: "center" }}><h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>{t("checkoutTitle")}</h2></div>
             {LangButton}
           </div>
@@ -1758,9 +1615,7 @@ export default function App() {
                     <div style={{ fontSize: 24, marginBottom: 8 }}>{m.emoji}</div>
                     <div style={{ fontWeight: 900, fontSize: 15 }}>{pick(m.label, lang)}</div>
                     <div style={{ fontSize: 12, color: th.muted, marginTop: 4 }}>{m.key === "rabbit" ? t("fastDeliveryDesc") : t("slowDeliveryDesc")}</div>
-                    <div style={{ fontSize: 11, fontWeight: 800, marginTop: 6, color: m.key === "rabbit" ? th.brand : th.muted }}>
-                      {m.key === "rabbit" ? "+" + fmt(1000, lang) : t("baseDeliveryFeeLabel")}
-                    </div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: m.key === "rabbit" ? th.brandDark : "#16a34a", marginTop: 6 }}>{m.key === "rabbit" ? "+" + fmt(RABBIT_SURCHARGE, lang) : t("baseDeliveryFee")}</div>
                   </button>
                 );
               })}
@@ -1789,7 +1644,7 @@ export default function App() {
               ))}
             </div>
           </div>
-          <Footer th={th} t={t} onInfo={() => { abandonOrderFlow(); setPage("order"); setShowInfoModal(true); }} onPrivacy={() => { abandonOrderFlow(); setPage("privacy"); }} />
+          <Footer th={th} t={t} onInfo={() => { setPage("order"); setShowInfoModal(true); }} onPrivacy={() => setPage("privacy")} />
         </div>
         {showReceipt && receiptData && (
           <>
@@ -1835,7 +1690,7 @@ export default function App() {
             </div>
           </>
         )}
-        <div style={css.bottomBar}>
+        <div data-ad-clip="bottom" style={css.bottomBar}>
           <div style={css.bottomInner}>
             <div style={{ minWidth: 0 }}><span style={{ fontSize: 11, color: th.muted, fontWeight: 700 }}>{t("totalLabel")}</span><br /><strong style={{ fontSize: 18, fontWeight: 900, color: th.brand, display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{fmt(totals.total, lang)}</strong></div>
             <button onClick={simulateOrder} style={{ ...css.orderBtn, opacity: unmetMinOrders.length > 0 ? .5 : 1 }}>{t("placeOrder")}</button>
@@ -1849,14 +1704,6 @@ export default function App() {
   return (
     <div style={css.wrap}>
       <style>{globalStyle}</style>
-      {deliveryNotif && (
-        <NotificationBanner
-          appName={t("appName")}
-          title={deliveryNotif.title}
-          body={deliveryNotif.body}
-          onDone={() => setDeliveryNotif(null)}
-        />
-      )}
       {reviewTarget && <ReviewModal restaurant={reviewTarget} onClose={() => setReviewTarget(null)} t={t} lang={lang} uid={uid} th={th} />}
       {showInfoModal && (
         <InfoModal
@@ -1867,24 +1714,21 @@ export default function App() {
           lang={lang}
         />
       )}
-      {showSponsorModal && !showInfoModal && !isNativeApp && (
-        <SponsorModal onClose={() => setShowSponsorModal(false)} t={t} th={th} />
-      )}
       {showSettings && (
         <SettingsModal
           onClose={() => setShowSettings(false)}
-          uid={uid}
-          lang={lang}
           t={t}
-          th={th}
+          lang={lang}
+          uid={uid}
           onToggleLang={toggleLang}
-          onOpenAppInfo={() => { setShowSettings(false); setShowInfoModal(true); }}
-          onOpenPrivacy={() => { setShowSettings(false); setPage("privacy"); }}
-          rabbitEtaMin={rabbitEtaMin}
-          onRabbitEtaChange={setRabbitEtaMin}
-          turtleEtaMin={turtleEtaMin}
-          onTurtleEtaChange={setTurtleEtaMin}
+          onShowInfo={() => { setShowSettings(false); setShowInfoModal(true); }}
+          onPrivacy={() => { setShowSettings(false); setPage("privacy"); }}
+          deliveryTimeOverrides={deliveryTimeOverrides}
+          onChangeDeliveryTime={handleChangeDeliveryTime}
         />
+      )}
+      {showSponsorModal && !showInfoModal && !isNativeApp && (
+        <SponsorModal onClose={() => setShowSponsorModal(false)} t={t} th={th} />
       )}
       {showAdminPanel && isAdminUid(uid) && (
         <AdminPanel
@@ -1913,152 +1757,76 @@ export default function App() {
           lang={lang}
         />
       )}
-      {showSortSheet && (
-        <div onClick={() => setShowSortSheet(false)} style={{ position: "fixed", inset: 0, zIndex: 150, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "20px 20px calc(24px + env(safe-area-inset-bottom))", width: "100%", maxWidth: 540, animation: "slideUp .25s ease" }}>
-            <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 900 }}>{t("sortSheetTitle")}</h3>
-            <div style={{ display: "grid", gap: 8 }}>
-              {RESTAURANT_SORTS.map(({ key, labelKey }) => {
-                const active = sortBy === key;
-                return (
-                  <button
-                    key={key}
-                    onClick={() => { setSortBy(key); setShowSortSheet(false); }}
-                    style={{
-                      display: "flex", alignItems: "center", justifyContent: "space-between",
-                      padding: "14px 16px", borderRadius: 14, border: "2px solid " + (active ? th.brand : "#e5e7eb"),
-                      background: active ? th.brand + "18" : "#fff", color: active ? th.brandDark : "#374151",
-                      fontWeight: active ? 900 : 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit",
-                    }}
-                  >
-                    {t(labelKey)}
-                    {active && <span>✓</span>}
-                  </button>
-                );
-              })}
+      {showCategorySheet && (
+        <CategorySheet
+          categories={categoryTabs}
+          active={categoryFilter}
+          onSelect={(key) => { setCategoryFilter(key); setShowCategorySheet(false); }}
+          onClose={() => setShowCategorySheet(false)}
+          th={th}
+          t={t}
+        />
+      )}
+      <div data-ad-clip="top" style={css.header}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, maxWidth: 540, margin: "0 auto", minHeight: 32 }}>
+          <div style={{ flex: 1, textAlign: "left", minWidth: 0, padding: "0 4px" }}>
+            <div style={{ fontSize: 14, fontWeight: 900, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              📍 {t("deliveryAddrValue")}
             </div>
           </div>
-        </div>
-      )}
-      <div data-ad-clip="top" style={{
-        ...css.header,
-        padding: headerCollapsed
-          ? "calc(6px + env(safe-area-inset-top)) 20px 6px"
-          : css.header.padding,
-        transition: "padding 0.25s ease",
-      }}>
-        <div style={{
-          maxHeight: headerCollapsed ? 0 : 44,
-          marginBottom: headerCollapsed ? 0 : 8,
-          opacity: headerCollapsed ? 0 : 1,
-          overflow: "hidden",
-          transition: "max-height 0.25s ease, margin-bottom 0.25s ease, opacity 0.2s ease",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, maxWidth: 540, margin: "0 auto", minHeight: 32 }}>
-            <div style={{ flex: 1, textAlign: "left", minWidth: 0, padding: "0 4px" }}>
-              <div style={{ fontSize: 16, fontWeight: 900, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                📍 {t("deliveryAddrValue")}
-              </div>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 3, flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 3, flexShrink: 0 }}>
+            <button
+              onClick={() => setPage("history")}
+              style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 13, position: "relative" }}
+              aria-label={t("historyIconAria")}
+              title={t("historyPageTitle")}
+            >
+              🏆
+              {history.length > 0 && (
+                <div style={{ position: "absolute", top: -4, right: -4, background: "#facc15", color: "#78350f", fontSize: 9, fontWeight: 900, borderRadius: 99, minWidth: 15, height: 15, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px", border: "1px solid #fff" }}>{history.length}</div>
+              )}
+            </button>
+            {isAdminUid(uid) && (
               <button
-                onClick={() => { setPage("history"); if (isIOS) setSeenHistoryCount(history.length); }}
+                onClick={() => setShowAdminPanel(true)}
                 style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 13, position: "relative" }}
-                aria-label={t("historyIconAria")}
-                title={t("historyPageTitle")}
+                aria-label={t("adminIconAria")}
+                title={t("adminIconAria")}
               >
-                🏆
-                {(isIOS ? history.length > seenHistoryCount : history.length > 0) && (
-                  <div style={{ position: "absolute", top: -4, right: -4, background: "#facc15", color: "#78350f", fontSize: 9, fontWeight: 900, borderRadius: 99, minWidth: 15, height: 15, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px", border: "1px solid #fff" }}>{history.length}</div>
+                🛡️
+                {(pendingRestaurants.length + pendingMenus.length) > 0 && (
+                  <div style={{ position: "absolute", top: -4, right: -4, background: "#facc15", color: "#78350f", fontSize: 9, fontWeight: 900, borderRadius: 99, minWidth: 15, height: 15, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px", border: "1px solid #fff" }}>{pendingRestaurants.length + pendingMenus.length}</div>
                 )}
               </button>
-              {isAdminUid(uid) && (
-                <button
-                  onClick={() => setShowAdminPanel(true)}
-                  style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 13, position: "relative" }}
-                  aria-label={t("adminIconAria")}
-                  title={t("adminIconAria")}
-                >
-                  🛡️
-                  {(pendingRestaurants.length + pendingMenus.length) > 0 && (
-                    <div style={{ position: "absolute", top: -4, right: -4, background: "#facc15", color: "#78350f", fontSize: 9, fontWeight: 900, borderRadius: 99, minWidth: 15, height: 15, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px", border: "1px solid #fff" }}>{pendingRestaurants.length + pendingMenus.length}</div>
-                  )}
-                </button>
-              )}
-              <button onClick={() => setShowSettings(true)} style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 13 }} aria-label={t("settingsAria")} title={t("settingsTitle")}>⚙️</button>
-            </div>
+            )}
+            <button onClick={() => setShowSettings(true)} style={{ ...css.iconBtn, width: 28, height: 28, fontSize: 14 }} aria-label={t("settingsAria")} title={t("settingsTitle")}>⚙️</button>
           </div>
         </div>
-        <div style={{ maxWidth: 540, margin: "0 auto" }}>
+        <div style={{ maxWidth: 540, margin: "8px auto 0" }}>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("searchPlaceholder")} style={css.input} />
-          <div className="filterRow" style={css.filterRow}>
-            <button onClick={() => setShowSortSheet(true)} aria-label={t("sortBtnAria")} style={css.sortPill}>
-              ⇅ {t(RESTAURANT_SORTS.find(s => s.key === sortBy)?.labelKey)}
-            </button>
-            <button onClick={() => setCategoryFilter("all")} style={categoryFilter === "all" ? css.chipActive : css.chip}>
-              {t("categoryAll")}
-            </button>
-            {categoryList.map(cat => (
-              <button key={cat.ko} onClick={() => setCategoryFilter(cat.ko)} style={categoryFilter === cat.ko ? css.chipActive : css.chip}>
-                {pick(cat, lang)}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
 
       <div style={css.content}>
-        {trackingActive && soonestActiveOrder && (
-          <div style={{
-            background: "linear-gradient(135deg,#f97316,#ea580c)", color: "#fff",
-            borderRadius: 16, boxShadow: "0 8px 24px rgba(15,23,42,0.16)", overflow: "hidden",
-          }}>
-            <div
-              onClick={() => {
-                if (activeOrders.length > 1) { setActiveOrdersExpanded(v => !v); return; }
-                setViewingOrderId(soonestActiveOrder.id); setPage("tracking");
-              }}
-              style={{ padding: "12px 14px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}
-            >
-              <div style={{ fontSize: 24 }}>{soonestActiveOrder.modeSnapshot.emoji}</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 900 }}>
-                  {t("orderInProgressTitle")}
-                  {activeOrders.length > 1 ? ` (${activeOrders.length})` : ""}
-                </div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", marginTop: 2 }}>
-                  {t("minutesLeft", Math.max(1, soonestActiveOrder.modeSnapshot.etaStart - soonestActiveOrder.trackState))} · {t("viewTrackingStatus")}
-                </div>
-              </div>
-              <div style={{ fontSize: 18, transition: "transform .2s", transform: activeOrders.length > 1 && activeOrdersExpanded ? "rotate(90deg)" : "none" }}>→</div>
+        {orderInfo && (
+          <div
+            onClick={() => setPage("tracking")}
+            style={{
+              background: "linear-gradient(135deg," + mode.heroStart + "," + mode.heroEnd + ")",
+              color: "#fff", borderRadius: 16, padding: "12px 14px",
+              display: "flex", alignItems: "center", gap: 10, cursor: "pointer",
+              boxShadow: "0 8px 24px rgba(15,23,42,0.16)",
+            }}
+          >
+            <div style={{ fontSize: 22, flexShrink: 0 }}>{mode.emoji}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 900 }}>{t("activeOrderBannerTitle")}</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", marginTop: 2 }}>{t("activeOrderBannerSub", displayTd.eta)}</div>
             </div>
-            {activeOrders.length > 1 && activeOrdersExpanded && (
-              <div style={{ animation: "expandDown .2s ease" }}>
-                {sortedActiveOrders.map(o => (
-                  <div
-                    key={o.id}
-                    onClick={() => { setViewingOrderId(o.id); setPage("tracking"); }}
-                    style={{
-                      padding: "10px 14px", display: "flex", alignItems: "center", gap: 10,
-                      cursor: "pointer", borderTop: "1px solid rgba(255,255,255,0.22)", background: "rgba(0,0,0,0.06)",
-                    }}
-                  >
-                    <div style={{ fontSize: 18 }}>{o.modeSnapshot.emoji}</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {o.items.slice(0, 2).map(it => pick(it.name, lang)).join(", ")}{o.items.length > 2 ? t("plusMore", o.items.length - 2) : ""}
-                    </div>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", marginTop: 1 }}>
-                        {t("minutesLeft", Math.max(1, o.modeSnapshot.etaStart - o.trackState))} · {fmt(o.info.total, lang)}
-                      </div>
-                    </div>
-                    <div style={{ fontSize: 15 }}>→</div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div style={{ fontSize: 18, flexShrink: 0 }}>→</div>
           </div>
         )}
+
         <div style={{ background: "linear-gradient(135deg,#fff7ed,#ffedd5)", border: "1px solid #fdba74", color: "#9a3412", padding: "12px 14px", borderRadius: 16, fontSize: 12, fontWeight: 800, lineHeight: 1.45 }}>
           {t("demoBanner")}
         </div>
@@ -2066,7 +1834,7 @@ export default function App() {
           unitId={ADROP_UNITS.homeBanner}
           width={320}
           height={100}
-          hidden={!!(reviewTarget || showInfoModal || showSettings || (showAdminPanel && isAdminUid(uid)) || optionTarget || showSortSheet || deliveryNotif)}
+          hidden={!!(reviewTarget || showInfoModal || showSettings || (showAdminPanel && isAdminUid(uid)) || optionTarget || showCategorySheet)}
         />
 
         <div style={css.section}>
@@ -2079,6 +1847,54 @@ export default function App() {
               onClick={() => setPage("addContent")}
               style={{ border: "1px dashed " + th.brand, background: "#fff", color: th.brandDark, borderRadius: 12, padding: "9px 10px", fontWeight: 800, fontSize: 11, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", flexShrink: 0 }}
             >{t("addContentBtn")}</button>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 0, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+              {categoryTabs.map(c => {
+                const isActive = categoryFilter === c.key;
+                return (
+                  <button
+                    key={c.key}
+                    onClick={() => setCategoryFilter(c.key)}
+                    style={{
+                      flexShrink: 0, border: "none", cursor: "pointer", fontFamily: "inherit",
+                      padding: "8px 14px", borderRadius: 999, fontSize: 13,
+                      fontWeight: isActive ? 900 : 700,
+                      background: isActive ? th.brand : "#f3f4f6",
+                      color: isActive ? "#fff" : "#6b7280",
+                    }}
+                  >{c.label}</button>
+                );
+              })}
+              <button
+                onClick={() => setShowCategorySheet(true)}
+                aria-label={t("categoryMoreAria")}
+                title={t("categoryMoreAria")}
+                style={{ flexShrink: 0, width: 34, height: 34, borderRadius: 999, border: "none", background: "#f3f4f6", color: "#6b7280", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}
+              >▾</button>
+            </div>
+            <div ref={sortBoxRef} style={{ position: "relative", flexShrink: 0 }}>
+              <button
+                onClick={() => setShowSortMenu(v => !v)}
+                style={{ display: "inline-flex", alignItems: "center", gap: 5, border: "1px solid " + th.line, background: "#fff", borderRadius: 999, padding: "7px 12px", fontSize: 12, fontWeight: 800, color: th.text, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+              >
+                <span style={{ fontSize: 11 }}>⇅</span>{sortLabel(sortBy, t)}
+              </button>
+              {showSortMenu && (
+                <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 5, background: "#fff", borderRadius: 14, boxShadow: "0 8px 24px rgba(0,0,0,0.14)", overflow: "hidden", minWidth: 160 }}>
+                  {SORT_OPTIONS.map(opt => {
+                    const isActive = sortBy === opt.val;
+                    return (
+                      <div
+                        key={opt.val}
+                        onClick={() => { setSortBy(opt.val); setShowSortMenu(false); }}
+                        style={{ padding: "11px 16px", fontSize: 13, fontWeight: isActive ? 800 : 500, color: isActive ? th.brand : th.text, background: isActive ? "#fff7ed" : "#fff", cursor: "pointer", whiteSpace: "nowrap" }}
+                      >{t(opt.labelKey)}</div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
           <div style={{ display: "grid", gap: 12 }}>
             {filtered.length === 0 ? (
@@ -2125,7 +1941,7 @@ export default function App() {
                   <div onClick={() => setReviewTarget(r)} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, cursor: "pointer", padding: "4px 0" }}>
                     <span style={{ color: "#f59e0b" }}><Stars rating={r.rating} /></span>
                     <span style={{ fontWeight: 800, fontSize: 13 }}>{r.rating}</span>
-                    <span style={{ color: th.muted, fontSize: 12 }}>{t("reviewCountSuffix", r.reviews)}</span>
+                    <span style={{ color: th.muted, fontSize: 12 }}>{t("reviewCountSuffix", reviewCountByRestaurant[String(r.id)] || 0)}</span>
                     <span style={{ color: th.brand, fontSize: 11, fontWeight: 700 }}>{t("seeReviews")}</span>
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8, color: th.muted, fontSize: 12, marginBottom: 10 }}>
@@ -2147,10 +1963,10 @@ export default function App() {
                             />
                             <div style={{ minWidth: 0 }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3, minWidth: 0 }}>
-                                <div style={{ fontWeight: 800, fontSize: 14, minWidth: 0 }}>{pick(m.name, lang)}</div>
+                                <div style={{ fontWeight: 800, fontSize: 14, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pick(m.name, lang)}</div>
                                 {m.status === "pending" && <span style={{ fontSize: 9, fontWeight: 800, color: "#d97706", background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 999, padding: "1px 6px", whiteSpace: "nowrap", flexShrink: 0 }}>{t("pendingBadge")}</span>}
                               </div>
-                              <div style={{ color: th.muted, fontSize: 12 }}>{pick(m.desc, lang)}</div>
+                              <div style={{ color: th.muted, fontSize: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pick(m.desc, lang)}</div>
                               <div style={{ color: "#10b981", fontSize: 11, fontWeight: 700, marginTop: 2 }}>🔥 {(m.calories || menuCalories[m.id] || 600).toLocaleString()}{t("kcal")}</div>
                               {hasOpts && <div style={{ fontSize: 10, color: th.brand, fontWeight: 700, marginTop: 3 }}>{t("optionAvail")}</div>}
                             </div>

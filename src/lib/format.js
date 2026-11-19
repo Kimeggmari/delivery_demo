@@ -1,3 +1,5 @@
+import { RABBIT_SURCHARGE } from "../config/ordering";
+
 // Approx KRW->USD for the demo's English locale.
 // Not a live FX rate — just makes prices feel familiar to overseas testers.
 const KRW_PER_USD = 1350;
@@ -13,9 +15,9 @@ export function fmt(v, lang = "ko") {
   return new Intl.NumberFormat("ko-KR").format(v) + "원";
 }
 
-export function calcTotals(cart, deliveryMode = "rabbit") {
+export function calcTotals(cart, deliveryMode = "turtle") {
   const sub = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const baseDel = cart.length ? Math.max(...cart.map(i => i.fee)) : 0;
-  const del = baseDel > 0 && deliveryMode === "rabbit" ? baseDel + 1000 : baseDel;
+  const del = baseDel > 0 && deliveryMode === "rabbit" ? baseDel + RABBIT_SURCHARGE : baseDel;
   return { sub, del, total: sub + del };
 }
