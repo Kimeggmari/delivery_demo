@@ -47,6 +47,12 @@
             android:value="webview" />
     </application>
 
+    <!-- Ad SDKs imply these (Adrop splash / backfill activities lock portrait,
+         AppLovin requests ACCESS_WIFI_STATE); the app needs neither, so keep
+         Play from filtering out tablets, Chromebooks and XR devices. -->
+    <uses-feature android:name="android.hardware.screen.portrait" android:required="false" />
+    <uses-feature android:name="android.hardware.wifi" android:required="false" />
+
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
