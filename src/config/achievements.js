@@ -2,126 +2,57 @@
 // when the achievement is unlocked. Run all checks after every completed order
 // and diff against the previously unlocked map to surface new badges.
 
+// Savings-based badges: every one is earned by NOT spending money or NOT
+// eating calories. `stats` comes from computeStats() in lib/storage.js —
+// totalSpent is the money "saved" by not really ordering.
 export const ACHIEVEMENTS = [
   {
-    id: "first_order",
-    emoji: "🎉",
+    id: "save_first",
+    emoji: "🥉",
     tier: "bronze",
-    title: { ko: "첫 주문 (안)", en: "First (non-)order" },
-    desc: { ko: "음식만안와요에서 첫 데모 주문을 완료했어요.", en: "Completed your very first demo order." },
+    title: { ko: "첫 참음 성공", en: "First Hold-Back" },
+    desc: { ko: "가상 주문 1회 완료", en: "Completed 1 virtual order" },
     check: (s) => s.count >= 1,
   },
   {
-    id: "regular_5",
-    emoji: "🥉",
+    id: "save_chicken",
+    emoji: "🍗",
     tier: "bronze",
-    title: { ko: "단골 (5회)", en: "Regular (5 orders)" },
-    desc: { ko: "5번이나 안 받았어요. 단골 인증.", en: "Five times not-fed. Officially a regular." },
-    check: (s) => s.count >= 5,
+    title: { ko: "치킨 1마리 방어", en: "One Chicken Saved" },
+    desc: { ko: "누적 20,000원 이상 절약", en: "Saved 20,000원 in total" },
+    check: (s) => s.totalSpent >= 20000,
   },
   {
-    id: "regular_10",
-    emoji: "🥈",
-    tier: "silver",
-    title: { ko: "VIP (10회)", en: "VIP (10 orders)" },
-    desc: { ko: "10번 주문. 진성 데모러.", en: "Ten orders deep — a true demo-er." },
-    check: (s) => s.count >= 10,
-  },
-  {
-    id: "regular_30",
-    emoji: "🥇",
-    tier: "gold",
-    title: { ko: "전설 (30회)", en: "Legend (30 orders)" },
-    desc: { ko: "30번 주문. 음식만안와요 명예의 전당.", en: "Thirty orders. FoodNeverArrives hall of fame." },
-    check: (s) => s.count >= 30,
-  },
-  {
-    id: "rabbit_5",
-    emoji: "🐇",
-    tier: "silver",
-    title: { ko: "토끼 마스터", en: "Rabbit Master" },
-    desc: { ko: "토끼배달로 5번 주문.", en: "Five Rabbit Delivery orders." },
-    check: (s) => s.rabbitCount >= 5,
-  },
-  {
-    id: "turtle_5",
-    emoji: "🐢",
-    tier: "silver",
-    title: { ko: "거북이 마스터", en: "Turtle Master" },
-    desc: { ko: "거북이배달로 5번 주문.", en: "Five Turtle Delivery orders." },
-    check: (s) => s.turtleCount >= 5,
-  },
-  {
-    id: "big_spender",
-    emoji: "💸",
-    tier: "gold",
-    title: { ko: "통 큰 주문", en: "Big Spender" },
-    desc: { ko: "한 번에 10만원 이상 주문.", en: "Spent 100,000원 in a single order." },
-    check: (s) => s.maxOrderTotal >= 100000,
-  },
-  {
-    id: "total_spent_1m",
-    emoji: "🏦",
-    tier: "silver",
-    title: { ko: "누적 100만원", en: "1M Club" },
-    desc: { ko: "누적 주문 금액 100만원 돌파.", en: "Lifetime spend crossed 1,000,000원." },
-    check: (s) => s.totalSpent >= 1000000,
-  },
-  {
-    id: "total_spent_5m",
-    emoji: "💎",
-    tier: "gold",
-    title: { ko: "누적 500만원", en: "5M Whale" },
-    desc: { ko: "누적 주문 금액 500만원 돌파. 데모계의 큰손.", en: "Lifetime spend crossed 5,000,000원. Demo whale." },
-    check: (s) => s.totalSpent >= 5000000,
-  },
-  {
-    id: "midnight",
+    id: "save_midnight",
     emoji: "🌙",
     tier: "silver",
-    title: { ko: "심야 식당", en: "Midnight Snacker" },
-    desc: { ko: "밤 11시~새벽 4시에 주문.", en: "Ordered between 11 PM and 4 AM." },
-    check: (s) => s.lateNightCount >= 1,
+    title: { ko: "야식 충동 마스터", en: "Midnight Urge Master" },
+    desc: { ko: "누적 50,000원 이상 절약", en: "Saved 50,000원 in total" },
+    check: (s) => s.totalSpent >= 50000,
   },
   {
-    id: "category_5",
-    emoji: "🌈",
+    id: "save_100k",
+    emoji: "💎",
     tier: "gold",
-    title: { ko: "잡식주의자", en: "Omnivore" },
-    desc: { ko: "5가지 이상 카테고리 주문.", en: "Ordered from 5+ categories." },
-    check: (s) => s.categories.size >= 5,
+    title: { ko: "10만원 세이버", en: "100K Saver" },
+    desc: { ko: "누적 100,000원 이상 절약", en: "Saved 100,000원 in total" },
+    check: (s) => s.totalSpent >= 100000,
   },
   {
-    id: "all_payments",
-    emoji: "💳",
+    id: "save_kcal",
+    emoji: "🔥",
     tier: "silver",
-    title: { ko: "결제수단 컬렉터", en: "Payment Collector" },
-    desc: { ko: "카드·간편결제·현장결제 모두 사용.", en: "Used card, wallet, and on-delivery." },
-    check: (s) => s.payments.size >= 3,
+    title: { ko: "칼로리 수호자", en: "Calorie Guardian" },
+    desc: { ko: "누적 3,000 kcal 이상 방어", en: "Blocked 3,000 kcal in total" },
+    check: (s) => s.totalSavedKcal >= 3000,
   },
   {
-    id: "bilingual",
-    emoji: "🌐",
-    tier: "bronze",
-    title: { ko: "이중 언어자", en: "Bilingual" },
-    desc: { ko: "한국어와 영어로 모두 주문.", en: "Ordered in both Korean and English." },
-    check: (s) => s.langs.size >= 2,
-  },
-  {
-    id: "fully_loaded",
-    emoji: "🌶️",
-    tier: "silver",
-    title: { ko: "풀옵션 빌더", en: "Fully Loaded" },
-    desc: { ko: "맛·사이즈·토핑까지 모두 선택해 주문.", en: "Used spice, size, and toppings all on one item." },
-    check: (s) => s.hasFullyLoaded,
-  },
-  {
-    id: "kcal_saver",
-    emoji: "🥗",
+    id: "save_pro",
+    emoji: "👑",
     tier: "gold",
-    title: { ko: "10000kcal 절약", en: "10,000 kcal saved" },
-    desc: { ko: "누적 절약 칼로리 10,000kcal 달성.", en: "Total saved calories hit 10,000 kcal." },
-    check: (s) => s.totalSavedKcal >= 10000,
+    title: { ko: "프로 가상 미식가", en: "Pro Virtual Foodie" },
+    desc: { ko: "가상 주문 5회 이상 완료", en: "Completed 5+ virtual orders" },
+    check: (s) => s.count >= 5,
   },
 ];
 
@@ -144,4 +75,10 @@ export function computeNewUnlocks(stats, prevUnlocked) {
     }
   }
   return { newly, nextMap };
+}
+
+// Badges are derived from stats so an existing history shows the badges it
+// has already earned, even ones that didn't exist when those orders ran.
+export function earnedBadges(stats) {
+  return ACHIEVEMENTS.filter(a => a.check(stats));
 }

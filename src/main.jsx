@@ -1,5 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react'
 import ReactDOM from 'react-dom/client'
+import './index.css'
 import { Capacitor } from '@capacitor/core'
 import InstallAppModal from './components/InstallAppModal.jsx'
 import DevGate from './components/DevGate.jsx'

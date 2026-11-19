@@ -4,4 +4,9 @@
     <string name="title_activity_main">음식만안와요</string>
     <string name="package_name">com.eggmari.foodneverarrives</string>
     <string name="custom_url_scheme">com.eggmari.foodneverarrives</string>
+
+    <!-- Adrop native splash ad config (console > Admin > App > Ad unit connection > Android). -->
+    <string name="adrop_splash_ad_next_activity" translatable="false">com.eggmari.foodneverarrives.MainActivity</string>
+    <string name="adrop_splash_ad_unit_id" translatable="false">01M7PX64ASWYR7RGTXEQSF0YTB</string>
+    <integer name="adrop_splash_ad_max_timeout">1000</integer>
 </resources>

@@ -65,9 +65,9 @@ dependencies {
 
     // Adrop ads (popupBottom now; splash later). Needs android/app/src/main/assets/adrop_service.json.
     implementation "io.adrop:adrop-ads:1.17.0"
-    // TODO(backfill): add "io.adrop:adrop-ads-backfill:1.17.0" ONLY together with the
-    // Adrop-issued com.google.android.gms.ads.APPLICATION_ID manifest meta-data --
-    // it pulls in Google Mobile Ads, which crashes at launch without that ID.
+    // Backfill via Google Mobile Ads. Paired with the Adrop-issued
+    // com.google.android.gms.ads.APPLICATION_ID manifest meta-data below.
+    implementation "io.adrop:adrop-ads-backfill:1.17.0"
 }
 
 apply from: 'capacitor.build.gradle'

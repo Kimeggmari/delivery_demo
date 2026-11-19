@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { AD_APP_ID, AD_SLOTS_ENABLED, AD_UNITS, unitIdFor } from "../config/adUnits";
-import { Adrop, initAdrop } from "../lib/adrop";
+import { Adrop, initAdrop } from "../lib/adropWeb";
 import { showNativePopupOnce } from "../lib/adropNative";
 
 // Reserves a fixed-ratio space for an ad unit (see config/adUnits.js).
 // Banner/native slots render real ads via the Adrop web SDK once the App ID and
 // the slot's unit id are set; until then they show a placeholder box in dev
 // builds only and render nothing in production. Web previews as Android.
-export default function AdSlot({ slot, style }) {
+// `label` / `frameStyle` dress an outer frame (e.g. a list card with a "광고"
+// caption) that is only rendered together with the ad, so a no-fill leaves no
+// empty card behind — same contract as AdropSlot on iOS.
+export default function AdSlot({ slot, style, label, frameStyle }) {
   const unit = AD_UNITS[slot];
   if (!AD_SLOTS_ENABLED || !unit) return null;
 
@@ -29,10 +32,22 @@ export default function AdSlot({ slot, style }) {
     ...style,
   };
 
-  if (live) return <LiveAd unit={unit} appId={appId} unitId={unitId} box={box} />;
+  const frame = (ad) => (label || frameStyle) ? (
+    <div style={{ width: "100%", boxSizing: "border-box", ...frameStyle }}>
+      {label && <div style={LABEL_STYLE}>{label}</div>}
+      {ad}
+    </div>
+  ) : ad;
+
+  if (live) return <LiveAd unit={unit} appId={appId} unitId={unitId} box={box} frame={frame} />;
   // Placeholder boxes are a dev-only layout aid; production shows nothing until the slot is wired.
-  return import.meta.env.DEV ? <PlaceholderAd unit={unit} name={unit.names[os]} box={box} /> : null;
+  return import.meta.env.DEV ? frame(<PlaceholderAd unit={unit} name={unit.names[os]} box={box} />) : null;
 }
+
+const LABEL_STYLE = {
+  fontSize: 10, fontWeight: 800, color: "#9ca3af", letterSpacing: 0.4,
+  marginBottom: 6, lineHeight: 1, padding: "0 14px",
+};
 
 function PlaceholderAd({ unit, name, box }) {
   const isNative = unit.format === "native";
@@ -56,7 +71,7 @@ function PlaceholderAd({ unit, name, box }) {
   );
 }
 
-function LiveAd({ unit, appId, unitId, box }) {
+function LiveAd({ unit, appId, unitId, box, frame }) {
   const ref = useRef(null);
   const [failed, setFailed] = useState(false);
 
@@ -86,7 +101,7 @@ function LiveAd({ unit, appId, unitId, box }) {
 
   // Collapse when nothing can be shown so no empty box is left behind.
   if (failed) return null;
-  return <div ref={ref} data-ad-unit={unitId} style={box} />;
+  return frame(<div ref={ref} data-ad-unit={unitId} style={box} />);
 }
 
 // popupBottom is a native dialog (AdropNative plugin). On native with a unit id

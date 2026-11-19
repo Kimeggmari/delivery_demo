@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <application
         android:name=".FnaApplication"
         android:allowBackup="true"
@@ -15,6 +16,14 @@
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"
             android:exported="true">
+        </activity>
+
+        <!-- Adrop native splash ad; shown first, then hands off to adrop_splash_ad_next_activity (MainActivity). -->
+        <activity
+            android:name="io.adrop.ads.splash.AdropSplashAdActivity"
+            android:exported="true"
+            android:theme="@style/Theme.App.SplashTheme"
+            tools:replace="android:theme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -28,6 +37,14 @@
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- Adrop backfill via Google Mobile Ads; App ID issued by Adrop for this app. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-1007661712122174~4563137827" />
+        <meta-data
+            android:name="com.google.android.gms.ads.INTEGRATION_MANAGER"
+            android:value="webview" />
     </application>
 
     <!-- Permissions -->

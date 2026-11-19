@@ -31,6 +31,18 @@ iOS 맥 세션 전용 지시문은 [IOS_ADROP_PROMPT.md](IOS_ADROP_PROMPT.md)에
 - 콘솔에서 유닛 옆에 빨간 아이콘이 보였고 "연결된 광고 상품"이 비어 있었습니다. 광고 상품이 연결돼야 실광고가 나올 가능성이 있습니다(확인 필요).
 - **iOS 유닛은 아직 없음** → `UNIT_ID`의 `ios: ""` 자리가 비어 있음.
 
+## 2026-11-19 추가 업데이트
+- Adrop이 Android 백필용 `APPLICATION_ID`를 발급함: `ca-app-pub-1007661712122174~4563137827`
+- `src/config/adUnits.js`의 `AD_APP_ID.android`에 반영
+- 백필 적용 완료: `android/app/build.gradle`에 `io.adrop:adrop-ads-backfill:1.17.0` 추가, `AndroidManifest.xml`에 `com.google.android.gms.ads.APPLICATION_ID`·`com.google.android.gms.ads.INTEGRATION_MANAGER=webview` meta-data 추가, `MainActivity.java`에서 `Adrop.registerWebView(bridge.getWebView())` 호출(`FnaApplication.adropReady`로 가드)
+- **에뮬레이터(Pixel 7, API 34)에서 debug APK 실행 확인 완료**: 크래시 없음, 홈 화면 정상 렌더링. logcat에서 GMA(`com.google.android.gms.ads.service.START`) 바인딩 확인됨(APPLICATION_ID/INTEGRATION_MANAGER 적용이 크래시로 이어지지 않음).
+- **중요 수정**: `src/config/adUnits.js`의 `AD_APP_ID`(Adrop **Web SDK**용, 배너/네이티브 슬롯에 씀)에 실수로 구글 백필용 `ca-app-pub-...` ID를 넣었었음. 이 둘은 다른 값 — Web SDK의 `appId`는 Adrop 콘솔 자체 App ID. `android/app/src/main/assets/adrop_service.json`의 `app_key`(JWT)를 디코딩해서 실제 값 `01M60HA750030M7WWPGPS2BT6M:01M62N89MMHK3AB92DQBAVR329`을 찾아 반영 → 재빌드 후 **홈 배너 슬롯에 "Adrop Test Ad / Banner 320x100" 테스트 광고가 정상적으로 뜨는 것 확인함(성공)**.
+- 하단 팝업(native, `AdropNativePlugin`)은 여전히 `ERROR_CODE_AD_NO_FILL` — 이건 Web SDK appId와 무관하게, 콘솔에서 해당 유닛의 "연결된 광고 상품"이 비어있어서("처리중") 발생하는 것으로 보임. 코드 문제 아니고 Adrop 쪽 계정/상품 연결 대기 상태로 추정.
+- **네이티브 스플래시 연동 완료**(`io.adrop.ads.splash.AdropSplashAdActivity`를 런처로, `MainActivity`는 `adrop_splash_ad_next_activity`로): `AndroidManifest.xml`, `res/values/strings.xml`(유닛ID·다음 액티비티·타임아웃), `res/values/styles.xml`·`res/values-v31/styles.xml`(`Theme.App.SplashTheme`, API31+ SplashScreen API), `res/layout/activity_adrop_splash_ad.xml`(콘솔 다운로드 템플릿에 로고·배경색만 우리 브랜드로 수정, `adrop_splash_ad_image` 뷰는 그대로 유지), `res/drawable/splash_logo.png`(앱 아이콘 복사) 추가. 웹 쪽 `SplashScreen.jsx`의 `<AdSlot slot="splash">`는 제거함(중복 방지).
+- 에뮬레이터 cold-start(`monkey -c LAUNCHER`)로 확인: `AdropSplashAdActivity` → `MainActivity` 정상 전환, 크래시 없음. 광고 자체는 NO_FILL(해당 유닛도 콘솔 연결 대기 상태로 추정).
+- **콘솔의 "광고 노출 미확인" 경고 조사 결과**: 배너/네이티브 포맷 유닛의 "연결하기" 가이드는 전부 **네이티브 Kotlin SDK**(`AdropBanner`, `AdropNativeAdView`) 기준이라, Web SDK로 구현한 홈배너/트래킹배너/완료네이티브에는 해당 사항 없음(코드 추가 불필요). 트래킹/완료 배너가 계속 미확인으로 뜨는 건 그 화면까지 아직 실제로 들어가본 적이 없어서일 가능성이 높음 — 에뮬레이터에서 주문 흐름(담기→주문대기→주문완료)까지 수동으로 타봐야 확인됨 (adb 좌표 클릭으로는 실패, 웹뷰라 접근성 트리에 개별 버튼이 안 잡힘).
+- **아직 안 함**: 주문대기/주문완료 화면 실제 진입 확인(수동 필요), 릴리스 빌드(실제 production 모드)에서의 실광고 노출, iOS `GADApplicationIdentifier` 수령 여부 확인
+
 ## 지금까지 한 일 (모두 `dev`에 푸시됨)
 - AdMob 플러그인·매니페스트 ID·Info.plist `GADApplicationIdentifier`·관련 문구 제거, `src/lib/ads.js` 삭제
 - Android: `io.adrop:adrop-ads:1.17.0`, `FnaApplication` 가드 초기화, 팝업 플러그인, pangle maven 저장소

@@ -12,17 +12,18 @@ export const SIZE_OPTIONS = [
 ];
 
 export const theme = {
-  phone: "#fff7ed", text: "#431407", muted: "#c2410c", line: "#fed7aa",
+  phone: "#fff7ed", text: "#1c1917", muted: "#78716c", line: "#fed7aa",
+  cardBorder: "rgba(254, 215, 170, 0.72)",
   brand: "#f97316", brandDark: "#ea580c",
   headerStart: "#fb923c", headerEnd: "#f97316",
   heroStart: "#fb923c", heroEnd: "#f97316",
   primaryBtn: "#f97316",
-  sectionShadow: "0 4px 20px rgba(249,115,22,0.08)",
-  inputShadow: "0 2px 12px rgba(249,115,22,0.07)",
-  bottomBarBg: "rgba(255,255,255,0.97)", bottomBarBorder: "rgba(254,215,170,1)",
-  headerColor: "#fff", headerTextAlt: "rgba(255,255,255,0.75)",
-  iconBtnBg: "rgba(255,255,255,0.18)", iconBtnColor: "#fff",
-  headerBorderBottom: "none", activeBg: "#fff7ed",
+  sectionShadow: "0 4px 18px rgba(28, 25, 23, 0.05), 0 1px 3px rgba(249, 115, 22, 0.04)",
+  inputShadow: "0 4px 14px rgba(154, 52, 18, 0.12)",
+  bottomBarBg: "rgba(255,255,255,0.97)", bottomBarBorder: "rgba(254,215,170,0.65)",
+  headerColor: "#fff", headerTextAlt: "rgba(255,255,255,0.8)",
+  iconBtnBg: "rgba(255,255,255,0.2)", iconBtnColor: "#fff",
+  headerBorderBottom: "none", activeBg: "#ffedd5",
 };
 
 export const RABBIT_SURCHARGE = 1000;

@@ -19,4 +19,9 @@
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
     </style>
+
+    <!-- Theme for Adrop's native splash ad activity (io.adrop.ads.splash.AdropSplashAdActivity).
+         Below API 31 this just needs a no-action-bar base; the real splash look
+         comes from its own layout/activity_adrop_splash_ad.xml. -->
+    <style name="Theme.App.SplashTheme" parent="Theme.AppCompat.NoActionBar" />
 </resources>

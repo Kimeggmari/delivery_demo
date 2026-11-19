@@ -9,8 +9,11 @@
 // Flip to false to hide every ad slot (no space reserved).
 export const AD_SLOTS_ENABLED = true;
 
-// 광고 App ID, issued per platform by the ad network (console > Admin > App).
-export const AD_APP_ID = { ios: "", android: "" };
+// Adrop Web SDK App ID (console > Admin > App), used by the web SDK to request
+// banner/native ads. NOT the Google Mobile Ads backfill APPLICATION_ID
+// (ca-app-pub-...~..., which lives only in AndroidManifest.xml meta-data) -
+// decoded from android/app/src/main/assets/adrop_service.json's app_key JWT.
+export const AD_APP_ID = { ios: "", android: "01M60HA750030M7WWPGPS2BT6M:01M62N89MMHK3AB92DQBAVR329" };
 
 // Public test unit ids (Adrop docs). Only used in dev builds.
 const TEST_UNIT_ID = {

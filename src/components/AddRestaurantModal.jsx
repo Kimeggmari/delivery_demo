@@ -8,7 +8,7 @@ import { compressImageFile } from "../lib/imageCompress";
 
 const fieldStyle = {
   width: "100%", padding: "12px 14px", border: "1px solid #e5e7eb", outline: "none",
-  borderRadius: 12, fontFamily: "inherit", fontSize: 14, boxSizing: "border-box",
+  borderRadius: 12, fontFamily: "inherit", fontSize: 16, boxSizing: "border-box",
 };
 
 // A simplified set of broad categories (narrower built-in catalog categories
@@ -107,7 +107,7 @@ export default function AddRestaurantModal({ onClose, onCreate, brand, t, lang }
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "20px 20px 32px", width: "100%", maxWidth: 540, maxHeight: "86vh", overflowY: "auto", animation: "slideUp .25s ease" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "20px 20px calc(32px + env(safe-area-inset-bottom))", width: "100%", maxWidth: 540, maxHeight: "86vh", overflowY: "auto", animation: "slideUp .25s ease" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
           <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>{t("addRestaurantTitle")}</h3>
           <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: 12, border: "none", background: "#f3f4f6", fontSize: 18, cursor: "pointer" }}>✕</button>

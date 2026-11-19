@@ -29,7 +29,7 @@ export default function AchievementToast({ items, lang, t, onDone }) {
 
   return (
     <div style={{
-      position: "fixed", left: "50%", top: 28,
+      position: "fixed", left: "50%", top: "calc(28px + env(safe-area-inset-top))",
       transform: "translateX(-50%)",
       zIndex: 250,
       pointerEvents: "auto",

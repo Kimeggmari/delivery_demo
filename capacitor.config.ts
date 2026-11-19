@@ -6,6 +6,28 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   android: {
     appendUserAgent: 'FoodNeverArrivesApp'
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 2000,
+      launchAutoHide: true,
+      backgroundColor: '#fff7ed',
+      showSpinner: false,
+      splashFullScreen: true,
+      splashImmersive: true,
+      androidScaleType: 'CENTER_CROP',
+    },
+  },
+  experimental: {
+    ios: {
+      spm: {
+        packageOptions: {
+          '@capacitor-firebase/app-check': {
+            symlink: true
+          }
+        }
+      }
+    }
   }
 };
 
