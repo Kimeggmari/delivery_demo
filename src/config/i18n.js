@@ -1,6 +1,8 @@
 // i18n dictionary for KO/EN
 // Default language is Korean; English added for overseas demo.
 
+import { savingsStrings } from "./i18nSavings.js";
+
 export const LANGS = ["ko", "en"];
 
 export const dict = {
@@ -700,6 +702,9 @@ export const dict = {
     notifDeliveryBody: "It never actually arrived. Open the app to see the calories you saved.",
   },
 };
+
+Object.assign(dict.ko, savingsStrings.ko);
+Object.assign(dict.en, savingsStrings.en);
 
 export function makeT(lang) {
   const safe = dict[lang] ? lang : "ko";

@@ -60,15 +60,15 @@ export default function AddContentPage({
   });
 
   return (
-    <div style={{ minHeight: "100vh", background: th.phone, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif', color: th.text }}>
-      <div style={{ position: "sticky", top: 0, zIndex: 10, background: "linear-gradient(180deg," + th.headerStart + "," + th.headerEnd + ")", color: "#fff", padding: "14px 20px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, maxWidth: 540, margin: "0 auto" }}>
-          <button onClick={onBack} style={{ width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, fontSize: 18, border: "none", cursor: "pointer", background: "rgba(255,255,255,0.18)", color: "#fff" }}>←</button>
+    <div style={{ minHeight: "100dvh", background: th.phone, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif', color: th.text }}>
+      <div data-ad-clip="top" style={{ position: "sticky", top: 0, zIndex: 10, background: "#fff", borderBottom: "1px solid #f1f5f9", padding: "calc(10px + env(safe-area-inset-top)) 16px 10px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, maxWidth: 540, margin: "0 auto" }}>
+          <button onClick={onBack} aria-label={t("backAria")} style={{ width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, fontSize: 18, border: "none", cursor: "pointer", background: "#f3f4f6", color: "#1c1917", padding: 0, flexShrink: 0 }}>←</button>
           <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>{t("addContentPageTitle")}</h2>
         </div>
       </div>
 
-      <div style={{ maxWidth: 540, margin: "0 auto", padding: "20px 20px 60px", display: "grid", gap: 16 }}>
+      <div style={{ maxWidth: 540, margin: "0 auto", padding: "16px 16px calc(48px + env(safe-area-inset-bottom))", display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 16 }}>
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={() => setTab("restaurant")} style={tabBtnStyle(tab === "restaurant")}>{t("addRestaurantTab")}</button>
           <button onClick={() => setTab("menu")} style={tabBtnStyle(tab === "menu")}>{t("addMenuTab")}</button>

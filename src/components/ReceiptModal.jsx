@@ -482,15 +482,17 @@ export default function ReceiptModal({ record, lang, brand, t, th, onClose }) {
           width: "100%", maxWidth: 540,
           background: "#f3f4f6",
           borderRadius: "24px 24px 0 0",
-          padding: "20px 16px calc(28px + env(safe-area-inset-bottom))",
-          maxHeight: "92vh",
+          padding: "14px 16px calc(28px + env(safe-area-inset-bottom))",
+          maxHeight: "92dvh",
           overflowY: "auto",
+          overscrollBehavior: "contain",
           animation: "slideUp .25s ease",
         }}
       >
+        <div style={{ width: 38, height: 4, borderRadius: 999, background: "#d1d5db", margin: "0 auto 14px" }} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, padding: "0 4px" }}>
           <div style={{ fontWeight: 900, fontSize: 16, color: "#111827" }}>{t("receiptShareTitle")}</div>
-          <button onClick={onClose} style={{ width: 34, height: 34, borderRadius: 12, border: "none", background: "#e5e7eb", fontSize: 16, cursor: "pointer", fontFamily: "inherit" }}>✕</button>
+          <button onClick={onClose} aria-label="Close" style={{ width: 34, height: 34, borderRadius: 12, border: "none", background: "#e5e7eb", color: "#374151", fontSize: 16, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>✕</button>
         </div>
 
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
@@ -517,7 +519,7 @@ export default function ReceiptModal({ record, lang, brand, t, th, onClose }) {
             opacity: busy ? 0.6 : 1,
           }}>⬇️ {t("receiptDownloadBtn")}</button>
           <button onClick={handleCopy} disabled={busy} style={{
-            padding: "13px 8px", border: "none", borderRadius: 14,
+            padding: "13px 8px", borderRadius: 14,
             background: "#fff", color: "#111827", border: "1px solid #d1d5db",
             fontWeight: 900, fontSize: 13, cursor: "pointer", fontFamily: "inherit",
             opacity: busy ? 0.6 : 1,

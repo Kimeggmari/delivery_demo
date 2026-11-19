@@ -21,10 +21,11 @@ export default function SettingsModal({
 }) {
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 140, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "20px 20px calc(32px + env(safe-area-inset-bottom))", width: "100%", maxWidth: 540, maxHeight: "85vh", overflowY: "auto", animation: "slideUp .3s ease" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "14px 20px calc(32px + env(safe-area-inset-bottom))", width: "100%", maxWidth: 540, maxHeight: "85dvh", overflowY: "auto", overscrollBehavior: "contain", animation: "slideUp .3s ease" }}>
+        <div style={{ width: 38, height: 4, borderRadius: 999, background: "#e5e7eb", margin: "0 auto 16px" }} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>{t("settingsTitle")}</h3>
-          <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: 12, border: "none", background: "#f3f4f6", fontSize: 18, cursor: "pointer" }}>✕</button>
+          <button onClick={onClose} aria-label="Close" style={{ width: 36, height: 36, borderRadius: 12, border: "none", background: "#f3f4f6", color: "#374151", fontSize: 17, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>✕</button>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 12, background: "#f9fafb", borderRadius: 16, padding: "14px 16px", marginBottom: 14, border: "1px solid #f3f4f6" }}>
@@ -66,7 +67,7 @@ export default function SettingsModal({
                 step={deliveryModes[key].stepSeconds}
                 value={deliveryTimeOverrides[key]}
                 onChange={e => onChangeDeliveryTime(key, Number(e.target.value))}
-                style={{ width: "100%" }}
+                style={{ width: "100%", accentColor: "#f97316" }}
               />
             </div>
           ))}
