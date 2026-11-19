@@ -219,7 +219,7 @@ export function buildOrderRecord({ cart, orderInfo, totals, deliveryMode, lang, 
   });
 
   const savedKcal = cart.reduce(
-    (s, i) => s + (menuCalories[i.menuId] || 600) * i.qty,
+    (s, i) => s + (i.calories || menuCalories[i.menuId] || 600) * i.qty,
     0,
   );
 
@@ -239,7 +239,6 @@ export function buildOrderRecord({ cart, orderInfo, totals, deliveryMode, lang, 
     total: totals.total,
     subtotal: totals.sub,
     deliveryFee: totals.del,
-    serviceFee: totals.svc,
     itemCount: cart.reduce((s, i) => s + i.qty, 0),
     savedKcal,
     categories,

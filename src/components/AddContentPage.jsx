@@ -23,7 +23,7 @@ export default function AddContentPage({ onBack, allRestaurants, lang, t, th, on
 
   return (
     <div style={{ minHeight: "100vh", background: th.phone, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif', color: th.text }}>
-      <div style={{ position: "sticky", top: 0, zIndex: 10, background: "linear-gradient(180deg," + th.headerStart + "," + th.headerEnd + ")", color: "#fff", padding: "14px 20px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 10, background: "linear-gradient(180deg," + th.headerStart + "," + th.headerEnd + ")", color: "#fff", padding: "calc(14px + env(safe-area-inset-top)) 20px 14px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, maxWidth: 540, margin: "0 auto" }}>
           <button onClick={onBack} style={{ width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, fontSize: 18, border: "none", cursor: "pointer", background: "rgba(255,255,255,0.18)", color: "#fff" }}>←</button>
           <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>{t("addContentPageTitle")}</h2>
@@ -51,7 +51,7 @@ export default function AddContentPage({ onBack, allRestaurants, lang, t, th, on
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder={t("addMenuSearchPh")}
-              style={{ width: "100%", padding: "12px 14px", border: "1px solid #e5e7eb", outline: "none", borderRadius: 12, fontFamily: "inherit", fontSize: 14, boxSizing: "border-box" }}
+              style={{ width: "100%", padding: "12px 14px", border: "1px solid #e5e7eb", outline: "none", borderRadius: 12, fontFamily: "inherit", fontSize: 16, boxSizing: "border-box" }}
             />
             <div style={{ display: "grid", gap: 8 }}>
               {filtered.length === 0 ? (

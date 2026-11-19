@@ -21,7 +21,7 @@ export default function NotificationBanner({ appName, title, body, onDone, onTap
     <div
       onClick={() => { onTap?.(); setLeaving(true); }}
       style={{
-        position: "fixed", left: "50%", top: leaving ? -140 : 12,
+        position: "fixed", left: "50%", top: leaving ? -140 : "calc(12px + env(safe-area-inset-top))",
         transform: "translateX(-50%)",
         width: "calc(100% - 20px)", maxWidth: 420,
         zIndex: 300, cursor: "pointer",

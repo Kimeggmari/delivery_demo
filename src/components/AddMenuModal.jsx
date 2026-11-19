@@ -8,7 +8,7 @@ import { compressImageFile } from "../lib/imageCompress";
 
 const fieldStyle = {
   width: "100%", padding: "12px 14px", border: "1px solid #e5e7eb", outline: "none",
-  borderRadius: 12, fontFamily: "inherit", fontSize: 14, boxSizing: "border-box",
+  borderRadius: 12, fontFamily: "inherit", fontSize: 16, boxSizing: "border-box",
 };
 
 function makeCustomId(prefix) {
@@ -19,6 +19,7 @@ export default function AddMenuModal({ restaurant, onClose, onCreate, brand, t, 
   const [menuName, setMenuName] = useState("");
   const [menuDesc, setMenuDesc] = useState("");
   const [menuPrice, setMenuPrice] = useState("");
+  const [menuCalorie, setMenuCalorie] = useState("");
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -39,6 +40,7 @@ export default function AddMenuModal({ restaurant, onClose, onCreate, brand, t, 
     }
     setSubmitting(true);
     const photo = photoFile ? await compressImageFile(photoFile).catch(() => null) : null;
+    const calorie = parseInt(menuCalorie, 10);
     onCreate({
       id: makeCustomId("custom_m"),
       restaurantId: restaurant.id,
@@ -47,13 +49,14 @@ export default function AddMenuModal({ restaurant, onClose, onCreate, brand, t, 
       price: mPrice,
       options: {},
       isCustom: true,
+      ...(calorie > 0 ? { calories: calorie } : {}),
       ...(photo ? { photo } : {}),
     });
   };
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "20px 20px 32px", width: "100%", maxWidth: 540, maxHeight: "80vh", overflowY: "auto", animation: "slideUp .25s ease" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "20px 20px calc(32px + env(safe-area-inset-bottom))", width: "100%", maxWidth: 540, maxHeight: "80vh", overflowY: "auto", animation: "slideUp .25s ease" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
           <h3 style={{ margin: 0, fontSize: 17, fontWeight: 900 }}>{restaurant.emoji} {t("addMenuTitle", pick(restaurant.name, lang))}</h3>
           <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: 12, border: "none", background: "#f3f4f6", fontSize: 18, cursor: "pointer" }}>✕</button>
@@ -73,6 +76,10 @@ export default function AddMenuModal({ restaurant, onClose, onCreate, brand, t, 
             <input value={menuPrice} onChange={e => setMenuPrice(e.target.value)} placeholder={t("menuPricePh")} type="number" inputMode="numeric" style={fieldStyle} />
           </div>
           <div>
+            <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuCalorieLabel")}</label>
+            <input value={menuCalorie} onChange={e => setMenuCalorie(e.target.value)} placeholder={t("menuCaloriePh")} type="number" inputMode="numeric" style={fieldStyle} />
+          </div>
+          <div>
             <label style={{ fontSize: 12, fontWeight: 800, color: "#374151", display: "block", marginBottom: 6 }}>{t("menuPhotoLabel")}</label>
             <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
               <div style={{ width: 56, height: 56, borderRadius: 12, overflow: "hidden", flexShrink: 0, background: "#f3f4f6", border: "1px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -85,6 +92,7 @@ export default function AddMenuModal({ restaurant, onClose, onCreate, brand, t, 
               <span style={{ fontSize: 12, color: "#6b7280", fontWeight: 700 }}>{photoPreview ? t("menuPhotoChange") : t("menuPhotoHint")}</span>
               <input type="file" accept="image/*" onChange={pickPhoto} style={{ display: "none" }} />
             </label>
+            <div style={{ fontSize: 11, color: "#b45309", background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 10, padding: "8px 10px", marginTop: 8, lineHeight: 1.5 }}>{t("menuPhotoCopyrightWarning")}</div>
           </div>
         </div>
 

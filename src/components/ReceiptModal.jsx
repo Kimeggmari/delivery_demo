@@ -284,7 +284,6 @@ function drawReceipt(canvas, { record, lang, brand, t }) {
   const totalRows = [
     [t("productPrice"), fmt(record.subtotal, lang)],
     [t("deliveryFee"), fmt(record.deliveryFee, lang)],
-    [t("serviceFee"), fmt(record.serviceFee, lang)],
     [t("totalLabel"), fmt(record.total, lang)],
   ];
   totalRows.forEach(([k, v], i) => {
@@ -483,7 +482,7 @@ export default function ReceiptModal({ record, lang, brand, t, th, onClose }) {
           width: "100%", maxWidth: 540,
           background: "#f3f4f6",
           borderRadius: "24px 24px 0 0",
-          padding: "20px 16px 28px",
+          padding: "20px 16px calc(28px + env(safe-area-inset-bottom))",
           maxHeight: "92vh",
           overflowY: "auto",
           animation: "slideUp .25s ease",

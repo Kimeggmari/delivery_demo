@@ -63,6 +63,13 @@ export default function TrackingMap({ progress, mode, storeLabel }) {
         if (cancelled) { await map.destroy(); return; }
         mapRef.current = map;
 
+        // GoogleMap.create() resolves before the underlying native map view
+        // actually finishes attaching (iOS plugin quirk: view setup happens
+        // in a further-deferred async block) — touching the camera too soon
+        // crashes with a nil map view. A short delay lets it settle first.
+        await new Promise((r) => setTimeout(r, 300));
+        if (cancelled) { await map.destroy(); return; }
+
         await map.disableTouch();
         await map.fitBounds(
           {

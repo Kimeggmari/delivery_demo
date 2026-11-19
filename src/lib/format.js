@@ -13,9 +13,9 @@ export function fmt(v, lang = "ko") {
   return new Intl.NumberFormat("ko-KR").format(v) + "원";
 }
 
-export function calcTotals(cart) {
+export function calcTotals(cart, deliveryMode = "rabbit") {
   const sub = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const del = cart.length ? Math.max(...cart.map(i => i.fee)) : 0;
-  const svc = sub > 0 ? Math.round(sub * 0.03) : 0;
-  return { sub, del, svc, total: sub + del + svc };
+  const baseDel = cart.length ? Math.max(...cart.map(i => i.fee)) : 0;
+  const del = baseDel > 0 && deliveryMode === "rabbit" ? baseDel + 1000 : baseDel;
+  return { sub, del, total: sub + del };
 }

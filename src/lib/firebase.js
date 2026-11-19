@@ -7,7 +7,14 @@ import { Capacitor } from "@capacitor/core";
 import { FirebaseAppCheck } from "@capacitor-firebase/app-check";
 import { initializeApp } from "firebase/app";
 import { initializeAppCheck, CustomProvider } from "firebase/app-check";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
+import {
+  initializeAuth,
+  indexedDBLocalPersistence,
+  browserLocalPersistence,
+  inMemoryPersistence,
+  signInAnonymously,
+  onAuthStateChanged,
+} from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -46,7 +53,14 @@ if (Capacitor.getPlatform() === "android") {
     .catch(err => console.warn("App Check init failed", err));
 }
 
-export const auth = getAuth(app);
+// Explicit persistence (no popupRedirectResolver) — the default getAuth()
+// eagerly sets up a gapi.iframes-based popup/redirect helper that assumes an
+// http(s) origin. It's never used here (anonymous sign-in only) but its setup
+// still runs and errors under Capacitor's capacitor://localhost origin,
+// which was silently stalling signInAnonymously on iOS.
+export const auth = initializeAuth(app, {
+  persistence: [indexedDBLocalPersistence, browserLocalPersistence, inMemoryPersistence],
+});
 export const db = getFirestore(app);
 
 // Resolves once with the signed-in uid. Callers await this before touching

@@ -39,6 +39,10 @@ export async function notifyDeliveryComplete({ title, body }) {
           title,
           body,
           smallIcon: "ic_launcher",
+          // Suppress the system banner while the app is foregrounded — the
+          // in-app NotificationBanner already covers that case, and showing
+          // both looks like a duplicate/glitchy notification.
+          foreground: false,
         }],
       });
     } catch (err) {
