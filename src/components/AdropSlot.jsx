@@ -26,8 +26,9 @@ function readClipBand() {
  * type: "banner" (fixed width × height) or "native" (full width, 16:9 media + strip).
  * hidden: hide the native view while a web modal/sheet is covering the page —
  * native views always draw above web content.
+ * label: small caption shown above the ad (e.g. "광고"), inside the frame.
  */
-export default function AdropSlot({ unitId, type = "banner", width = 320, height = 50, hidden = false, style }) {
+export default function AdropSlot({ unitId, type = "banner", width = 320, height = 50, hidden = false, label, style }) {
   const enabled = isAdropAvailable() && !!unitId;
   const reactId = useId();
   const slotId = "adrop" + reactId.replace(/[^a-zA-Z0-9]/g, "");
@@ -107,17 +108,27 @@ export default function AdropSlot({ unitId, type = "banner", width = 320, height
   // hidden), so a no-fill never leaves a blank gap or grid gap in the page.
   if (!enabled || status !== "received") return null;
 
+  // `style` dresses the outer frame (card background, padding, margins); the
+  // native view is lined up with the inner placeholder only.
   return (
-    <div ref={ref} aria-hidden="true" style={{ width: "100%", ...style }}>
-      {type === "native" ? (
-        // Same height the native card uses: 16:9 media + headline/CTA strip.
-        <>
-          <div style={{ width: "100%", aspectRatio: "16 / 9" }} />
-          <div style={{ height: NATIVE_STRIP_HEIGHT }} />
-        </>
-      ) : (
-        <div style={{ height }} />
-      )}
+    <div style={{ width: "100%", boxSizing: "border-box", ...style }}>
+      {label && <div style={LABEL_STYLE}>{label}</div>}
+      <div ref={ref} aria-hidden="true" style={{ width: "100%" }}>
+        {type === "native" ? (
+          // Same height the native card uses: 16:9 media + headline/CTA strip.
+          <>
+            <div style={{ width: "100%", aspectRatio: "16 / 9" }} />
+            <div style={{ height: NATIVE_STRIP_HEIGHT }} />
+          </>
+        ) : (
+          <div style={{ height }} />
+        )}
+      </div>
     </div>
   );
 }
+
+const LABEL_STYLE = {
+  fontSize: 10, fontWeight: 800, color: "#9ca3af", letterSpacing: 0.4,
+  marginBottom: 6, lineHeight: 1, padding: "0 14px",
+};

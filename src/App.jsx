@@ -33,7 +33,7 @@ import {
 } from "./lib/storage";
 import { authReady } from "./lib/firebase";
 import { computeNewUnlocks } from "./config/achievements";
-import { showLaunchAds } from "./lib/ads";
+import { requestAdTracking, showLaunchPopupAd } from "./lib/ads";
 import { ADROP_UNITS } from "./lib/adrop";
 import AdropSlot from "./components/AdropSlot";
 import { ensureNotificationPermission, notifyDeliveryComplete } from "./lib/notifications";
@@ -97,6 +97,10 @@ const PAYMENT_OPTIONS = [
   { val: "간편결제", labelKey: "payEasy" },
   { val: "현장결제", labelKey: "payCash" },
 ];
+
+// Returns a copy of `items` with `node` inserted at `index` (or appended when
+// the list is shorter) — used to drop an ad card between list items.
+const insertAt = (items, index, node) => [...items.slice(0, index), node, ...items.slice(index)];
 
 const paymentLabel = (val, t) => {
   const found = PAYMENT_OPTIONS.find(o => o.val === val);
@@ -1011,9 +1015,18 @@ export default function App() {
   useEffect(() => () => clearTimers(), [clearTimers]);
 
   useEffect(() => {
-    showLaunchAds();
+    requestAdTracking();
     ensureNotificationPermission();
   }, []);
+
+  // Launch popup ad: wait until the home screen is visible and the first-launch
+  // intro modal has been closed, so the two never stack on top of each other.
+  const launchPopupShownRef = useRef(false);
+  useEffect(() => {
+    if (launchPopupShownRef.current || page !== "order" || showInfoModal) return;
+    launchPopupShownRef.current = true;
+    showLaunchPopupAd();
+  }, [page, showInfoModal]);
 
   const openOption = (rid, mid) => {
     const r = allRestaurants.find(x => x.id === rid);
@@ -1441,7 +1454,8 @@ export default function App() {
           type="native"
           unitId={ADROP_UNITS.completeNative}
           hidden={!!shareRecord}
-          style={{ maxWidth: 360, marginTop: 24 }}
+          label={lang === "ko" ? "광고" : "Ad"}
+          style={{ maxWidth: 360, marginTop: 24, textAlign: "left" }}
         />
 
         <Footer th={th} t={t} onInfo={() => { resetAll(); setShowInfoModal(true); }} onPrivacy={() => setPage("privacy")} />
@@ -1503,7 +1517,6 @@ export default function App() {
               <button style={{ border: "none", borderRadius: 12, background: "#eef2ff", color: "#3730a3", padding: "10px 12px", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>{t("riderCall")}</button>
             </div>
           </div>
-          <AdropSlot unitId={ADROP_UNITS.trackingBanner} width={320} height={50} hidden={!!deliveryNotif} />
           <div style={css.section}>
             <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>{t("progressTitle")}</div>
             <div style={{ display: "grid", gap: 10 }}>
@@ -1524,6 +1537,14 @@ export default function App() {
               })}
             </div>
           </div>
+          <AdropSlot
+            unitId={ADROP_UNITS.trackingBanner}
+            width={320}
+            height={50}
+            label={lang === "ko" ? "광고" : "Ad"}
+            hidden={!!deliveryNotif}
+            style={{ ...css.section, padding: "12px 0 14px" }}
+          />
           {orderInfo && (
             <div style={css.section}>
               <div style={{ fontSize: 17, fontWeight: 900, marginBottom: 12 }}>{t("orderSummaryTitle")}</div>
@@ -1830,12 +1851,6 @@ export default function App() {
         <div style={{ background: "linear-gradient(135deg,#fff7ed,#ffedd5)", border: "1px solid #fdba74", color: "#9a3412", padding: "12px 14px", borderRadius: 16, fontSize: 12, fontWeight: 800, lineHeight: 1.45 }}>
           {t("demoBanner")}
         </div>
-        <AdropSlot
-          unitId={ADROP_UNITS.homeBanner}
-          width={320}
-          height={100}
-          hidden={!!(reviewTarget || showInfoModal || showSettings || (showAdminPanel && isAdminUid(uid)) || optionTarget || showCategorySheet)}
-        />
 
         <div style={css.section}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 10, marginBottom: 14 }}>
@@ -1899,7 +1914,7 @@ export default function App() {
           <div style={{ display: "grid", gap: 12 }}>
             {filtered.length === 0 ? (
               <div style={{ padding: 24, border: "1px dashed #d1d5db", borderRadius: 16, textAlign: "center", color: th.muted, background: "#fafafa", fontSize: 13, lineHeight: 1.6 }}>{t("noResults")}<br />{t("noResultsHint")}</div>
-            ) : filtered.map((r, ri) => {
+            ) : insertAt(filtered.map((r, ri) => {
               const badgeKey = r.badge?.ko || "";
               const badgeText = pick(r.badge, lang);
               const bColor = badgeColors[badgeKey];
@@ -2000,7 +2015,17 @@ export default function App() {
                   </div>
                   </div>
                 </div>
-            );})}
+            );}), 1, (
+              <AdropSlot
+                key="home-banner-ad"
+                unitId={ADROP_UNITS.homeBanner}
+                width={320}
+                height={100}
+                label={lang === "ko" ? "광고" : "Ad"}
+                hidden={!!(reviewTarget || showInfoModal || showSettings || (showAdminPanel && isAdminUid(uid)) || optionTarget || showCategorySheet)}
+                style={{ border: "1px solid " + th.line, borderRadius: 20, background: "#fff", padding: "12px 0 14px", overflow: "hidden" }}
+              />
+            ))}
           </div>
         </div>
 
