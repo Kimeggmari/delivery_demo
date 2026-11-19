@@ -10,6 +10,7 @@
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 4D22ABE82AF431CB00220026 /* CapApp-SPM */; };
 		A1D20F122B0C4D5E6F708192 /* AdropAds in Frameworks */ = {isa = PBXBuildFile; productRef = A1D20F112B0C4D5E6F708192 /* AdropAds */; };
+		A1D20F322B0C4D5E6F708192 /* AdropAdsBackfill in Frameworks */ = {isa = PBXBuildFile; productRef = A1D20F312B0C4D5E6F708192 /* AdropAdsBackfill */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
 		A1D20F232B0C4D5E6F708192 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D20F222B0C4D5E6F708192 /* MainViewController.swift */; };
@@ -47,6 +48,7 @@
 			files = (
 				4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */,
 				A1D20F122B0C4D5E6F708192 /* AdropAds in Frameworks */,
+				A1D20F322B0C4D5E6F708192 /* AdropAdsBackfill in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -109,6 +111,7 @@
 			packageProductDependencies = (
 				4D22ABE82AF431CB00220026 /* CapApp-SPM */,
 				A1D20F112B0C4D5E6F708192 /* AdropAds */,
+				A1D20F312B0C4D5E6F708192 /* AdropAdsBackfill */,
 			);
 			productName = App;
 			productReference = 504EC3041FED79650016851F /* App.app */;
@@ -141,6 +144,7 @@
 			packageReferences = (
 				D4C12C0A2AAA248700AAC8A2 /* XCLocalSwiftPackageReference "CapApp-SPM" */,
 				A1D20F102B0C4D5E6F708192 /* XCRemoteSwiftPackageReference "adrop-ads-pod" */,
+				A1D20F302B0C4D5E6F708192 /* XCRemoteSwiftPackageReference "adrop-ads-backfill-pod" */,
 			);
 			productRefGroup = 504EC3051FED79650016851F /* Products */;
 			projectDirPath = "";
@@ -331,6 +335,13 @@
 				);
 				MARKETING_VERSION = 1.1.1;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-Wl,-u,_GADAdLoaderAdTypeNative",
+					"-Wl,-u,_GADAdSizeBanner",
+					"-Wl,-u,_GADAdSizeFromCGSize",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.eggmari.foodneverarrives;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -359,6 +370,13 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.1.1;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-Wl,-u,_GADAdLoaderAdTypeNative",
+					"-Wl,-u,_GADAdSizeBanner",
+					"-Wl,-u,_GADAdSizeFromCGSize",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.eggmari.foodneverarrives;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -408,9 +426,22 @@
 				minimumVersion = 1.17.0;
 			};
 		};
+		A1D20F302B0C4D5E6F708192 /* XCRemoteSwiftPackageReference "adrop-ads-backfill-pod" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/OpenRhapsody/adrop-ads-backfill-pod.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.17.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		A1D20F312B0C4D5E6F708192 /* AdropAdsBackfill */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1D20F302B0C4D5E6F708192 /* XCRemoteSwiftPackageReference "adrop-ads-backfill-pod" */;
+			productName = AdropAdsBackfill;
+		};
 		A1D20F112B0C4D5E6F708192 /* AdropAds */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A1D20F102B0C4D5E6F708192 /* XCRemoteSwiftPackageReference "adrop-ads-pod" */;

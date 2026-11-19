@@ -18,6 +18,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         #else
         Adrop.initialize(production: true, targetCountries: [])
         #endif
+        // The app UI is light-only, so keep ads light even in system dark mode
+        // (Adrop recommends .auto only for apps that follow the system theme).
+        Adrop.setTheme(.light)
 
         showSplashAd()
         return true
@@ -67,6 +70,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+        // Adrop ad deep links first; anything else goes to Capacitor as before.
+        if Adrop.handleDeepLink(url: url) {
+            return true
+        }
         // Called when the app was launched with a url. Feel free to add additional processing here,
         // but if you want the App API to support tracking app url opens, make sure to keep this call
         return ApplicationDelegateProxy.shared.application(app, open: url, options: options)

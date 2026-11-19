@@ -639,7 +639,7 @@ function PrivacyPage({ onBack, th, t, lang }) {
       content: (
         <>
           <p>The web version may show ads via <strong>Google AdSense</strong>, which can use cookies or similar technologies to personalize them.</p>
-          <p><strong>The iOS app may show ads via Adrop</strong> (launch screen, banner, popup and native ads). Adrop may use the advertising identifier (iOS IDFA) to personalize these ads. The Android app does not show ads.</p>
+          <p><strong>The iOS app may show ads via Adrop</strong> (launch screen, banner, popup and native ads). When Adrop has no ad to show, an ad from Google's ad network or its partner networks (Pangle, Unity Ads, Liftoff, AppLovin, ironSource, InMobi) may be shown instead. These may use the advertising identifier (iOS IDFA) to personalize ads. The Android app does not show ads.</p>
           <p>On iOS, the app requests App Tracking Transparency (ATT) permission before using this identifier. The app works the same whether or not you grant this permission.</p>
           <p>For how ad data is used on the web version (Google AdSense), see <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb" }}>Google's advertising policies</a>.</p>
         </>
@@ -650,7 +650,7 @@ function PrivacyPage({ onBack, th, t, lang }) {
       content: (
         <>
           <p>The web version is hosted on <strong>Vercel</strong>, which automatically captures basic server logs (IP, timestamps, browser info) per its own policy. The operator does not collect these directly.</p>
-          <p>The order history, achievements, and user-submitted content described in Section 1 are stored using <strong>Google Firebase</strong> (Firestore, Authentication). The iOS app also communicates with Adrop to display ads. See <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb" }}>Firebase's privacy policy</a> for details.</p>
+          <p>The order history, achievements, and user-submitted content described in Section 1 are stored using <strong>Google Firebase</strong> (Firestore, Authentication). The iOS app also communicates with Adrop and the ad networks above to display ads. See <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb" }}>Firebase's privacy policy</a> for details.</p>
         </>
       ),
     },
@@ -698,7 +698,7 @@ function PrivacyPage({ onBack, th, t, lang }) {
       content: (
         <>
           <p>웹 버전(음식만안와요.com)은 <strong>Google AdSense</strong>를 통해 광고를 제공할 수 있습니다. Google AdSense는 쿠키 또는 유사 기술을 사용하여 광고를 맞춤화할 수 있습니다.</p>
-          <p><strong>iOS 앱 버전은 Adrop을 통해 광고(앱 시작 화면, 배너, 팝업, 네이티브 광고)를 표시할 수 있습니다.</strong> Adrop은 광고 개인화를 위해 광고 식별자(iOS IDFA)를 사용할 수 있습니다. Android 앱 버전에는 광고가 표시되지 않습니다.</p>
+          <p><strong>iOS 앱 버전은 Adrop을 통해 광고(앱 시작 화면, 배너, 팝업, 네이티브 광고)를 표시할 수 있습니다.</strong> Adrop에 표시할 광고가 없을 때는 Google 광고 네트워크와 그 제휴 네트워크(Pangle, Unity Ads, Liftoff, AppLovin, ironSource, InMobi)의 광고가 대신 표시될 수 있습니다. 이들은 광고 개인화를 위해 광고 식별자(iOS IDFA)를 사용할 수 있습니다. Android 앱 버전에는 광고가 표시되지 않습니다.</p>
           <p>iOS에서는 앱이 광고 식별자를 사용하기 전에 iOS의 App Tracking Transparency(ATT) 권한 요청을 통해 동의를 구하며, 동의하지 않아도 앱의 다른 기능은 동일하게 이용할 수 있습니다.</p>
           <p>웹 버전 광고(Google AdSense)의 데이터 사용에 관한 자세한 내용은 <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb" }}>Google 광고 정책</a>을 참고하세요.</p>
         </>
@@ -709,7 +709,7 @@ function PrivacyPage({ onBack, th, t, lang }) {
       content: (
         <>
           <p>웹 버전은 <strong>Vercel</strong>을 통해 호스팅됩니다. Vercel은 서비스 운영을 위해 서버 접속 로그(IP 주소, 접속 시간, 브라우저 정보 등)를 자동으로 수집할 수 있습니다. 이는 서비스 운영자가 직접 수집하는 것이 아니며, Vercel의 개인정보처리방침에 따라 관리됩니다.</p>
-          <p>1번 항목에 안내된 주문 기록·업적·이용자 등록 콘텐츠는 <strong>Google Firebase</strong>(Firestore, Authentication)에 저장됩니다. iOS 앱은 광고 표시를 위해 Adrop과 통신합니다. Firebase의 개인정보 처리에 대한 자세한 내용은 <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb" }}>Firebase 개인정보처리방침</a>을 참고하세요.</p>
+          <p>1번 항목에 안내된 주문 기록·업적·이용자 등록 콘텐츠는 <strong>Google Firebase</strong>(Firestore, Authentication)에 저장됩니다. iOS 앱은 광고 표시를 위해 Adrop 및 위 광고 네트워크와 통신합니다. Firebase의 개인정보 처리에 대한 자세한 내용은 <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb" }}>Firebase 개인정보처리방침</a>을 참고하세요.</p>
         </>
       ),
     },
