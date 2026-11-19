@@ -1,6 +1,6 @@
-# Google Play 출시 노트 — v1.1.8 (versionCode 17) · 전면 리뉴얼
+# Google Play 출시 노트 — v1.1.8 (versionCode 18) · 전면 리뉴얼
 
-이전 업로드(versionCode 16) 이후 변경 사항. Play Console "출시 노트" 필드에 붙여넣기 (언어별 500자 이내).
+이전 출시(versionCode 16) 이후 변경 사항. Play Console "출시 노트" 필드에 붙여넣기 (언어별 500자 이내).
 
 ## 한국어
 
