@@ -29,10 +29,6 @@
         </provider>
 
         <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-5173827714526228~5196265164" />
-
-        <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyB8cYpEuWJIpVKqO-FD_911CPeiL9rj7JA" />
     </application>

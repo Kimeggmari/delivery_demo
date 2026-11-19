@@ -18,7 +18,30 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         #else
         Adrop.initialize(production: true, targetCountries: [])
         #endif
+
+        showSplashAd()
         return true
+    }
+
+    // MARK: - Adrop splash ad
+
+    private static let splashAdUnitId = "01M7RV0S5BSE1D24QPV0BSB3TE" // iOS_시작_하단_splash
+    private var mainViewController: UIViewController?
+
+    /// Puts Adrop's splash (logo on top, 360×270 ad at the bottom) in front of
+    /// the Capacitor view controller. The web view starts loading behind it
+    /// right away so the app is ready by the time the ad closes.
+    private func showSplashAd() {
+        guard let window = window, let main = window.rootViewController else { return }
+        main.loadViewIfNeeded()
+        mainViewController = main
+
+        let splash = AdropSplashAdViewController(unitId: Self.splashAdUnitId)
+        splash.logoImage = UIImage(named: "SplashLogo")
+        splash.backgroundColor = UIColor(red: 1.0, green: 0.925, blue: 0.863, alpha: 1)
+        splash.mainViewController = main
+        splash.delegate = self
+        window.rootViewController = splash
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
@@ -56,4 +79,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
 
+}
+
+extension AppDelegate: AdropSplashAdDelegate {
+    #if DEBUG
+    func onAdFailedToReceive(_ ad: AdropSplashAd, _ errorCode: AdropErrorCode) {
+        NSLog("[AdropPlugin] splash failed %@", errorCode.keyString)
+    }
+    #endif
+
+    func onAdClose(_ ad: AdropSplashAd, impressed: Bool) {
+        // The SDK swaps in mainViewController itself; make sure the app ends
+        // up on the Capacitor screen even if it didn't (e.g. ad load failure).
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self, let window = self.window, let main = self.mainViewController else { return }
+            if window.rootViewController !== main && main.view.window == nil {
+                window.rootViewController = main
+            }
+        }
+    }
 }

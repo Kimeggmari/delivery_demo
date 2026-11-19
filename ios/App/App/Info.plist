@@ -49,15 +49,6 @@
 	<true/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
-	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-5173827714526228~5088841963</string>
-	<key>SKAdNetworkItems</key>
-	<array>
-		<dict>
-			<key>SKAdNetworkIdentifier</key>
-			<string>cstr6suwn9.skadnetwork</string>
-		</dict>
-	</array>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>이 식별자는 더 관련성 높은 광고를 보여드리는 데 사용됩니다. / This identifier is used to show you more relevant ads.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

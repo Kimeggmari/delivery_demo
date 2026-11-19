@@ -182,7 +182,7 @@ export const dict = {
     ],
     infoAdsTitle: "📢 광고 안내",
     infoAds:
-      "웹 버전은 Google AdSense, 앱 버전은 Google AdMob을 통해 광고가 표시될 수 있습니다. 광고 수익은 앱 운영 및 서버 비용에 사용됩니다.",
+      "웹 버전은 Google AdSense, iOS 앱 버전은 Adrop을 통해 광고가 표시될 수 있습니다. 광고 수익은 앱 운영 및 서버 비용에 사용됩니다.",
     infoContactTitle: "📬 문의 및 피드백",
     infoContact:
       "앱 사용 중 불편한 점, 버그 제보, 개선 의견은 언제든지 아래 이메일로 보내주세요. 소중한 피드백은 앱 개선에 적극 반영됩니다.",
@@ -527,7 +527,7 @@ export const dict = {
     ],
     infoAdsTitle: "📢 About ads",
     infoAds:
-      "The web version may show ads via Google AdSense, and the app versions via Google AdMob. Ad revenue helps cover running and server costs.",
+      "The web version may show ads via Google AdSense, and the iOS app via Adrop. Ad revenue helps cover running and server costs.",
     infoContactTitle: "📬 Contact & feedback",
     infoContact:
       "Bugs, ideas, complaints — all welcome. Email the address below and we'll read every message.",
