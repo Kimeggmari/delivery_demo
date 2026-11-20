@@ -4,7 +4,7 @@ import { cartItemKcal, cartKcal } from "../lib/savings";
 
 export default function CartPage({
   cart, totals, lang, t, th, onBack, onChangeQty, onRemove, onClearAll, onCheckout, onBrowse,
-  unmetMinOrders, buildOptLabel,
+  unmetMinOrders, buildOptLabel, embedded = false,
 }) {
   const kcal = cartKcal(cart);
   const qtyBtn = {
@@ -16,10 +16,10 @@ export default function CartPage({
   const blocked = unmetMinOrders.length > 0;
 
   return (
-    <div style={{ minHeight: "100dvh", background: th.phone, color: th.text, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif' }}>
-      <div data-ad-clip="top" style={{ position: "sticky", top: 0, zIndex: 10, background: "#fff", borderBottom: "1px solid #f1f5f9", padding: "calc(10px + env(safe-area-inset-top)) 16px 10px" }}>
+    <div style={{ minHeight: embedded ? "100%" : "100dvh", background: embedded ? "transparent" : th.phone, color: th.text, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif', display: "flex", flexDirection: "column" }}>
+      <div data-ad-clip={embedded ? undefined : "top"} className="lgHeader" style={{ position: "sticky", top: 0, zIndex: 10, padding: "max(18px, calc(10px + env(safe-area-inset-top, 0px))) 16px 10px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, maxWidth: 540, margin: "0 auto" }}>
-          <button onClick={onBack} aria-label={t("backAria")} style={{ width: 36, height: 36, borderRadius: 12, border: "none", background: "#f3f4f6", color: "#1c1917", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, flexShrink: 0 }}>←</button>
+          <button onClick={onBack} aria-label={t("backAria")} className="lgPillBtn" style={{ width: 38, height: 38, borderRadius: 999, color: "#1c1917", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, flexShrink: 0 }}>←</button>
           <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900, flex: 1 }}>{t("cartTitle")}</h2>
           {cart.length > 0 && (
             <button onClick={onClearAll} style={{ border: "none", background: "none", color: "#78716c", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>{t("cartClearAll")}</button>
@@ -27,7 +27,7 @@ export default function CartPage({
         </div>
       </div>
 
-      <div style={{ maxWidth: 540, margin: "0 auto", padding: "16px 16px calc(110px + env(safe-area-inset-bottom))", display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 14 }}>
+      <div style={{ flex: 1, maxWidth: 540, width: "100%", margin: "0 auto", padding: embedded ? "16px 16px 24px" : "16px 16px calc(110px + env(safe-area-inset-bottom))", display: "grid", gridTemplateColumns: "minmax(0, 1fr)", alignContent: "start", gap: 14 }}>
         {cart.length === 0 ? (
           <div style={{ background: "#fff", borderRadius: 20, padding: "48px 20px", textAlign: "center", border: cardBorder, boxShadow: th.sectionShadow }}>
             <div style={{ fontSize: 52, marginBottom: 10 }}>🛒</div>
@@ -93,7 +93,7 @@ export default function CartPage({
       </div>
 
       {cart.length > 0 && (
-        <div data-ad-clip="bottom" style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 20, background: "rgba(255,255,255,0.96)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", borderTop: "1px solid rgba(254,215,170,0.55)", boxShadow: "0 -4px 20px rgba(17,24,39,0.06)", padding: "12px 16px calc(12px + env(safe-area-inset-bottom))" }}>
+        <div data-ad-clip={embedded ? undefined : "bottom"} style={{ position: embedded ? "sticky" : "fixed", left: 0, right: 0, bottom: 0, zIndex: 20, background: "rgba(255,255,255,0.96)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", borderTop: "1px solid rgba(254,215,170,0.55)", boxShadow: "0 -4px 20px rgba(17,24,39,0.06)", padding: "12px 16px calc(12px + env(safe-area-inset-bottom))" }}>
           <button
             onClick={onCheckout}
             disabled={blocked}

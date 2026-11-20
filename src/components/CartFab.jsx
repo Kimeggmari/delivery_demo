@@ -13,9 +13,12 @@ export default function CartFab({ count, total, onClick, bottom, lang, t, th }) 
       <button
         onClick={onClick}
         style={{
-          pointerEvents: "auto", width: "100%", maxWidth: 508, border: "none", cursor: "pointer", fontFamily: "inherit",
-          display: "flex", alignItems: "center", gap: 10, padding: "14px 18px", borderRadius: 18,
-          background: th.primaryBtn, color: "#fff", boxShadow: "0 10px 24px " + th.primaryBtn + "55",
+          pointerEvents: "auto", width: "100%", maxWidth: 440, border: "1px solid rgba(255,255,255,0.42)", cursor: "pointer", fontFamily: "inherit",
+          display: "flex", alignItems: "center", gap: 10, padding: "13px 18px", borderRadius: 999,
+          background: "linear-gradient(180deg, rgba(251,146,60,0.9), rgba(234,88,12,0.88))",
+          backdropFilter: "blur(20px) saturate(190%)", WebkitBackdropFilter: "blur(20px) saturate(190%)",
+          color: "#fff",
+          boxShadow: "0 12px 28px rgba(234,88,12,0.34), inset 0 1px 0 rgba(255,255,255,0.48)",
           animation: "slideUp .25s ease",
         }}
       >

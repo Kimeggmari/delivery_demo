@@ -34,6 +34,9 @@ import { requestAdTracking, showLaunchPopupAd } from "./lib/ads";
 import { ADROP_UNITS } from "./lib/adrop";
 import AdropSlot from "./components/AdropSlot";
 import BottomTabBar, { TAB_BAR_HEIGHT } from "./components/BottomTabBar";
+import DuoNavRail from "./components/DuoNavRail";
+import useDuoLayout from "./lib/useDuoLayout";
+import { LiquidGlass, useNativeLiquidGlass } from "./lib/liquidGlass";
 import CartFab, { Toast } from "./components/CartFab";
 import RestaurantCard from "./components/RestaurantCard";
 import HomeEventCarousel from "./components/HomeEventCarousel";
@@ -135,8 +138,8 @@ function ReviewModal({ restaurant, onClose, t, lang, uid, th }) {
   };
 
   return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "14px 20px calc(32px + env(safe-area-inset-bottom))", width: "100%", maxWidth: 540, maxHeight: "82dvh", overflowY: "auto", overscrollBehavior: "contain", animation: "slideUp .3s ease" }}>
+    <div onClick={onClose} className="lgBackdrop" style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+      <div onClick={e => e.stopPropagation()} className="lgSheet" style={{ borderRadius: "28px 28px 0 0", padding: "14px 20px calc(32px + env(safe-area-inset-bottom))", width: "100%", maxWidth: 540, maxHeight: "82dvh", overflowY: "auto", overscrollBehavior: "contain", animation: "slideUp .3s ease" }}>
         <div style={{ width: 38, height: 4, borderRadius: 999, background: "#e5e7eb", margin: "0 auto 14px" }} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <div>
@@ -233,19 +236,19 @@ function InfoModal({ onClose, email = "eggmari5713@gmail.com", onPrivacy, t, lan
   return (
     <div
       onClick={onClose}
+      className="lgBackdrop"
       style={{
         position: "fixed", inset: 0, zIndex: 120,
-        background: "rgba(0,0,0,0.5)",
         display: "flex", alignItems: "flex-end", justifyContent: "center",
         padding: "0",
       }}
     >
       <div
         onClick={e => e.stopPropagation()}
+        className="lgSheet"
         style={{
           width: "100%", maxWidth: 540,
-          background: "#fff",
-          borderRadius: "24px 24px 0 0",
+          borderRadius: "28px 28px 0 0",
           padding: "14px 20px calc(40px + env(safe-area-inset-bottom))",
           maxHeight: "92dvh",
           overflowY: "auto",
@@ -260,7 +263,7 @@ function InfoModal({ onClose, email = "eggmari5713@gmail.com", onPrivacy, t, lan
             <div style={{ fontSize: 22, fontWeight: 900, lineHeight: 1.2 }}>{t("appName")} 🍱</div>
             <div style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>{t("infoSubtitle")}</div>
           </div>
-          <button onClick={onClose} aria-label="Close" style={{ width: 36, height: 36, borderRadius: 12, border: "none", background: "#f3f4f6", color: "#374151", fontSize: 17, cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>✕</button>
+          <button onClick={onClose} aria-label="Close" className="lgPillBtn" style={{ width: 36, height: 36, borderRadius: 999, color: "#374151", fontSize: 16, cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>✕</button>
         </div>
 
         <div style={{ background: "linear-gradient(135deg,#fff7ed,#ffedd5)", border: "1px solid #fed7aa", borderRadius: 18, padding: "16px 18px", marginBottom: 20 }}>
@@ -637,8 +640,8 @@ function OptionSheet({ menu, onClose, onConfirm, brand, t, lang }) {
   const kcalPerUnit = unitKcal(menu, opts.size ? size : null, toppings);
 
   return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "14px 20px calc(24px + env(safe-area-inset-bottom))", width: "100%", maxWidth: 540, maxHeight: "86dvh", overflowY: "auto", overscrollBehavior: "contain", animation: "slideUp .25s ease" }}>
+    <div onClick={onClose} className="lgBackdrop" style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+      <div onClick={e => e.stopPropagation()} className="lgSheet" style={{ borderRadius: "28px 28px 0 0", padding: "14px 20px calc(24px + env(safe-area-inset-bottom))", width: "100%", maxWidth: 540, maxHeight: "86dvh", overflowY: "auto", overscrollBehavior: "contain", animation: "slideUp .25s ease" }}>
         <div style={{ width: 38, height: 4, borderRadius: 999, background: "#e5e7eb", margin: "0 auto 14px" }} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 14, marginBottom: 20 }}>
           <div style={{ display: "flex", gap: 14, minWidth: 0, flex: 1 }}>
@@ -819,6 +822,9 @@ export default function App() {
   const [detailId, setDetailId] = useState(null);
   const [detailReturnPage, setDetailReturnPage] = useState("order");
   const [cartReturnPage, setCartReturnPage] = useState("order");
+  const isDuo = useDuoLayout();
+  const nativeLiquidGlass = useNativeLiquidGlass();
+  const [duoRightMode, setDuoRightMode] = useState("restaurant"); // "restaurant" | "cart"
   const [toast, setToast] = useState(null);
   const toastTimerRef = useRef(null);
   const listRef = useRef(null);
@@ -875,10 +881,11 @@ export default function App() {
     }
   }, [lang]);
 
-  // Every screen change starts at the top, like a native navigation push.
+  // Every screen change starts at the top, like a native navigation push
+  // (skipped in Duo split mode when simply switching the right-pane restaurant).
   useEffect(() => {
-    if (typeof window !== "undefined") window.scrollTo(0, 0);
-  }, [page, detailId]);
+    if (typeof window !== "undefined" && !isDuo) window.scrollTo(0, 0);
+  }, [page, detailId, isDuo]);
 
   const [customRestaurants, setCustomRestaurants] = useState([]);
   const [customMenus, setCustomMenus] = useState([]);
@@ -1055,12 +1062,20 @@ export default function App() {
   }, [page, showInfoModal]);
 
   const openRestaurant = (r) => {
-    if (TAB_PAGES.includes(page)) setDetailReturnPage(page);
     setDetailId(r.id);
+    if (isDuo && TAB_PAGES.includes(page)) {
+      setDuoRightMode("restaurant");
+      return;
+    }
+    if (TAB_PAGES.includes(page)) setDetailReturnPage(page);
     setPage("restaurant");
   };
 
   const openCart = () => {
+    if (isDuo && TAB_PAGES.includes(page)) {
+      setDuoRightMode("cart");
+      return;
+    }
     if (page !== "cart" && page !== "checkout") setCartReturnPage(page);
     setPage("cart");
   };
@@ -1295,16 +1310,16 @@ export default function App() {
 
   const css = {
     wrap: { minHeight: "100dvh", background: th.phone, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif', color: th.text, display: "flex", flexDirection: "column" },
-    header: { position: "sticky", top: 0, zIndex: 10, background: "linear-gradient(180deg," + th.headerStart + "," + th.headerEnd + ")", color: th.headerColor, padding: "calc(12px + env(safe-area-inset-top)) 16px 14px", borderBottom: th.headerBorderBottom, boxShadow: "0 4px 16px rgba(234,88,12,0.14)" },
-    plainHeader: { position: "sticky", top: 0, zIndex: 10, background: "#fff", borderBottom: "1px solid #f1f5f9", padding: "calc(12px + env(safe-area-inset-top)) 16px 12px" },
-    content: { flex: 1, padding: "16px 16px 100px", display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 14, alignContent: "start", maxWidth: 540, width: "100%", margin: "0 auto", boxSizing: "border-box" },
-    section: { background: "#fff", borderRadius: 20, padding: 16, border: "1px solid " + th.cardBorder, boxShadow: th.sectionShadow, minWidth: 0 },
-    input: { width: "100%", padding: "14px 16px", border: "1px solid #e5e7eb", outline: "none", borderRadius: 14, background: "#fff", color: th.text, fontFamily: "inherit", fontSize: 16, boxSizing: "border-box" },
-    bottomBar: { position: "fixed", left: 0, right: 0, bottom: 0, background: th.bottomBarBg, borderTop: "1px solid " + th.bottomBarBorder, backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", boxShadow: "0 -4px 20px rgba(17,24,39,0.06)", padding: "12px 16px calc(12px + env(safe-area-inset-bottom))", display: "flex", justifyContent: "center", zIndex: 20 },
+    header: { position: "sticky", top: 0, zIndex: 10, color: th.headerColor, padding: "max(18px, calc(12px + env(safe-area-inset-top, 0px))) 18px 14px" },
+    plainHeader: { position: "sticky", top: 0, zIndex: 10, padding: "max(18px, calc(12px + env(safe-area-inset-top, 0px))) max(18px, env(safe-area-inset-right, 0px)) 12px max(18px, env(safe-area-inset-left, 0px))" },
+    content: { flex: 1, padding: "16px 18px 100px", display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 14, alignContent: "start", maxWidth: 540, width: "100%", margin: "0 auto", boxSizing: "border-box" },
+    section: { background: "#fff", borderRadius: 22, padding: 16, border: "1px solid " + th.cardBorder, boxShadow: th.sectionShadow, minWidth: 0 },
+    input: { width: "100%", padding: "14px 16px", border: "1px solid rgba(229,231,235,0.9)", outline: "none", borderRadius: 14, background: "#fff", color: th.text, fontFamily: "inherit", fontSize: 16, boxSizing: "border-box" },
+    bottomBar: { position: "fixed", left: 0, right: 0, bottom: 0, background: th.bottomBarBg, borderTop: "1px solid " + th.bottomBarBorder, backdropFilter: "blur(26px) saturate(210%)", WebkitBackdropFilter: "blur(26px) saturate(210%)", boxShadow: "0 -6px 24px rgba(17,24,39,0.06), inset 0 1px 0 rgba(255,255,255,0.92)", padding: "12px max(18px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left, 0px))", display: "flex", justifyContent: "center", zIndex: 20 },
     bottomInner: { display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", maxWidth: 540, width: "100%" },
-    orderBtn: { border: "none", background: th.primaryBtn, color: "#fff", padding: "14px 20px", borderRadius: 16, fontSize: 14, fontWeight: 900, cursor: "pointer", minWidth: 140, boxShadow: "0 8px 20px " + th.primaryBtn + "44", fontFamily: "inherit" },
-    iconBtn: { width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 999, background: th.iconBtnBg, fontSize: 16, color: th.iconBtnColor, border: "none", cursor: "pointer", padding: 0 },
-    backBtn: { width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, fontSize: 18, border: "none", cursor: "pointer", background: "#f3f4f6", color: "#1c1917", flexShrink: 0, padding: 0 },
+    orderBtn: { border: "1px solid rgba(255,255,255,0.35)", background: "linear-gradient(180deg, #fb923c, #ea580c)", color: "#fff", padding: "14px 20px", borderRadius: 999, fontSize: 14, fontWeight: 900, cursor: "pointer", minWidth: 140, boxShadow: "0 8px 20px rgba(234,88,12,0.32), inset 0 1px 0 rgba(255,255,255,0.42)", fontFamily: "inherit" },
+    iconBtn: { width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 999, fontSize: 16, color: "#1c1917", cursor: "pointer", padding: 0 },
+    backBtn: { width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 999, fontSize: 18, cursor: "pointer", color: "#1c1917", flexShrink: 0, padding: 0 },
     langBtn: { border: "none", borderRadius: 10, background: "rgba(255,255,255,0.18)", color: th.headerColor, padding: "5px 7px", fontWeight: 800, cursor: "pointer", fontFamily: "inherit", fontSize: 11, letterSpacing: 0.3 },
   };
 
@@ -1319,13 +1334,86 @@ export default function App() {
   // Bottom spacing for tab screens: tab bar + floating cart button.
   const tabFabBottom = "calc(" + (TAB_BAR_HEIGHT + 10) + "px + env(safe-area-inset-bottom))";
   const tabToastBottom = "calc(" + (TAB_BAR_HEIGHT + (cartCount ? 82 : 12)) + "px + env(safe-area-inset-bottom))";
-  const tabBottomPadding = "calc(" + (TAB_BAR_HEIGHT + (cartCount ? 90 : 24)) + "px + env(safe-area-inset-bottom))";
+  const tabBottomPadding = "calc(" + (TAB_BAR_HEIGHT + (cartCount ? 90 : 28)) + "px + env(safe-area-inset-bottom))";
+
+  // Sync React navigation / cart / modal state to native iOS 26/27 Liquid Glass chrome
+  const anyModalOpen = !!(
+    reviewTarget || optionTarget || showInfoModal || showSettings ||
+    showAdminPanel || showAddRestaurant || addMenuTarget ||
+    publishTarget || shareRecord || showReceipt
+  );
+
+  useEffect(() => {
+    if (!nativeLiquidGlass) return undefined;
+    let active = true;
+    const handles = [];
+    (async () => {
+      const h1 = await LiquidGlass.addListener("tabSelected", ({ tab }) => {
+        if (active && tab) setPage(tab);
+      });
+      const h2 = await LiquidGlass.addListener("cartTapped", () => {
+        if (!active) return;
+        if (isDuo) {
+          setDuoRightMode(prev => (prev === "cart" ? "restaurant" : "cart"));
+        } else {
+          openCart();
+        }
+      });
+      const h3 = await LiquidGlass.addListener("settingsTapped", () => {
+        if (active) setShowSettings(true);
+      });
+      if (active) handles.push(h1, h2, h3);
+      else { h1.remove(); h2.remove(); h3.remove(); }
+    })();
+    return () => {
+      active = false;
+      handles.forEach(h => h.remove());
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nativeLiquidGlass, isDuo, page]);
+
+  useEffect(() => {
+    if (!nativeLiquidGlass) return;
+    const isTab = TAB_PAGES.includes(page);
+    const showChrome = !anyModalOpen && (
+      isTab ||
+      (!isDuo && page === "restaurant") ||
+      (isDuo && (page === "restaurant" || page === "cart"))
+    );
+    LiquidGlass.updateState({
+      visible: showChrome,
+      mode: isDuo ? "rail" : "bottom",
+      showTabs: isDuo ? true : isTab,
+      activeTab: isTab ? page : "order",
+      labels: [t("tabHome"), t("tabSearch"), t("tabFavorites"), t("tabMySavings")],
+      cartCount,
+      cartLabel: t("cartFabLabel"),
+      cartTotal: fmt(totals.total, lang),
+      cartActive: isDuo && (duoRightMode === "cart" || page === "cart"),
+    }).catch(() => {});
+  }, [
+    nativeLiquidGlass, anyModalOpen, isDuo, page, duoRightMode,
+    cartCount, totals.total, lang, t,
+  ]);
 
   const tabChrome = (active) => (
     <>
-      <CartFab count={cartCount} total={totals.total} onClick={openCart} bottom={tabFabBottom} lang={lang} t={t} th={th} />
+      {nativeLiquidGlass ? (
+        <div
+          data-ad-clip="bottom"
+          style={{
+            position: "fixed", left: 0, right: 0, bottom: 0,
+            height: "calc(" + (TAB_BAR_HEIGHT + (cartCount ? 64 : 6)) + "px + env(safe-area-inset-bottom))",
+            pointerEvents: "none",
+          }}
+        />
+      ) : (
+        <>
+          <CartFab count={cartCount} total={totals.total} onClick={openCart} bottom={tabFabBottom} lang={lang} t={t} th={th} />
+          <BottomTabBar active={active} onSelect={setPage} t={t} th={th} />
+        </>
+      )}
       <Toast message={toast} bottom={tabToastBottom} />
-      <BottomTabBar active={active} onSelect={setPage} t={t} th={th} />
     </>
   );
 
@@ -1415,7 +1503,7 @@ export default function App() {
     );
   }
 
-  if (page === "restaurant") {
+  if (!isDuo && page === "restaurant") {
     const r = allRestaurants.find(x => x.id === detailId);
     if (!r) {
       return (
@@ -1452,13 +1540,15 @@ export default function App() {
           onDeleteRestaurant={handleDeleteRestaurant} onReportRestaurant={handleReportRestaurant}
           bottomPadding={cartCount ? "calc(100px + env(safe-area-inset-bottom))" : "calc(32px + env(safe-area-inset-bottom))"}
         />
-        <CartFab count={cartCount} total={totals.total} onClick={openCart} bottom="calc(16px + env(safe-area-inset-bottom))" lang={lang} t={t} th={th} />
+        {!nativeLiquidGlass && (
+          <CartFab count={cartCount} total={totals.total} onClick={openCart} bottom="calc(16px + env(safe-area-inset-bottom))" lang={lang} t={t} th={th} />
+        )}
         <Toast message={toast} bottom={cartCount ? "calc(88px + env(safe-area-inset-bottom))" : "calc(16px + env(safe-area-inset-bottom))"} />
       </>
     );
   }
 
-  if (page === "cart") {
+  if (!isDuo && page === "cart") {
     return (
       <>
         <style>{globalStyle}</style>
@@ -1474,7 +1564,7 @@ export default function App() {
     );
   }
 
-  if (page === "search") {
+  if (!isDuo && page === "search") {
     return (
       <>
         <style>{globalStyle}</style>
@@ -1489,7 +1579,7 @@ export default function App() {
     );
   }
 
-  if (page === "favorites") {
+  if (!isDuo && page === "favorites") {
     return (
       <>
         <style>{globalStyle}</style>
@@ -1503,7 +1593,7 @@ export default function App() {
     );
   }
 
-  if (page === "my") {
+  if (!isDuo && page === "my") {
     return (
       <>
         <style>{globalStyle}</style>
@@ -1558,7 +1648,7 @@ export default function App() {
             onClose={() => setShareRecord(null)}
           />
         )}
-        <div data-ad-clip="top" style={css.plainHeader}>
+        <div data-ad-clip="top" className="lgHeader" style={css.plainHeader}>
           <h2 style={{ maxWidth: 540, margin: "0 auto", fontSize: 19, fontWeight: 900, letterSpacing: -0.3 }}>{t("completePageTitle")}</h2>
         </div>
         <div style={{ ...css.content, paddingBottom: "calc(36px + env(safe-area-inset-bottom))" }}>
@@ -1639,7 +1729,7 @@ export default function App() {
         {deliveryNotif && (
           <NotificationBanner appName={t("appName")} title={deliveryNotif.title} body={deliveryNotif.body} onDone={() => setDeliveryNotif(null)} />
         )}
-        <div data-ad-clip="top" style={css.plainHeader}>
+        <div data-ad-clip="top" className="lgHeader" style={css.plainHeader}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, maxWidth: 540, margin: "0 auto" }}>
             <button onClick={() => setPage("order")} aria-label={t("backAria")} style={css.backBtn}>←</button>
             <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900, flex: 1 }}>{t("trackPageTitle")}</h2>
@@ -1726,9 +1816,9 @@ export default function App() {
     return (
       <div style={css.wrap}>
         <style>{globalStyle}</style>
-        <div data-ad-clip="top" style={css.plainHeader}>
+        <div data-ad-clip="top" className="lgHeader" style={css.plainHeader}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, maxWidth: 540, margin: "0 auto" }}>
-            <button onClick={() => setPage("cart")} aria-label={t("backAria")} style={css.backBtn}>←</button>
+            <button onClick={() => setPage("cart")} aria-label={t("backAria")} className="lgPillBtn" style={css.backBtn}>←</button>
             <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>{t("checkoutTitle")}</h2>
           </div>
         </div>
@@ -1863,14 +1953,29 @@ export default function App() {
     );
   }
 
-  // ── Home (order) tab
+  // ── Home (order) tab & Duo (foldable / wide) 2-pane master–detail shell
   const homeAdHidden = !!(reviewTarget || showInfoModal || showSettings || (showAdminPanel && isAdminUid(uid)));
   const eventSlides = dict[lang]?.eventSlides || dict.ko.eventSlides;
-  return (
-    <div style={css.wrap}>
-      <style>{globalStyle}</style>
+  const activeDuoRestaurant = allRestaurants.find(x => x.id === detailId) || filtered[0] || allRestaurants[0] || null;
+  const activeDuoTab = TAB_PAGES.includes(page) ? page : "order";
+  const showDuoCart = duoRightMode === "cart" || page === "cart";
+
+  const sharedModals = (
+    <>
       {reviewModal}
       {infoModal}
+      {optionTarget && optMenu && (
+        <OptionSheet
+          menu={optMenu}
+          brand={th.primaryBtn}
+          onClose={() => setOptionTarget(null)}
+          onConfirm={({ spicy, size, toppings, qty, extraPrice, kcal }) =>
+            addToCartDirect(optionTarget.rid, optionTarget.mid, qty, extraPrice, spicy, size, toppings, kcal)
+          }
+          t={t}
+          lang={lang}
+        />
+      )}
       {showSettings && (
         <SettingsModal
           onClose={() => setShowSettings(false)}
@@ -1902,26 +2007,34 @@ export default function App() {
           th={th}
         />
       )}
-      <div data-ad-clip="top" style={css.header}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, maxWidth: 540, margin: "0 auto", minHeight: 36 }}>
-          <div style={{ flex: 1, textAlign: "left", minWidth: 0, display: "flex", alignItems: "center", gap: 6 }}>
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0, opacity: 0.95 }}>
-              <path d="M12 21s-6.5-5.2-6.5-11a6.5 6.5 0 1 1 13 0c0 5.8-6.5 11-6.5 11z" />
-              <circle cx="12" cy="10" r="2.3" />
-            </svg>
-            <div style={{ fontSize: 16, fontWeight: 900, lineHeight: 1.2, letterSpacing: -0.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {t("deliveryAddrValue")}
+    </>
+  );
+
+  const homeMasterBody = (
+    <>
+      <div data-ad-clip="top" className="lgBrandHeader" style={css.header}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, maxWidth: 540, margin: "0 auto", minHeight: 38 }}>
+          <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center" }}>
+            <div className="lgPillBtn" style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px 0 11px", borderRadius: 999, maxWidth: "100%" }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={th.brandDark} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
+                <path d="M12 21s-6.5-5.2-6.5-11a6.5 6.5 0 1 1 13 0c0 5.8-6.5 11-6.5 11z" />
+                <circle cx="12" cy="10" r="2.3" />
+              </svg>
+              <div style={{ fontSize: 15, fontWeight: 900, color: "#1c1917", lineHeight: 1.2, letterSpacing: -0.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {t("deliveryAddrValue")}
+              </div>
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
             {isAdminUid(uid) && (
               <button
                 onClick={() => setShowAdminPanel(true)}
+                className="lgPillBtn"
                 style={{ ...css.iconBtn, position: "relative" }}
                 aria-label={t("adminIconAria")}
                 title={t("adminIconAria")}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c1917" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M12 3 5 6v6c0 4.5 3 7.8 7 9 4-1.2 7-4.5 7-9V6l-7-3z" />
                 </svg>
                 {(pendingRestaurants.length + pendingMenus.length) > 0 && (
@@ -1929,23 +2042,26 @@ export default function App() {
                 )}
               </button>
             )}
-            <button onClick={() => showToast(t("bellEmpty"))} style={css.iconBtn} aria-label={t("bellAria")} title={t("bellAria")}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <button onClick={() => showToast(t("bellEmpty"))} className="lgPillBtn" style={css.iconBtn} aria-label={t("bellAria")} title={t("bellAria")}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c1917" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M18 8a6 6 0 0 0-12 0c0 7-3 8.5-3 8.5h18s-3-1.5-3-8.5" />
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
             </button>
-            <button onClick={() => setShowSettings(true)} style={css.iconBtn} aria-label={t("settingsAria")} title={t("settingsTitle")}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="3" />
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-              </svg>
-            </button>
+            {!isDuo && (
+              <button onClick={() => setShowSettings(true)} className="lgPillBtn" style={css.iconBtn} aria-label={t("settingsAria")} title={t("settingsTitle")}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c1917" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
         <button
           onClick={() => setPage("search")}
-          style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", maxWidth: 540, margin: "12px auto 0", border: "none", borderRadius: 14, background: "#fff", padding: "12px 14px", cursor: "pointer", fontFamily: "inherit", textAlign: "left", boxShadow: th.inputShadow }}
+          className="lgSearchPill"
+          style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", maxWidth: 540, margin: "12px auto 0", borderRadius: 999, padding: "12px 16px", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}
         >
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#78716c" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
             <circle cx="11" cy="11" r="7" />
@@ -1955,7 +2071,7 @@ export default function App() {
         </button>
       </div>
 
-      <div style={{ ...css.content, paddingBottom: tabBottomPadding }}>
+      <div style={{ ...css.content, paddingBottom: isDuo ? "calc(28px + env(safe-area-inset-bottom))" : tabBottomPadding }}>
         {orderInfo && (
           <div
             onClick={() => setPage("tracking")}
@@ -2054,6 +2170,7 @@ export default function App() {
                 key={r.id} r={r} lang={lang} t={t} th={th}
                 isFav={favorites.includes(r.id)} onToggleFav={toggleFavorite} onOpen={openRestaurant}
                 reviewCount={reviewCountFor(r)}
+                selected={isDuo && !showDuoCart && activeDuoRestaurant?.id === r.id}
               />
             )), 1, (
               <AdropSlot
@@ -2071,7 +2188,96 @@ export default function App() {
 
         <Footer th={th} t={t} onInfo={() => setShowInfoModal(true)} onPrivacy={() => setPage("privacy")} />
       </div>
+    </>
+  );
 
+  if (isDuo) {
+    const duoMasterBottom = "calc(28px + env(safe-area-inset-bottom))";
+    const selectedId = !showDuoCart ? activeDuoRestaurant?.id : null;
+    const leftPane = activeDuoTab === "search" ? (
+      <SearchPage
+        query={searchQuery} onQueryChange={setSearchQuery}
+        restaurants={allRestaurants} lang={lang} t={t} th={th}
+        favorites={favorites} onToggleFav={toggleFavorite} onOpen={openRestaurant}
+        reviewCountFor={reviewCountFor} bottomPadding={duoMasterBottom}
+        selectedId={selectedId} embedded
+      />
+    ) : activeDuoTab === "favorites" ? (
+      <FavoritesPage
+        restaurants={allRestaurants} favorites={favorites} lang={lang} t={t} th={th}
+        onToggleFav={toggleFavorite} onOpen={openRestaurant} onBrowse={() => setPage("order")}
+        reviewCountFor={reviewCountFor} bottomPadding={duoMasterBottom}
+        selectedId={selectedId}
+      />
+    ) : activeDuoTab === "my" ? (
+      <MySavingsPage
+        th={th} t={t} lang={lang} uid={uid}
+        history={history}
+        allRestaurants={allRestaurants}
+        onWriteReview={setReviewTarget}
+        onClear={clearAllActivity}
+        onInfo={() => setShowInfoModal(true)}
+        onPrivacy={() => setPage("privacy")}
+        bottomPadding={duoMasterBottom}
+      />
+    ) : homeMasterBody;
+
+    return (
+      <div className={nativeLiquidGlass ? "duoShell duoNativeRail" : "duoShell"} style={{ fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif', color: th.text }}>
+        <style>{globalStyle}</style>
+        {sharedModals}
+        {!nativeLiquidGlass && (
+          <DuoNavRail
+            active={activeDuoTab}
+            cartCount={cartCount}
+            cartActive={showDuoCart}
+            onSelect={(tab) => { setPage(tab); }}
+            onOpenCart={() => setDuoRightMode(prev => (prev === "cart" ? "restaurant" : "cart"))}
+            onOpenSettings={() => setShowSettings(true)}
+            t={t}
+            th={th}
+          />
+        )}
+        <div className="duoSplit">
+          <div className="duoPane">{leftPane}</div>
+          <div className="duoPane duoDetailPane">
+            {showDuoCart ? (
+              <CartPage
+                embedded
+                cart={cart} totals={totals} lang={lang} t={t} th={th}
+                onBack={() => { setDuoRightMode("restaurant"); if (page === "cart") setPage(cartReturnPage); }}
+                onChangeQty={changeQty} onRemove={removeCartItem} onClearAll={clearCart}
+                onCheckout={() => setPage("checkout")}
+                onBrowse={() => { setDuoRightMode("restaurant"); setPage("order"); }}
+                unmetMinOrders={unmetMinOrders}
+                buildOptLabel={(item) => buildOptLabel(item, t, lang)}
+              />
+            ) : activeDuoRestaurant ? (
+              <RestaurantDetailPage
+                embedded
+                r={activeDuoRestaurant} lang={lang} t={t} th={th}
+                onBack={() => setPage("order")}
+                isFav={favorites.includes(activeDuoRestaurant.id)} onToggleFav={toggleFavorite}
+                onAddMenu={(m) => openOption(activeDuoRestaurant.id, m.id)} addedMenuId={addedAnim}
+                reviewCount={reviewCountFor(activeDuoRestaurant)} onOpenReviews={setReviewTarget}
+                uid={uid} customMenuIds={customMenuIds}
+                onDeleteMenu={handleDeleteMenu} onReportMenu={handleReportMenu}
+                onDeleteRestaurant={handleDeleteRestaurant} onReportRestaurant={handleReportRestaurant}
+                bottomPadding="calc(36px + env(safe-area-inset-bottom))"
+              />
+            ) : null}
+          </div>
+        </div>
+        <Toast message={toast} bottom="calc(20px + env(safe-area-inset-bottom))" />
+      </div>
+    );
+  }
+
+  return (
+    <div style={css.wrap}>
+      <style>{globalStyle}</style>
+      {sharedModals}
+      {homeMasterBody}
       {tabChrome("order")}
     </div>
   );

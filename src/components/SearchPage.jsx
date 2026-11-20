@@ -9,7 +9,7 @@ const HASHTAGS = [
   { ko: "제육", en: "jeyuk" }, { ko: "빙수", en: "bingsu" },
 ];
 
-export default function SearchPage({ query, onQueryChange, restaurants, lang, t, th, favorites, onToggleFav, onOpen, reviewCountFor, bottomPadding }) {
+export default function SearchPage({ query, onQueryChange, restaurants, lang, t, th, favorites, onToggleFav, onOpen, reviewCountFor, bottomPadding, selectedId, embedded = false }) {
   const inputRef = useRef(null);
   useEffect(() => { inputRef.current?.focus(); }, []);
   const results = restaurants.filter(r => matchesQuery(r, query));
@@ -17,8 +17,8 @@ export default function SearchPage({ query, onQueryChange, restaurants, lang, t,
   const tags = HASHTAGS.filter(tag => restaurants.some(r => matchesQuery(r, tag.ko) || matchesQuery(r, tag.en)));
 
   return (
-    <div style={{ minHeight: "100dvh", background: th.phone, color: th.text, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif' }}>
-      <div data-ad-clip="top" style={{ position: "sticky", top: 0, zIndex: 10, background: "#fff", borderBottom: "1px solid #f1f5f9", padding: "calc(12px + env(safe-area-inset-top)) 16px 12px" }}>
+    <div style={{ minHeight: embedded ? "100%" : "100dvh", background: th.phone, color: th.text, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif' }}>
+      <div data-ad-clip="top" className="lgHeader" style={{ position: "sticky", top: 0, zIndex: 10, padding: "max(18px, calc(12px + env(safe-area-inset-top, 0px))) 16px 12px" }}>
         <div style={{ maxWidth: 540, margin: "0 auto" }}>
           <h2 style={{ margin: "0 0 10px", fontSize: 20, fontWeight: 900, letterSpacing: -0.3 }}>{t("searchPageTitle")}</h2>
           <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#f5f5f4", borderRadius: 14, padding: "0 12px" }}>
@@ -68,7 +68,7 @@ export default function SearchPage({ query, onQueryChange, restaurants, lang, t,
           <RestaurantCard
             key={r.id} r={r} lang={lang} t={t} th={th}
             isFav={favorites.includes(r.id)} onToggleFav={onToggleFav} onOpen={onOpen}
-            reviewCount={reviewCountFor(r)}
+            reviewCount={reviewCountFor(r)} selected={selectedId === r.id}
           />
         ))}
       </div>

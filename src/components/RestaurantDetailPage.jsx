@@ -35,9 +35,9 @@ function MenuRow({ m, tag, lang, t, th, onAdd, justAdded, uid, isCustomMenu, onD
           {m.status === "pending" && <span style={{ fontSize: 9, fontWeight: 800, color: "#d97706", background: "#fef3c7", borderRadius: 999, padding: "1px 6px", flexShrink: 0 }}>{t("pendingBadge")}</span>}
         </div>
         <div style={{ color: "#6b7280", fontSize: 12, marginTop: 3, lineHeight: 1.45, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{pick(m.desc, lang)}</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6, fontVariantNumeric: "tabular-nums" }}>
-          <span style={{ fontWeight: 900, fontSize: 15, color: "#1c1917" }}>{fmt(m.price, lang)}</span>
-          <span style={{ fontSize: 11, fontWeight: 800, color: "#ea580c" }}>🔥 {baseKcal(m).toLocaleString()} kcal</span>
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "4px 8px", marginTop: 6, fontVariantNumeric: "tabular-nums" }}>
+          <span style={{ fontWeight: 900, fontSize: 15, color: "#1c1917", whiteSpace: "nowrap" }}>{fmt(m.price, lang)}</span>
+          <span style={{ fontSize: 11, fontWeight: 800, color: "#ea580c", whiteSpace: "nowrap" }}>🔥 {baseKcal(m).toLocaleString()} kcal</span>
         </div>
         {hasOpts && <div style={{ fontSize: 10, color: th.brand, fontWeight: 700, marginTop: 3 }}>{t("optionAvail")}</div>}
         {isCustomMenu && m.addedBy === uid && (
@@ -48,7 +48,7 @@ function MenuRow({ m, tag, lang, t, th, onAdd, justAdded, uid, isCustomMenu, onD
         )}
       </div>
       <div style={{ position: "relative", flexShrink: 0 }}>
-        <MenuImage src={m.photo || getMenuImageSrc(m.id)} alt={pick(m.name, lang)} width={88} height={88} borderRadius={16} />
+        <MenuImage src={m.photo || getMenuImageSrc(m.id)} alt={pick(m.name, lang)} width={80} height={80} borderRadius={16} />
         <div style={{
           position: "absolute", right: -4, bottom: -4, width: 28, height: 28, borderRadius: 999,
           background: justAdded ? "#16a34a" : th.primaryBtn, color: "#fff", fontSize: 16, fontWeight: 900, lineHeight: 1,
@@ -64,6 +64,7 @@ function MenuRow({ m, tag, lang, t, th, onAdd, justAdded, uid, isCustomMenu, onD
 export default function RestaurantDetailPage({
   r, lang, t, th, onBack, isFav, onToggleFav, onAddMenu, addedMenuId, reviewCount, onOpenReviews,
   uid, customMenuIds, onDeleteMenu, onReportMenu, onDeleteRestaurant, onReportRestaurant, bottomPadding,
+  embedded = false,
 }) {
   const { main, side } = splitMenus(r.menus);
   const nightPick = main.length > 1
@@ -91,23 +92,25 @@ export default function RestaurantDetailPage({
   });
 
   return (
-    <div style={{ minHeight: "100dvh", background: th.phone, color: th.text, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif' }}>
-      <div style={{ height: 214, background: brandBannerFor(r), position: "relative", overflow: "hidden" }}>
+    <div style={{ minHeight: embedded ? "100%" : "100dvh", background: embedded ? "transparent" : th.phone, color: th.text, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif' }}>
+      <div style={{ height: embedded ? 186 : 214, background: brandBannerFor(r), position: "relative", overflow: "hidden", borderRadius: embedded ? "0 0 24px 24px" : 0 }}>
         <div style={{
           position: "absolute", left: "50%", bottom: 18, transform: "translateX(-50%)",
           width: 176, height: 176, borderRadius: 999,
           background: "rgba(255,255,255,0.34)", pointerEvents: "none",
         }} />
         <div style={{ position: "absolute", left: "50%", bottom: 48, transform: "translateX(-50%)" }}>
-          <RestaurantLogo restaurant={r} size={92} />
+          <RestaurantLogo restaurant={r} size={embedded ? 84 : 92} />
         </div>
-        <div data-ad-clip="top" style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "calc(10px + env(safe-area-inset-top)) 16px 10px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <button onClick={onBack} aria-label={t("backAria")} style={{ width: 38, height: 38, borderRadius: 999, border: "none", background: "rgba(255,255,255,0.92)", color: "#1c1917", fontSize: 18, cursor: "pointer", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>←</button>
+        <div data-ad-clip={embedded ? undefined : "top"} style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "max(18px, calc(10px + env(safe-area-inset-top, 0px))) 18px 10px", display: "flex", justifyContent: embedded ? "flex-end" : "space-between", alignItems: "center" }}>
+          {!embedded && (
+            <button onClick={onBack} aria-label={t("backAria")} className="lgPillBtn" style={{ width: 38, height: 38, borderRadius: 999, color: "#1c1917", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>←</button>
+          )}
           <HeartButton active={isFav} onToggle={() => onToggleFav(r.id)} t={t} size={38} />
         </div>
       </div>
       <div style={{ maxWidth: 540, margin: "-36px auto 0", padding: "0 16px " + bottomPadding, position: "relative", display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 14 }}>
-        <div style={{ background: "#fff", borderRadius: 20, padding: 18, border: "1px solid " + (th.cardBorder || th.line), boxShadow: "0 8px 24px rgba(15,23,42,0.08)" }}>
+        <div className="lgCard" style={{ borderRadius: 22, padding: 18 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontSize: 11, padding: "4px 9px", borderRadius: 999, background: "#f3f4f6", color: "#374151", fontWeight: 800 }}>{pick(r.category, lang)}</span>
             {r.status === "pending" && <span style={{ fontSize: 10, padding: "4px 8px", borderRadius: 999, background: "#fef3c7", color: "#d97706", fontWeight: 800 }}>{t("pendingBadge")}</span>}
