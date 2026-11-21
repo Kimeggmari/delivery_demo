@@ -57,6 +57,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, AdropSplashAdDelegate {
             self.window = win
             win.makeKeyAndVisible()
         }
+        // iOS 26+: host the web app in the system tab bar so the system
+        // presents the bars (bottom, or the vertical side bar on iPhone Duo).
+        // The window usually comes from UISceneStoryboardFile with the
+        // Capacitor view controller as its root, so wrap that root here.
+        if #available(iOS 26.0, *), let win = window, let root = win.rootViewController,
+           !(root is AppTabBarController) {
+            win.rootViewController = AppTabBarController(bridgeViewController: root)
+        }
         showSplashAd()
     }
 
