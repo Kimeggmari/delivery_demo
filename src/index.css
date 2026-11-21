@@ -32,6 +32,18 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Single-column screens (everything below the Duo 2-pane breakpoint in
+   useDuoLayout) keep their content out of side safe areas. The folded iPhone
+   Duo cover screen reports a ~84px right inset for its camera/status column;
+   without this, headers, cards and badges slide underneath it. The 2-pane
+   layout handles its own insets in .duoShell / .duoDetailPane. */
+@media (max-width: 619.98px) {
+  #root {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+}
+
 /* ── Apple Liquid Glass Design System ─────────────────────────────────────
    Follows Apple HIG hierarchy:
    - Content layer (.lgCard): crisp, vivid solid surfaces so scrolling content

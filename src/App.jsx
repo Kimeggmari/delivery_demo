@@ -1311,7 +1311,9 @@ export default function App() {
   const css = {
     wrap: { minHeight: "100dvh", background: th.phone, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif', color: th.text, display: "flex", flexDirection: "column" },
     header: { position: "sticky", top: 0, zIndex: 10, color: th.headerColor, padding: "max(18px, calc(12px + env(safe-area-inset-top, 0px))) 18px 14px" },
-    plainHeader: { position: "sticky", top: 0, zIndex: 10, padding: "max(18px, calc(12px + env(safe-area-inset-top, 0px))) max(18px, env(safe-area-inset-right, 0px)) 12px max(18px, env(safe-area-inset-left, 0px))" },
+    // Side safe-area insets are applied on #root (see index.css), so the
+    // header only needs its own 18px gutter here.
+    plainHeader: { position: "sticky", top: 0, zIndex: 10, padding: "max(18px, calc(12px + env(safe-area-inset-top, 0px))) 18px 12px" },
     content: { flex: 1, padding: "16px 18px 100px", display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 14, alignContent: "start", maxWidth: 540, width: "100%", margin: "0 auto", boxSizing: "border-box" },
     section: { background: "#fff", borderRadius: 22, padding: 16, border: "1px solid " + th.cardBorder, boxShadow: th.sectionShadow, minWidth: 0 },
     input: { width: "100%", padding: "14px 16px", border: "1px solid rgba(229,231,235,0.9)", outline: "none", borderRadius: 14, background: "#fff", color: th.text, fontFamily: "inherit", fontSize: 16, boxSizing: "border-box" },
