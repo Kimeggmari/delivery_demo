@@ -39,6 +39,7 @@ public class LiquidGlassPlugin: CAPPlugin, CAPBridgedPlugin {
         let state = LiquidGlassChromeState(
             visible: call.getBool("visible") ?? false,
             mode: call.getString("mode") ?? "bottom",
+            edge: call.getString("edge") ?? "right",
             showTabs: call.getBool("showTabs") ?? true,
             activeTab: call.getString("activeTab") ?? "order",
             labels: (call.getArray("labels") as? [String]) ?? ["홈", "검색", "찜", "마이 절약"],
@@ -87,7 +88,8 @@ public class LiquidGlassPlugin: CAPPlugin, CAPBridgedPlugin {
 
 private struct LiquidGlassChromeState: Equatable {
     var visible: Bool
-    var mode: String          // "bottom" | "rail"
+    var mode: String          // "bottom" | "rail" (unfolded Duo, left) | "edgeRail" (folded Duo cover screen)
+    var edge: String          // "edgeRail" side: "right" | "left"
     var showTabs: Bool
     var activeTab: String     // "order" | "search" | "favorites" | "my"
     var labels: [String]
@@ -144,6 +146,7 @@ private final class LiquidGlassOverlayView: UIView, UITabBarDelegate, UIGestureR
     private var isInteractingRail = false
     private var dragTargetIndex: Int = 0
     private var lastCartProminent: Bool?
+    private var railEdgeInteraction: UIScrollEdgeElementContainerInteraction?
 
     init(scrollView: UIScrollView) {
         self.scrollView = scrollView
@@ -188,10 +191,19 @@ private final class LiquidGlassOverlayView: UIView, UITabBarDelegate, UIGestureR
         bottomEdge.edge = .bottom
         bottomWrapper.addInteraction(bottomEdge)
 
-        let leftEdge = UIScrollEdgeElementContainerInteraction()
-        leftEdge.scrollView = sv
-        leftEdge.edge = .left
-        railContainer.addInteraction(leftEdge)
+        sv.rightEdgeEffect.style = .soft
+        let railEdge = UIScrollEdgeElementContainerInteraction()
+        railEdge.scrollView = sv
+        railEdge.edge = .left
+        railContainer.addInteraction(railEdge)
+        railEdgeInteraction = railEdge
+    }
+
+    /// The rail's scroll-edge feathering must sit on the edge the rail is on;
+    /// a left-edge interaction on a right-side rail blurs the whole content width.
+    private func updateRailEdge(for state: LiquidGlassChromeState) {
+        let edge: UIRectEdge = (state.mode == "edgeRail" && state.edge != "left") ? .right : .left
+        if railEdgeInteraction?.edge != edge { railEdgeInteraction?.edge = edge }
     }
 
     // MARK: Setup Bottom Native UITabBar + Prominent Glass Cart Pill
@@ -416,7 +428,15 @@ private final class LiquidGlassOverlayView: UIView, UITabBarDelegate, UIGestureR
         railCartBadge.isHidden = !hasItems
 
         let showBottom = state.visible && state.mode == "bottom" && (state.showTabs || hasItems)
-        let showRail = state.visible && state.mode == "rail"
+        let isEdgeRail = state.mode == "edgeRail"
+        updateRailEdge(for: state)
+        let showRail = state.visible && (state.mode == "rail" || (isEdgeRail && (state.showTabs || hasItems)))
+        // On the cover screen the rail stands in for the bottom tab bar, so the
+        // tab pill and settings follow showTabs (hidden on e.g. restaurant pages).
+        let showRailTabs = !isEdgeRail || state.showTabs
+        railNavPill.isHidden = !showRailTabs
+        railSettingsButton.isHidden = !showRailTabs
+        let railHiddenShift: CGFloat = (isEdgeRail && state.edge != "left") ? 16 : -16
 
         if showBottom {
             bottomWrapper.isHidden = false
@@ -445,7 +465,7 @@ private final class LiquidGlassOverlayView: UIView, UITabBarDelegate, UIGestureR
             self.bottomCartButton.transform = (showBottom && hasItems) ? .identity : CGAffineTransform(translationX: 0, y: 14).scaledBy(x: 0.92, y: 0.92)
 
             self.railContainer.alpha = showRail ? 1 : 0
-            self.railContainer.transform = showRail ? .identity : CGAffineTransform(translationX: -16, y: 0).scaledBy(x: 0.96, y: 0.96)
+            self.railContainer.transform = showRail ? .identity : CGAffineTransform(translationX: railHiddenShift, y: 0).scaledBy(x: 0.96, y: 0.96)
 
             if (tabChanged || visibilityChanged) && !self.isInteractingRail {
                 self.positionRailIndicators(for: CGFloat(self.selectedIndex), dropletActive: false, velocityY: 0)
@@ -485,15 +505,33 @@ private final class LiquidGlassOverlayView: UIView, UITabBarDelegate, UIGestureR
         bottomCartTotalLabel.frame = CGRect(x: cartW - 136, y: 0, width: 118, height: cartH)
         bottomCartTitleLabel.frame = CGRect(x: 48, y: 0, width: cartW - 188, height: cartH)
 
-        // 2. Unfolded iPhone Duo Left Liquid Glass Rail
+        // 2. Liquid Glass Rail: unfolded iPhone Duo (left, full height) or folded
+        //    cover screen ("edgeRail": inside the side safe-area column that holds
+        //    the camera/status bar, stacked from the bottom so it clears them).
         let railW: CGFloat = 68
-        let railLeading = max(14, safe.left + 8)
-        let railTop = max(20, safe.top + 8)
-        let railBottom = max(20, safe.bottom + 8)
-        let railContainerH = max(360, h - railTop - railBottom)
-        railContainer.frame = CGRect(x: railLeading - 6, y: railTop, width: railW + 12, height: railContainerH)
-
         let navH: CGFloat = 252
+        let railBottom = max(20, safe.bottom + 8)
+        let railFrame: CGRect
+        if state?.mode == "edgeRail" {
+            let containerW = railW + 12
+            let onLeft = state?.edge == "left"
+            let column = onLeft ? safe.left : safe.right
+            let x = onLeft
+                ? max(0, (column - containerW) / 2)
+                : w - max(containerW + 2, column) + max(0, (column - containerW) / 2)
+            // nav pill + gap + cart + gap + settings
+            let groupH = navH + 12 + 52 + 12 + 48
+            railFrame = CGRect(x: x, y: max(20, h - railBottom - groupH), width: containerW, height: groupH)
+        } else {
+            let railLeading = max(14, safe.left + 8)
+            let railTop = max(20, safe.top + 8)
+            railFrame = CGRect(x: railLeading - 6, y: railTop, width: railW + 12, height: max(360, h - railTop - railBottom))
+        }
+        // Set bounds/center rather than frame: the hide animation applies a transform.
+        railContainer.bounds = CGRect(origin: .zero, size: railFrame.size)
+        railContainer.center = CGPoint(x: railFrame.midX, y: railFrame.midY)
+        let railContainerH = railFrame.height
+
         railNavPill.frame = CGRect(x: 6, y: 0, width: railW, height: navH)
         let inset: CGFloat = 6
         let railSlotH = (navH - inset * 2) / CGFloat(Self.tabKeys.count)
