@@ -1,10 +1,10 @@
 import RestaurantCard from "./RestaurantCard";
 
-export default function FavoritesPage({ restaurants, favorites, lang, t, th, onToggleFav, onOpen, onBrowse, reviewCountFor, bottomPadding }) {
+export default function FavoritesPage({ restaurants, favorites, lang, t, th, onToggleFav, onOpen, onBrowse, reviewCountFor, bottomPadding, selectedId }) {
   const list = favorites.map(id => restaurants.find(r => r.id === id)).filter(Boolean);
   return (
-    <div style={{ minHeight: "100dvh", background: th.phone, color: th.text, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif' }}>
-      <div data-ad-clip="top" style={{ position: "sticky", top: 0, zIndex: 10, background: "#fff", borderBottom: "1px solid #f1f5f9", padding: "calc(14px + env(safe-area-inset-top)) 16px 14px" }}>
+    <div style={{ minHeight: "100%", background: th.phone, color: th.text, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif' }}>
+      <div data-ad-clip="top" className="lgHeader" style={{ position: "sticky", top: 0, zIndex: 10, padding: "max(18px, calc(14px + env(safe-area-inset-top, 0px))) 16px 14px" }}>
         <h2 style={{ maxWidth: 540, margin: "0 auto", fontSize: 20, fontWeight: 900, letterSpacing: -0.3 }}>{t("favPageTitle")} {list.length > 0 && <span style={{ color: th.brand, fontVariantNumeric: "tabular-nums" }}>{list.length}</span>}</h2>
       </div>
       <div style={{ maxWidth: 540, margin: "0 auto", padding: "16px 16px " + bottomPadding, display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 12 }}>
@@ -19,7 +19,7 @@ export default function FavoritesPage({ restaurants, favorites, lang, t, th, onT
           <RestaurantCard
             key={r.id} r={r} lang={lang} t={t} th={th}
             isFav onToggleFav={onToggleFav} onOpen={onOpen}
-            reviewCount={reviewCountFor(r)}
+            reviewCount={reviewCountFor(r)} selected={selectedId === r.id}
           />
         ))}
       </div>

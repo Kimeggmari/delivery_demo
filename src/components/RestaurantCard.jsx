@@ -10,9 +10,9 @@ export function HeartButton({ active, onToggle, t, size = 34 }) {
       onClick={(e) => { e.stopPropagation(); onToggle(); }}
       aria-label={active ? t("favRemoveAria") : t("favAddAria")}
       aria-pressed={active}
+      className="lgPillBtn"
       style={{
-        width: size, height: size, borderRadius: 999, border: "none", cursor: "pointer",
-        background: "rgba(255,255,255,0.92)", boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+        width: size, height: size, borderRadius: 999, cursor: "pointer",
         display: "flex", alignItems: "center", justifyContent: "center", padding: 0, flexShrink: 0,
       }}
     >
@@ -25,7 +25,7 @@ export function HeartButton({ active, onToggle, t, size = 34 }) {
 
 // Compact list card: thumbnail with fake-delivery badge, favorite heart and
 // "real payment 0원" strip, then name, rating, tagline and info chips.
-export default function RestaurantCard({ r, lang, t, th, isFav, onToggleFav, onOpen, reviewCount }) {
+export default function RestaurantCard({ r, lang, t, th, isFav, onToggleFav, onOpen, reviewCount, selected = false }) {
   const badgeKey = r.badge?.ko || "";
   const bColor = badgeColors[badgeKey];
   const chip = {
@@ -37,10 +37,13 @@ export default function RestaurantCard({ r, lang, t, th, isFav, onToggleFav, onO
     <div
       onClick={() => onOpen(r)}
       role="button"
+      aria-current={selected ? "true" : undefined}
+      className="lgCard"
       style={{
-        borderRadius: 20, overflow: "hidden", background: "#fff",
-        border: "1px solid " + (th.cardBorder || th.line),
-        boxShadow: th.sectionShadow, cursor: "pointer",
+        borderRadius: 22, overflow: "hidden",
+        border: selected ? "2px solid " + th.brand : undefined,
+        boxShadow: selected ? "0 10px 28px rgba(249, 115, 22, 0.18), inset 0 1px 0 rgba(255,255,255,0.95)" : undefined,
+        cursor: "pointer",
       }}
     >
       <div style={{ height: 136, position: "relative", background: brandBannerFor(r), overflow: "hidden" }}>
@@ -54,11 +57,14 @@ export default function RestaurantCard({ r, lang, t, th, isFav, onToggleFav, onO
         }}>
           <RestaurantLogo restaurant={r} size={78} />
         </div>
-        <div style={{
-          position: "absolute", top: 10, left: 10, background: "rgba(255,255,255,0.95)", color: th.brandDark,
-          borderRadius: 999, padding: "5px 11px", fontSize: 11, fontWeight: 900,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.06)", fontVariantNumeric: "tabular-nums",
-        }}>
+        <div
+          className="lgPillBtn"
+          style={{
+            position: "absolute", top: 10, left: 10, color: th.brandDark,
+            borderRadius: 999, padding: "5px 11px", fontSize: 11, fontWeight: 900,
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
           ⚡ {t("cardVirtualEta", r.time)}
         </div>
         <div style={{ position: "absolute", top: 10, right: 10 }}>

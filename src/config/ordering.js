@@ -13,17 +13,17 @@ export const SIZE_OPTIONS = [
 
 export const theme = {
   phone: "#fff7ed", text: "#1c1917", muted: "#78716c", line: "#fed7aa",
-  cardBorder: "rgba(254, 215, 170, 0.72)",
+  cardBorder: "rgba(28, 25, 23, 0.06)",
   brand: "#f97316", brandDark: "#ea580c",
   headerStart: "#fb923c", headerEnd: "#f97316",
   heroStart: "#fb923c", heroEnd: "#f97316",
   primaryBtn: "#f97316",
-  sectionShadow: "0 4px 18px rgba(28, 25, 23, 0.05), 0 1px 3px rgba(249, 115, 22, 0.04)",
-  inputShadow: "0 4px 14px rgba(154, 52, 18, 0.12)",
-  bottomBarBg: "rgba(255,255,255,0.97)", bottomBarBorder: "rgba(254,215,170,0.65)",
-  headerColor: "#fff", headerTextAlt: "rgba(255,255,255,0.8)",
-  iconBtnBg: "rgba(255,255,255,0.2)", iconBtnColor: "#fff",
-  headerBorderBottom: "none", activeBg: "#ffedd5",
+  sectionShadow: "0 4px 18px rgba(28, 25, 23, 0.05), 0 1px 2px rgba(28, 25, 23, 0.03)",
+  inputShadow: "0 4px 16px rgba(28, 25, 23, 0.06)",
+  bottomBarBg: "rgba(255,252,248,0.68)", bottomBarBorder: "rgba(255,255,255,0.75)",
+  headerColor: "#1c1917", headerTextAlt: "#78716c",
+  iconBtnBg: "rgba(255,255,255,0.58)", iconBtnColor: "#1c1917",
+  headerBorderBottom: "none", activeBg: "rgba(255, 237, 213, 0.85)",
 };
 
 export const RABBIT_SURCHARGE = 1000;

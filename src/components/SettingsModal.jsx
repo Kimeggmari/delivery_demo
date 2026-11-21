@@ -20,8 +20,8 @@ export default function SettingsModal({
   deliveryTimeOverrides, onChangeDeliveryTime,
 }) {
   return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 140, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "14px 20px calc(32px + env(safe-area-inset-bottom))", width: "100%", maxWidth: 540, maxHeight: "85dvh", overflowY: "auto", overscrollBehavior: "contain", animation: "slideUp .3s ease" }}>
+    <div onClick={onClose} className="lgBackdrop" style={{ position: "fixed", inset: 0, zIndex: 140, display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+      <div onClick={e => e.stopPropagation()} className="lgSheet" style={{ borderRadius: "28px 28px 0 0", padding: "14px 20px calc(32px + env(safe-area-inset-bottom))", width: "100%", maxWidth: 540, maxHeight: "85dvh", overflowY: "auto", overscrollBehavior: "contain", animation: "slideUp .3s ease" }}>
         <div style={{ width: 38, height: 4, borderRadius: 999, background: "#e5e7eb", margin: "0 auto 16px" }} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900 }}>{t("settingsTitle")}</h3>

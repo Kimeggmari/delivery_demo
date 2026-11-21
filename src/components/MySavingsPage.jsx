@@ -29,11 +29,14 @@ function orderRestaurants(order, allRestaurants) {
 export default function MySavingsPage({ th, t, lang, uid, history, allRestaurants, onWriteReview, onClear, onInfo, onPrivacy, bottomPadding }) {
   const stats = useMemo(() => computeStats(history), [history]);
   const earned = new Set(earnedBadges(stats).map(a => a.id));
-  const card = { background: "#fff", borderRadius: 20, padding: 16, border: "1px solid " + (th.cardBorder || th.line), boxShadow: th.sectionShadow };
+  const card = {
+    background: "#fff",
+    borderRadius: 22, padding: 16, border: "1px solid " + th.cardBorder, boxShadow: th.sectionShadow,
+  };
 
   return (
     <div style={{ minHeight: "100dvh", background: th.phone, color: th.text, fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif' }}>
-      <div data-ad-clip="top" style={{ position: "sticky", top: 0, zIndex: 10, background: "#fff", borderBottom: "1px solid #f1f5f9", padding: "calc(14px + env(safe-area-inset-top)) 16px 14px" }}>
+      <div data-ad-clip="top" className="lgHeader" style={{ position: "sticky", top: 0, zIndex: 10, padding: "max(18px, calc(14px + env(safe-area-inset-top, 0px))) 16px 14px" }}>
         <div style={{ maxWidth: 540, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
           <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900, letterSpacing: -0.3 }}>{t("myPageTitle")}</h2>
           <span style={{
