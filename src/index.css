@@ -237,8 +237,10 @@ body {
   overflow: hidden;
 }
 
-.duoShell.duoNativeRail {
-  padding-left: calc(88px + max(12px, env(safe-area-inset-left, 0px)));
+/* Leading safe area: the system's vertical bar when it sits on the leading
+   edge (the trailing side is handled by .duoDetailPane). */
+.duoShell {
+  padding-left: env(safe-area-inset-left, 0px);
 }
 
 .duoSplit {

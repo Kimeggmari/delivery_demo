@@ -35,8 +35,6 @@ import PlatformAd from "./components/PlatformAd";
 import BottomTabBar, { TAB_BAR_HEIGHT } from "./components/BottomTabBar";
 import DuoNavRail from "./components/DuoNavRail";
 import useDuoLayout from "./lib/useDuoLayout";
-import useEdgeRailSide from "./lib/useEdgeRailSide";
-import useMediaQuery from "./lib/useMediaQuery";
 import { LiquidGlass, useNativeLiquidGlass } from "./lib/liquidGlass";
 import CartFab, { Toast } from "./components/CartFab";
 import RestaurantCard from "./components/RestaurantCard";
@@ -824,15 +822,10 @@ export default function App() {
   const [detailReturnPage, setDetailReturnPage] = useState("order");
   const [cartReturnPage, setCartReturnPage] = useState("order");
   const isDuo = useDuoLayout();
+  // iOS 26+: the app runs inside the system UITabBarController, which draws the
+  // tab bar (bottom, or the vertical side bar on iPhone Duo) and reports it to
+  // the web view as safe-area insets.
   const nativeLiquidGlass = useNativeLiquidGlass();
-  // iPhone Duo (cover screen, or inner display in landscape): native nav lives
-  // in the camera/status-bar side column, per the HIG's vertical controls.
-  const edgeRailSide = useEdgeRailSide();
-  const edgeRail = nativeLiquidGlass && !!edgeRailSide;
-  // Unfolded inner display held in portrait has room vertically, so the HIG
-  // keeps the standard horizontal tab bar there instead of a side rail.
-  const isPortrait = useMediaQuery("(orientation: portrait)");
-  const duoBottomBar = nativeLiquidGlass && isDuo && !edgeRail && isPortrait;
   const [duoRightMode, setDuoRightMode] = useState("restaurant"); // "restaurant" | "cart"
   const [toast, setToast] = useState(null);
   const toastTimerRef = useRef(null);
@@ -1344,16 +1337,13 @@ export default function App() {
 
   // Bottom spacing for tab screens: tab bar + floating cart button.
   const tabFabBottom = "calc(" + (TAB_BAR_HEIGHT + 10) + "px + env(safe-area-inset-bottom))";
-  // With the edge rail there is no bottom tab bar or cart pill to clear.
-  const tabToastBottom = edgeRail
+  // The system tab bar and its cart accessory are already part of the safe
+  // area, so with the native shell only a content gap is added.
+  const tabToastBottom = nativeLiquidGlass
     ? "calc(16px + env(safe-area-inset-bottom))"
     : "calc(" + (TAB_BAR_HEIGHT + (cartCount ? 82 : 12)) + "px + env(safe-area-inset-bottom))";
-  // Duo 2-pane: clear the native bottom tab bar (and cart pill) when the inner
-  // display is held in portrait; otherwise nav is on the side.
-  const duoBottomPadding = (extra) => duoBottomBar
-    ? "calc(" + (TAB_BAR_HEIGHT + (cartCount ? 64 : 6) + extra) + "px + env(safe-area-inset-bottom))"
-    : "calc(" + extra + "px + env(safe-area-inset-bottom))";
-  const tabBottomPadding = edgeRail
+  const duoBottomPadding = (extra) => "calc(" + extra + "px + env(safe-area-inset-bottom))";
+  const tabBottomPadding = nativeLiquidGlass
     ? "calc(28px + env(safe-area-inset-bottom))"
     : "calc(" + (TAB_BAR_HEIGHT + (cartCount ? 90 : 28)) + "px + env(safe-area-inset-bottom))";
 
@@ -1403,10 +1393,8 @@ export default function App() {
     );
     LiquidGlass.updateState({
       visible: showChrome,
-      mode: edgeRail ? "edgeRail" : isDuo && !duoBottomBar ? "rail" : "bottom",
-      edge: edgeRailSide || "right",
-      showTabs: isDuo ? true : isTab,
-      activeTab: isTab ? page : "order",
+      // Non-tab pages (e.g. a restaurant) keep the tab they were opened from.
+      activeTab: isTab ? page : "",
       labels: [t("tabHome"), t("tabSearch"), t("tabFavorites"), t("tabMySavings")],
       cartCount,
       cartLabel: t("cartFabLabel"),
@@ -1414,7 +1402,7 @@ export default function App() {
       cartActive: isDuo && (duoRightMode === "cart" || page === "cart"),
     }).catch(() => {});
   }, [
-    nativeLiquidGlass, anyModalOpen, isDuo, edgeRail, edgeRailSide, duoBottomBar, page, duoRightMode,
+    nativeLiquidGlass, anyModalOpen, isDuo, page, duoRightMode,
     cartCount, totals.total, lang, t,
   ]);
 
@@ -1425,9 +1413,7 @@ export default function App() {
           data-ad-clip="bottom"
           style={{
             position: "fixed", left: 0, right: 0, bottom: 0,
-            height: edgeRail
-              ? "env(safe-area-inset-bottom)"
-              : "calc(" + (TAB_BAR_HEIGHT + (cartCount ? 64 : 6)) + "px + env(safe-area-inset-bottom))",
+            height: "env(safe-area-inset-bottom)",
             pointerEvents: "none",
           }}
         />
@@ -1562,7 +1548,7 @@ export default function App() {
           uid={uid} customMenuIds={customMenuIds}
           onDeleteMenu={handleDeleteMenu} onReportMenu={handleReportMenu}
           onDeleteRestaurant={handleDeleteRestaurant} onReportRestaurant={handleReportRestaurant}
-          bottomPadding={cartCount ? "calc(100px + env(safe-area-inset-bottom))" : "calc(32px + env(safe-area-inset-bottom))"}
+          bottomPadding={cartCount && !nativeLiquidGlass ? "calc(100px + env(safe-area-inset-bottom))" : "calc(32px + env(safe-area-inset-bottom))"}
         />
         {!nativeLiquidGlass && (
           <CartFab count={cartCount} total={totals.total} onClick={openCart} bottom="calc(16px + env(safe-area-inset-bottom))" lang={lang} t={t} th={th} />
@@ -2072,7 +2058,7 @@ export default function App() {
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
             </button>
-            {(!isDuo || duoBottomBar) && !edgeRail && (
+            {(!isDuo || nativeLiquidGlass) && (
               <button onClick={() => setShowSettings(true)} className="lgPillBtn" style={css.iconBtn} aria-label={t("settingsAria")} title={t("settingsTitle")}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c1917" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <circle cx="12" cy="12" r="3" />
@@ -2247,7 +2233,7 @@ export default function App() {
     ) : homeMasterBody;
 
     return (
-      <div className={nativeLiquidGlass && !edgeRail && !duoBottomBar ? "duoShell duoNativeRail" : "duoShell"} style={{ fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif', color: th.text }}>
+      <div className="duoShell" style={{ fontFamily: 'Inter,"Noto Sans KR",system-ui,sans-serif', color: th.text }}>
         <style>{globalStyle}</style>
         {sharedModals}
         {!nativeLiquidGlass && (
