@@ -67,6 +67,9 @@ final class AppTabBarController: UITabBarController, UITabBarControllerDelegate 
         view.backgroundColor = UIColor(red: 1.0, green: 0.969, blue: 0.929, alpha: 1) // #fff7ed
         // Brand accent for the selected tab and accessory controls.
         view.tintColor = UIColor(red: 0.918, green: 0.345, blue: 0.047, alpha: 1) // #ea580c
+        // Keep the bar hidden until the web app reports a screen that shows it,
+        // so the launch splash and first-run intro appear without it.
+        setTabBarHidden(true, animated: false)
         // Start loading the web app right away (it runs behind the splash ad).
         host(for: Self.tabKeys[0]).adoptBridge()
     }
