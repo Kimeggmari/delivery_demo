@@ -343,6 +343,7 @@
 					"-Wl,-u,_GADAdSizeFromCGSize",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.eggmari.foodneverarrives;
+				STRIP_STYLE = "non-global";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = Eggmalheee;
@@ -378,6 +379,7 @@
 					"-Wl,-u,_GADAdSizeFromCGSize",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.eggmari.foodneverarrives;
+				STRIP_STYLE = "non-global";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = Eggmalheee;
